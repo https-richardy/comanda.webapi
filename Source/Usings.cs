@@ -5,6 +5,7 @@ global using System.Text;
 /* add global usage directives for Microsoft namespaces here */
 
 global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.AspNetCore.Identity;
 global using Microsoft.OpenApi.Models;
 global using Microsoft.Extensions.Diagnostics.HealthChecks;
 global using Microsoft.EntityFrameworkCore;
