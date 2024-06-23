@@ -8,5 +8,6 @@ public static class ServicesExtension
         services.ConfigureSwagger();
 
         services.AddDataPersistence(configuration);
+        services.ConfigureIdentity();
     }
 }
