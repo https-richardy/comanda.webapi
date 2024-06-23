@@ -2,7 +2,6 @@ namespace Comanda.WebApi.Entities;
 
 public sealed class EstablishmentOwner : Entity
 {
-    public Establishment Establishment { get; set; }
     public Account Account { get; set; }
 
     public EstablishmentOwner()
@@ -13,9 +12,8 @@ public sealed class EstablishmentOwner : Entity
         */
     }
 
-    public EstablishmentOwner(Establishment establishment, Account account)
+    public EstablishmentOwner(Account account)
     {
-        Establishment = establishment;
         Account = account;
     }
 }
