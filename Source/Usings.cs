@@ -6,6 +6,7 @@ global using System.Text;
 
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.Identity;
+global using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 global using Microsoft.OpenApi.Models;
 global using Microsoft.Extensions.Diagnostics.HealthChecks;
 global using Microsoft.EntityFrameworkCore;
