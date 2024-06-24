@@ -20,3 +20,5 @@ global using Comanda.WebApi.Utils;
 global using Comanda.WebApi.Extensions;
 
 /* add global usage directives for Third party namespaces here */
+
+global using MediatR;
