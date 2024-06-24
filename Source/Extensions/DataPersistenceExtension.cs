@@ -9,5 +9,8 @@ public static class DataPersistenceExtension
         {
             options.UseSqlite(connectionString);
         });
+
+        services.AddScoped<ICustomerRepository, CustomerRepository>();
+        services.AddScoped<IEstablishementOwnerRepository, EstablishmentOwnerRepository>();
     }
 }
