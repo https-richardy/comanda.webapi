@@ -3,7 +3,10 @@ namespace Comanda.WebApi.Handlers;
 public sealed class AccountRegistrationHandler(
     UserManager<Account> userManager,
     RoleManager<IdentityRole> roleManager,
-    IValidator<AccountRegistrationRequest> validator
+    IValidator<AccountRegistrationRequest> validator,
+
+    ICustomerRepository customerRepository,
+    IEstablishmentOwnerRepository establishmentOwnerRepository
 ) : IRequestHandler<AccountRegistrationRequest, Response>
 {
     public async Task<Response> Handle(AccountRegistrationRequest request, CancellationToken cancellationToken)
@@ -28,7 +31,10 @@ public sealed class AccountRegistrationHandler(
     private async Task RegisterCustomerAsync(AccountRegistrationRequest request)
     {
         var account = TinyMapper.Map<Account>(request);
+        var customer = new Customer { Account = account };
+
         await userManager.CreateAsync(account, request.Password);
+        await customerRepository.SaveAsync(customer);
 
         if (!await roleManager.RoleExistsAsync("Customer"))
             await roleManager.CreateAsync(new IdentityRole("Customer"));
@@ -39,7 +45,10 @@ public sealed class AccountRegistrationHandler(
     private async Task RegisterEstablishmentOwner(AccountRegistrationRequest request)
     {
         var account = TinyMapper.Map<Account>(request);
+        var establishmentOwner = new EstablishmentOwner { Account = account };
+
         await userManager.CreateAsync(account, request.Password);
+        await establishmentOwnerRepository.SaveAsync(establishmentOwner);
 
         if (!await roleManager.RoleExistsAsync("EstablishmentOwner"))
             await roleManager.CreateAsync(new IdentityRole("EstablishmentOwner"));
