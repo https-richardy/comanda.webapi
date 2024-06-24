@@ -8,5 +8,11 @@ public static class MediatorExtension
         {
             options.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
         });
+
+        #region handlers for accounts requests
+
+        services.AddScoped<IRequestHandler<AccountRegistrationRequest, Response>, AccountRegistrationHandler>();
+
+        #endregion
     }
 }
