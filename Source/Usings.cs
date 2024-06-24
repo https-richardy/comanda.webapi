@@ -26,3 +26,4 @@ global using Comanda.WebApi.Extensions;
 
 global using MediatR;
 global using FluentValidation;
+global using Nelibur.ObjectMapper;
