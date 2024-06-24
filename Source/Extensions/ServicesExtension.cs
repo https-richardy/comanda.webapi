@@ -11,5 +11,6 @@ public static class ServicesExtension
         services.ConfigureIdentity();
 
         services.AddMediator();
+        services.AddValidation();
     }
 }
