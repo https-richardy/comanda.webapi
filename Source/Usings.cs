@@ -5,15 +5,19 @@ global using System.Linq.Expressions;
 global using System.Text;
 global using System.Text.Json;
 global using System.Text.Json.Serialization;
+global using System.Security.Claims;
+global using System.IdentityModel.Tokens.Jwt;
 
 /* add global usage directives for Microsoft namespaces here */
 
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.Identity;
+global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 global using Microsoft.OpenApi.Models;
 global using Microsoft.Extensions.Diagnostics.HealthChecks;
 global using Microsoft.EntityFrameworkCore;
+global using Microsoft.IdentityModel.Tokens;
 
 /* add global usage directives for Comanda namespaces here */
 
