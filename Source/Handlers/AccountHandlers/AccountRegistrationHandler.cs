@@ -31,7 +31,7 @@ public sealed class AccountRegistrationHandler(
     private async Task RegisterCustomerAsync(AccountRegistrationRequest request)
     {
         var account = TinyMapper.Map<Account>(request);
-        var customer = new Customer { Account = account };
+        var customer = new Customer { Account = account, FullName = request.Name };
 
         await userManager.CreateAsync(account, request.Password);
         await customerRepository.SaveAsync(customer);
