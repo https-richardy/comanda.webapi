@@ -9,5 +9,7 @@ public static class ServicesExtension
 
         services.AddDataPersistence(configuration);
         services.ConfigureIdentity();
+
+        services.AddMediator();
     }
 }
