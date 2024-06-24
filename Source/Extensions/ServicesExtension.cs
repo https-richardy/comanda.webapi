@@ -12,5 +12,6 @@ public static class ServicesExtension
 
         services.AddMediator();
         services.AddValidation();
+        services.AddMapping();
     }
 }
