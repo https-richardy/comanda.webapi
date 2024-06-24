@@ -18,6 +18,7 @@ global using Microsoft.EntityFrameworkCore;
 global using Comanda.WebApi.Entities;
 global using Comanda.WebApi.Data;
 global using Comanda.WebApi.Payloads;
+global using Comanda.WebApi.Validators;
 global using Comanda.WebApi.Utils;
 global using Comanda.WebApi.Extensions;
 
