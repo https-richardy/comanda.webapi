@@ -22,8 +22,10 @@ internal class Program
         app.UseHttpsRedirection();
 
         app.UseAuthorization();
-
         app.MapControllers();
+
+        app.UseValidationExceptionHandler();
+
         app.Run();
     }
 }
