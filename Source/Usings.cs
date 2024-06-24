@@ -1,6 +1,7 @@
 /* add global usage directives for System namespaces here */
 
 global using System.Text;
+global using System.Text.Json.Serialization;
 
 /* add global usage directives for Microsoft namespaces here */
 
