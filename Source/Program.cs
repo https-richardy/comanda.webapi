@@ -21,9 +21,10 @@ internal class Program
         app.ConfigureCORS();
         app.UseHttpsRedirection();
 
+        app.UseAuthentication();
         app.UseAuthorization();
-        app.MapControllers();
 
+        app.MapControllers();
         app.UseValidationExceptionHandler();
 
         app.Run();
