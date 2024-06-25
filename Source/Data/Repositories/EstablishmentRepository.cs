@@ -15,4 +15,13 @@ public sealed class EstablishmentRepository(ComandaDbContext dbContext) :
         establishment.Categories.Add(category);
         await _dbContext.SaveChangesAsync();
     }
+
+    #pragma warning disable CS8603
+    public async Task<EstablishmentOwner> FindOwnerAsync(int establishmentId)
+    {
+        return await _dbContext.Establishments
+            .Where(establishment => establishment.Id == establishmentId)
+            .Select(establishment => establishment.Owner)
+            .FirstOrDefaultAsync();
+    }
 }
