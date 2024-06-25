@@ -16,6 +16,14 @@ public sealed class EstablishmentRepository(ComandaDbContext dbContext) :
         await _dbContext.SaveChangesAsync();
     }
 
+    #pragma warning disable CS8603
+    public async Task<Category> RetrieveCategoryByIdAsync(int categoryId)
+    {
+        return await _dbContext.Categories
+            .Where(category => category.Id == categoryId)
+            .FirstOrDefaultAsync();
+    }
+
     public async Task<bool> CategoryExistsAsync(int categoryId)
     {
         return await _dbContext.Categories.AnyAsync(category => category.Id == categoryId);
