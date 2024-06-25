@@ -14,6 +14,7 @@ public static class ValidationExtension
 
         services.AddTransient<IValidator<CreateEstablishmentRequest>, CreateEstablishmentValidator>();
         services.AddTransient<IValidator<CreateEstablishmentProductRequest>, CreateEstablishmentProductValidator>();
+        services.AddTransient<IValidator<EstablishmentCategoryRegistrationRequest>, EstablishmentCategoryRegistrationValidator>();
 
         #endregion
     }
