@@ -9,4 +9,7 @@ public sealed record CreateEstablishmentProductRequest : IRequest<Response>, IAu
 
     [JsonIgnore]
     public string UserId { get; set; } = string.Empty;
+
+    [JsonIgnore]
+    public int EstablishmentId { get; set; }
 }
