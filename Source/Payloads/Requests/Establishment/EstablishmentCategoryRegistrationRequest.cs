@@ -1,9 +1,9 @@
 namespace Comanda.WebApi.Payloads;
 
-public sealed record EstablishmentCategoryRegistrationRequest : IRequest<Response>, IAuthenticatedRequest
+public sealed record EstablishmentCategoryRegistrationRequest : AuthenticatedRequest, IRequest<Response>
 {
     public string Name { get; set; }
 
     [JsonIgnore]
-    public string UserId { get; set; } = string.Empty;
+    public int EstablishmentId { get; set; }
 }
