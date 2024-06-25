@@ -2,8 +2,10 @@ namespace Comanda.WebApi.Handlers;
 
 public sealed class CreateEstablishmentHandler(
     UserManager<Account> userManager,
+    IAddressService addressService,
     IValidator<CreateEstablishmentRequest> validator,
-    IEstablishmentRepository establishmentRepository
+    IEstablishmentRepository establishmentRepository,
+    IEstablishmentOwnerRepository establishmentOwnerRepository
 ) : IRequestHandler<CreateEstablishmentRequest, Response>
 {
     public async Task<Response> Handle(CreateEstablishmentRequest request, CancellationToken cancellationToken)
@@ -23,9 +25,14 @@ public sealed class CreateEstablishmentHandler(
             throw new ValidationException(validationResult.Errors);
 
         var establishment = TinyMapper.Map<Establishment>(request);
-        establishment.Owner.Account = account;
+
+        establishment.Owner = await establishmentOwnerRepository.FindSingleAsync(owner => owner.Account.Id == account.Id);
+
+        establishment.Address = await addressService.GetByZipCodeAsync(request.PostalCode);
+        establishment.Address.Number = request.Number;
 
         await establishmentRepository.SaveAsync(establishment);
+
         return new Response(statusCode: 201, message: "establishment created successfully.");
     }
 
