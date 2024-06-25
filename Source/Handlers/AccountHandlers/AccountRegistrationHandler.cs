@@ -45,7 +45,7 @@ public sealed class AccountRegistrationHandler(
     private async Task RegisterEstablishmentOwner(AccountRegistrationRequest request)
     {
         var account = TinyMapper.Map<Account>(request);
-        var establishmentOwner = new EstablishmentOwner { Account = account };
+        var establishmentOwner = new EstablishmentOwner { Account = account, FullName = request.Name };
 
         await userManager.CreateAsync(account, request.Password);
         await establishmentOwnerRepository.SaveAsync(establishmentOwner);
