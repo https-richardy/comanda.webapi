@@ -23,6 +23,9 @@ public sealed class CreateEstablishmentProductHandler(
         if (!await CanCreateProductAsync(account))
             return new Response(statusCode: 403, message: "the user does not have an establishment. The user must have a registered establishment before registering a product.");
 
+        if (!await establishmentRepository.CategoryExistsAsync(request.CategoryId))
+            return new Response(statusCode: 404, message: "this category does not exist.");
+
         var validationResult = await validator.ValidateAsync(request);
         if (!validationResult.IsValid)
             throw new ValidationException(validationResult.Errors);
