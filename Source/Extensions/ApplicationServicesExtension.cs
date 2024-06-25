@@ -10,5 +10,7 @@ public static class ApplicationServicesExtension
         {
             client.BaseAddress = new Uri(configuration["ExternalApis:ViaCepApiUrl"]);
         });
+
+        services.AddFileUploadService();
     }
 }
