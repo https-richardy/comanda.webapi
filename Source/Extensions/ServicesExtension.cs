@@ -16,6 +16,6 @@ public static class ServicesExtension
 
         services.AddJwtBearer(configuration);
 
-        services.AddApplicationServices();
+        services.AddApplicationServices(configuration);
     }
 }
