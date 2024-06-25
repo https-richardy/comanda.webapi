@@ -22,9 +22,9 @@ public record FileUploadOptions
     /// </summary>
     /// <remarks>
     /// By default, the allowed file extensions include common image and media formats such as 
-    /// .jpg, .jpeg, .png, .gif, .mp4, and .mp3. However, This array can be customized as needed.
+    /// .jpg, .jpeg and .png, However, This array can be customized as needed.
     /// </remarks>
-    public string[] AllowedExtensions { get; set; } = { ".jpg", ".jpeg", ".png", ".gif", ".mp4", ".mp3" };
+    public string[] AllowedExtensions { get; set; } = { ".jpg", ".jpeg", ".png" };
 
     /// <summary>
     /// Gets or sets a value indicating whether existing files should be overwritten.
