@@ -9,5 +9,11 @@ public static class ValidationExtension
         services.AddTransient<IValidator<AccountRegistrationRequest>, AccountRegistrationValidator>();
 
         #endregion
+
+        #region  validators for establishments requests
+
+        services.AddTransient<IValidator<CreateEstablishmentRequest>, CreateEstablishmentValidator>();
+
+        #endregion
     }
 }
