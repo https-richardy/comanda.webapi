@@ -8,7 +8,7 @@ public static class ApplicationServicesExtension
         services.AddScoped<IAddressService, AddressService>();
         services.AddHttpClient<IAddressService, AddressService>(client =>
         {
-            client.BaseAddress = new Uri(configuration["ExternalApis:ViaCepUrl"]);
+            client.BaseAddress = new Uri(configuration["ExternalApis:ViaCepApiUrl"]);
         });
     }
 }
