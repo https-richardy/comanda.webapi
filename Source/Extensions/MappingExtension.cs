@@ -13,5 +13,14 @@ public static class MappingExtension
         });
 
         #endregion
+
+        #region mappings for establishments requests
+
+        TinyMapper.Bind<CreateEstablishmentRequest, Establishment>(config =>
+        {
+            config.Bind(source: source => source.EstablishmentName, target: target => target.Name);
+        });
+
+        #endregion
     }
 }
