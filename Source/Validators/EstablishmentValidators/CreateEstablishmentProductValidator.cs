@@ -1,10 +1,10 @@
 namespace Comanda.WebApi.Validators;
 
-public sealed class CreateEstablishmenteProductValidator :
+public sealed class CreateEstablishmentProductValidator :
     AbstractValidator<CreateEstablishmentProductRequest>,
     IValidator<CreateEstablishmentProductRequest>
 {
-    public CreateEstablishmenteProductValidator()
+    public CreateEstablishmentProductValidator()
     {
         RuleFor(request => request.Title)
             .NotEmpty().WithMessage("Title is required.")

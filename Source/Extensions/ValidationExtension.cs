@@ -13,6 +13,7 @@ public static class ValidationExtension
         #region  validators for establishments requests
 
         services.AddTransient<IValidator<CreateEstablishmentRequest>, CreateEstablishmentValidator>();
+        services.AddTransient<IValidator<CreateEstablishmentProductRequest>, CreateEstablishmentProductValidator>();
 
         #endregion
     }
