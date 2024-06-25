@@ -16,6 +16,17 @@ public sealed class EstablishmentController(IMediator mediator) : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
 
+    [HttpPost("{establishmentId}/categories")]
+    [Authorize(Roles = "EstablishmentOwner")]
+    public async Task<IActionResult> CreateEstablishmentCategoryAsync(EstablishmentCategoryRegistrationRequest request, [FromRoute] int establishmentId)
+    {
+        request.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        request.EstablishmentId = establishmentId;
+
+        var response = await mediator.Send(request);
+        return StatusCode(response.StatusCode, response);
+    }
+
     [HttpPost("{establishmentId}/products")]
     [Authorize(Roles = "EstablishmentOwner")]
     public async Task<IActionResult> CreateEstablishmentProductAsync(CreateEstablishmentProductRequest request, [FromRoute] int establishmentId)
