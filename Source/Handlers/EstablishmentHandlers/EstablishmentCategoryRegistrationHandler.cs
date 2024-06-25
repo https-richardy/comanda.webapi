@@ -1,3 +1,5 @@
+#pragma warning disable CS8602
+
 namespace Comanda.WebApi.Handlers;
 
 public sealed class EstablishmentCategoryRegistrationHandler(
@@ -15,7 +17,9 @@ public sealed class EstablishmentCategoryRegistrationHandler(
         if (establishment is null)
             return new Response(statusCode: 404, message: "establishment not found");
 
-        if (establishment.Owner.Account.Id != account?.Id)
+        var owner = await establishmentRepository.FindOwnerAsync(establishment.Id);
+
+        if (owner.Account.Id != account.Id)
             return new Response(statusCode: 403, message: "The user is not the owner of this establishment.");
 
         var validationResult = await validator.ValidateAsync(request);
