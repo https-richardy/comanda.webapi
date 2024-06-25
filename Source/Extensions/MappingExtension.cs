@@ -29,6 +29,11 @@ public static class MappingExtension
             config.Bind(source: source => source.Price, target: target => target.Price);
         });
 
+        TinyMapper.Bind<EstablishmentCategoryRegistrationRequest, Category>(config =>
+        {
+            config.Bind(source: source => source.Name, target: target => target.Name);
+        });
+
         #endregion
 
         #region mappings for address requests
