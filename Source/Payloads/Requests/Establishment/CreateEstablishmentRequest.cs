@@ -4,6 +4,7 @@ public record CreateEstablishmentRequest : IRequest<Response>, IAuthenticatedReq
 {
     public string EstablishmentName { get; init; }
     public string PostalCode { get; init; }
+    public string Number { get; init; }
 
     [JsonIgnore]
     public string UserId { get; set; } = string.Empty;
