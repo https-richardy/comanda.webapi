@@ -9,4 +9,10 @@ public sealed class EstablishmentRepository(ComandaDbContext dbContext) :
         establishment.Products.Add(product);
         await _dbContext.SaveChangesAsync();
     }
+
+    public async Task AddCategoryAsync(Establishment establishment, Category category)
+    {
+        establishment.Categories.Add(category);
+        await _dbContext.SaveChangesAsync();
+    }
 }
