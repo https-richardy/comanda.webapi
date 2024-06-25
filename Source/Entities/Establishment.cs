@@ -7,6 +7,7 @@ public sealed class Establishment : Entity
     public Address Address { get; set; }
 
     public ICollection<Product> Products { get; set; } = [];
+    public ICollection<Category> Categories { get; set; } = [];
     public ICollection<Order> Orders { get; set; } = [];
 
     public Establishment()
