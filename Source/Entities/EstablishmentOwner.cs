@@ -2,6 +2,8 @@ namespace Comanda.WebApi.Entities;
 
 public sealed class EstablishmentOwner : Entity
 {
+    public string? FullName { get; set; }
+
     public Account Account { get; set; }
 
     public EstablishmentOwner()
