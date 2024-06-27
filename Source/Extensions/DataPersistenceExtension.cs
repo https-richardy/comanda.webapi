@@ -7,7 +7,7 @@ public static class DataPersistenceExtension
         var connectionString = configuration.GetConnectionString("DefaultConnection");
         services.AddDbContext<ComandaDbContext>(options =>
         {
-            options.UseSqlite(connectionString);
+            options.UseSqlServer(connectionString);
         });
 
         services.AddScoped<ICustomerRepository, CustomerRepository>();
