@@ -15,7 +15,6 @@ public sealed class EstablishmentController(IMediator mediator) : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
 
-
     [HttpPost]
     [Authorize(Roles = "EstablishmentOwner")]
     public async Task<IActionResult> CreateEstablishmentAsync(CreateEstablishmentRequest request)
