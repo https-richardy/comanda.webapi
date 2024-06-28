@@ -1,5 +1,3 @@
-#pragma warning disable CS8602
-
 namespace Comanda.WebApi.Handlers;
 
 public sealed class EstablishmentCategoryRegistrationHandler(
@@ -8,10 +6,14 @@ public sealed class EstablishmentCategoryRegistrationHandler(
     IEstablishmentRepository establishmentRepository
 ) : IRequestHandler<EstablishmentCategoryRegistrationRequest, Response>
 {
-    public async Task<Response> Handle(EstablishmentCategoryRegistrationRequest request,
-                                 CancellationToken cancellationToken)
+    public async Task<Response> Handle(
+        EstablishmentCategoryRegistrationRequest request,
+        CancellationToken cancellationToken
+    )
     {
         var account = await userManager.FindByIdAsync(request.UserId);
+        if (account is null)
+            return new Response(statusCode: 404, message: "user not found");
 
         var establishment = await establishmentRepository.FindSingleAsync(establishment => establishment.Id == request.EstablishmentId);
         if (establishment is null)
