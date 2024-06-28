@@ -4,6 +4,24 @@ public sealed class EstablishmentRepository(ComandaDbContext dbContext) :
     Repository<Establishment, ComandaDbContext>(dbContext),
     IEstablishmentRepository
 {
+    #pragma warning disable CS8603
+    public async Task<IEnumerable<Product>> GetProductsAsync(int pageNumber, int pageSize, int establishmentId)
+    {
+        var establishment = await _dbContext.Establishments
+            .Include(establishment => establishment.Products)
+            .FirstOrDefaultAsync(establishment => establishment.Id == establishmentId);
+
+        /* Represents the adjustment applied to page numbers to align with zero-based indices in LINQ queries. */
+        const int pageIndexAdjustment = 1;
+
+        var products = establishment?.Products
+            .Skip((pageNumber - pageIndexAdjustment) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        return products;
+    }
+
     public async Task AddProductAsync(Establishment establishment, Product product)
     {
         establishment.Products.Add(product);
