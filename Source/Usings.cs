@@ -23,6 +23,7 @@ global using Microsoft.IdentityModel.Tokens;
 /* add global usage directives for Comanda namespaces here */
 
 global using Comanda.WebApi.Entities;
+global using Comanda.WebApi.Exceptions;
 global using Comanda.WebApi.Data;
 global using Comanda.WebApi.Data.Repositories;
 global using Comanda.WebApi.Payloads;
