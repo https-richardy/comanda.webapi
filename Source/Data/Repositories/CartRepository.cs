@@ -15,6 +15,14 @@ public sealed class CartRepository(ComandaDbContext dbContext) :
         await _dbContext.SaveChangesAsync();
     }
 
+    public async Task<Cart?> FindCartWithItemsAsync(int customerId)
+    {
+        return await _dbContext.Carts
+            .Include(cart => cart.Items)
+            .ThenInclude(cartItem => cartItem.Product)
+            .FirstOrDefaultAsync(cart => cart.Customer.Id == customerId);
+    }
+
     public async Task<Cart?> FindCartByCustomerIdAsync(int customerId)
     {
         var cart = await _dbContext.Carts
