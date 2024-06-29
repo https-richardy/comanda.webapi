@@ -18,12 +18,6 @@ public sealed class AddProductToCartHandler(
                 message: "user not found."
             );
 
-        if (!await userManager.IsInRoleAsync(account, "Customer"))
-            return new Response(
-                statusCode: StatusCodes.Status403Forbidden,
-                message: "user is not a customer. Only customers can add products to their cart."
-            );
-
         var customer = await customerRepository.FindSingleAsync(customer => customer.Account.Id == account.Id);
         if (customer is null)
             return new Response(
