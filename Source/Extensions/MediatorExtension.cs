@@ -24,5 +24,11 @@ public static class MediatorExtension
         services.AddScoped<IRequestHandler<GetEstablishmentProductsRequest, Response<PaginationHelper<Product>>>, GetEstablishmentProductsHandler>();
 
         #endregion
+
+        #region handlers for cart requests
+
+        services.AddScoped<IRequestHandler<AddProductToCartRequest, Response>, AddProductToCartHandler>();
+
+        #endregion
     }
 }
