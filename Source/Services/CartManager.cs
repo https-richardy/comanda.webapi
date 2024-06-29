@@ -29,7 +29,7 @@ public sealed class CartManager(
     public async Task<Cart> GetCartAsync(int customerId)
     {
         var cart = await cartRepository.FindCartByCustomerIdAsync(customerId);
-        if (cart == null)
+        if (cart is null)
             throw new CartNotFoundException(customerId);
 
         return cart;
@@ -38,10 +38,19 @@ public sealed class CartManager(
     public async Task<decimal> GetCartTotalAsync(int customerId)
     {
         var cart = await cartRepository.FindCartByCustomerIdAsync(customerId);
-        if (cart == null)
+        if (cart is null)
             throw new CartNotFoundException(customerId);
 
         return cart.Total;
+    }
+
+    public async Task ClearCartAsync(int customerId)
+    {
+        var cart = await cartRepository.FindCartByCustomerIdAsync(customerId);
+        if (cart is null)
+            throw new CartNotFoundException(customerId);
+
+        await cartRepository.ClearCartAsync(cart);
     }
 
     private CartItem BuildCartItem(Product product, int quantity)
