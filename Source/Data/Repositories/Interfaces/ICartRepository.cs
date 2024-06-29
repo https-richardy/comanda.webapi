@@ -6,4 +6,5 @@ public interface ICartRepository : IMinimalRepository<Cart>
     Task RemoveItemAsync(Cart cart, CartItem item);
     Task ClearCartAsync(Cart cart);
     Task<Cart?> FindCartByCustomerIdAsync(int customerId);
+    Task<Cart?> FindCartWithItemsAsync(int customerId);
 }
