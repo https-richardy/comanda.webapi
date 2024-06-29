@@ -35,6 +35,15 @@ public sealed class CartManager(
         return cart;
     }
 
+    public async Task<decimal> GetCartTotalAsync(int customerId)
+    {
+        var cart = await cartRepository.FindCartByCustomerIdAsync(customerId);
+        if (cart == null)
+            throw new CartNotFoundException(customerId);
+
+        return cart.Total;
+    }
+
     private CartItem BuildCartItem(Product product, int quantity)
     {
         return new CartItem
