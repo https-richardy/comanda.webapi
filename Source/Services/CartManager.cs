@@ -32,6 +32,10 @@ public sealed class CartManager(
 
     public async Task<CartResponse> GetCustomerCartDetailsAsync(int customerId)
     {
+        var customer = await customerRepository.RetrieveByIdAsync(customerId);
+        if (customer is null)
+            throw new CustomerNotFoundException(customerId);
+
         var cart = await cartRepository.FindCartWithItemsAsync(customerId);
         if (cart is null)
             return new CartResponse();
