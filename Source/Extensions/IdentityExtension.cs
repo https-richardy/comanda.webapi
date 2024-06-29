@@ -9,7 +9,7 @@ public static class IdentityExtension
             options.User.RequireUniqueEmail = true;
             options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ";
         })
-            .AddDefaultTokenProviders()
-            .AddEntityFrameworkStores<ComandaDbContext>();
+        .AddDefaultTokenProviders()
+        .AddEntityFrameworkStores<ComandaDbContext>();
     }
 }
