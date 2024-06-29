@@ -12,7 +12,12 @@ public sealed class CartManager(
         if (customer is null)
             throw new CustomerNotFoundException(customerId);
 
-        var cart = await cartRepository.FindCartByCustomerIdAsync(customerId) ?? new Cart { Customer = customer };
+        var cart = await cartRepository.FindCartByCustomerIdAsync(customerId);
+        if (cart is null)
+        {
+            cart = new Cart { Customer = customer };
+            await cartRepository.SaveAsync(cart);
+        }
 
         var establishment = await establishmentRepository.RetrieveByIdAsync(establishmentId);
         if (establishment is null)
@@ -22,7 +27,6 @@ public sealed class CartManager(
         if (product is null)
             throw new EstablishmentProductNotFoundException(establishmentId, productId);
 
-        cart.AddItem(product, quantity);
         await cartRepository.AddItemAsync(cart, BuildCartItem(product, quantity));
     }
 
