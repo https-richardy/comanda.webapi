@@ -4,6 +4,15 @@ public sealed class EstablishmentRepository(ComandaDbContext dbContext) :
     Repository<Establishment, ComandaDbContext>(dbContext),
     IEstablishmentRepository
 {
+    public async Task<Product?> GetProductByIdAsync(int productId, int establishmentId)
+    {
+        var establishment = await _dbContext.Establishments
+            .Include(establishment => establishment.Products)
+            .FirstOrDefaultAsync(establishment => establishment.Id == establishmentId);
+
+        return establishment?.Products.FirstOrDefault(product => product.Id == productId);
+    }
+
     #pragma warning disable CS8603
     public async Task<IEnumerable<Product>> GetProductsAsync(int pageNumber, int pageSize, int establishmentId)
     {
