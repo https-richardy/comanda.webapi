@@ -30,6 +30,30 @@ public sealed class CartManager(
         await cartRepository.AddItemAsync(cart, BuildCartItem(product, quantity));
     }
 
+    public async Task<CartResponse> GetCustomerCartDetailsAsync(int customerId)
+    {
+        var cart = await cartRepository.FindCartWithItemsAsync(customerId);
+        if (cart is null)
+            return new CartResponse();
+
+        var formattedItems = cart.Items.Select(cartItem => new FormattedCartItem
+        {
+            Id = cartItem.Product.Id,
+            Title = cartItem.Product.Title,
+            ImageUrl = cartItem.Product.ImagePath,
+            Price = cartItem.Product.Price,
+            Quantity = cartItem.Quantity
+        }).ToList();
+
+        var cartResponse = new CartResponse
+        {
+            Total = cart.Total,
+            Items = formattedItems
+        };
+
+        return cartResponse;
+    }
+
     public async Task<Cart> GetCartAsync(int customerId)
     {
         var cart = await cartRepository.FindCartByCustomerIdAsync(customerId);
