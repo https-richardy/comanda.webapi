@@ -16,15 +16,6 @@ public static class MediatorExtension
 
         #endregion
 
-        #region handlers for establishments requests
-
-        services.AddScoped<IRequestHandler<CreateEstablishmentRequest, Response>, CreateEstablishmentHandler>();
-        services.AddScoped<IRequestHandler<CreateEstablishmentProductRequest, Response>, CreateEstablishmentProductHandler>();
-        services.AddScoped<IRequestHandler<EstablishmentCategoryRegistrationRequest, Response>, EstablishmentCategoryRegistrationHandler>();
-        services.AddScoped<IRequestHandler<GetEstablishmentProductsRequest, Response<PaginationHelper<Product>>>, GetEstablishmentProductsHandler>();
-
-        #endregion
-
         #region handlers for cart requests
 
         services.AddScoped<IRequestHandler<AddProductToCartRequest, Response>, AddProductToCartHandler>();

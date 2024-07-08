@@ -12,6 +12,5 @@ public static class ApplicationServicesExtension
         });
 
         services.AddFileUploadService();
-        services.AddScoped<CartManager>();
     }
 }
