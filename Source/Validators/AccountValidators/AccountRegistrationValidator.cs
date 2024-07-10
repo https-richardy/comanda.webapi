@@ -15,9 +15,5 @@ public sealed class AccountRegistrationValidator :
             .MinimumLength(8).WithMessage("Password must be at least 8 characters.")
             .Matches(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$")
             .WithMessage("Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.");
-
-        RuleFor(request => request.AccountType)
-            .IsInEnum()
-            .WithMessage("Invalid account type. Must be 'Customer' (0) or 'EstablishmentOwner' (1).");
     }
 }
