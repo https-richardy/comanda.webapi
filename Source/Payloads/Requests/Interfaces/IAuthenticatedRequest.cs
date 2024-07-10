@@ -1,3 +1,5 @@
+namespace Comanda.WebApi.Payloads;
+
 /// <summary>
 /// Interface to ensure that requests requiring user authentication contain a UserId.
 /// </summary>
