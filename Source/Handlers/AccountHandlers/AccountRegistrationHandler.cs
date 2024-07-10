@@ -4,9 +4,7 @@ public sealed class AccountRegistrationHandler(
     UserManager<Account> userManager,
     RoleManager<IdentityRole> roleManager,
     IValidator<AccountRegistrationRequest> validator,
-
-    ICustomerRepository customerRepository,
-    IEstablishmentOwnerRepository establishmentOwnerRepository
+    ICustomerRepository customerRepository
 ) : IRequestHandler<AccountRegistrationRequest, Response>
 {
     public async Task<Response> Handle(AccountRegistrationRequest request, CancellationToken cancellationToken)
@@ -16,19 +14,14 @@ public sealed class AccountRegistrationHandler(
             throw new ValidationException(validationResult.Errors);
 
         await RegisterAccountAsync(request);
-        return new Response(statusCode: 201, message: "Account created successfully.");
+
+        return new Response(
+            statusCode: StatusCodes.Status201Created,
+            message: "Account created successfully."
+        );
     }
 
     private async Task RegisterAccountAsync(AccountRegistrationRequest request)
-    {
-        if (request.AccountType == EAccountType.Customer)
-            await RegisterCustomerAsync(request);
-
-        if (request.AccountType == EAccountType.EstablishmentOwner)
-            await RegisterEstablishmentOwner(request);
-    }
-
-    private async Task RegisterCustomerAsync(AccountRegistrationRequest request)
     {
         var account = TinyMapper.Map<Account>(request);
         var customer = new Customer { Account = account, FullName = request.Name };
@@ -40,19 +33,5 @@ public sealed class AccountRegistrationHandler(
             await roleManager.CreateAsync(new IdentityRole("Customer"));
 
         await userManager.AddToRoleAsync(account, "Customer");
-    }
-
-    private async Task RegisterEstablishmentOwner(AccountRegistrationRequest request)
-    {
-        var account = TinyMapper.Map<Account>(request);
-        var establishmentOwner = new EstablishmentOwner { Account = account, FullName = request.Name };
-
-        await userManager.CreateAsync(account, request.Password);
-        await establishmentOwnerRepository.SaveAsync(establishmentOwner);
-
-        if (!await roleManager.RoleExistsAsync("EstablishmentOwner"))
-            await roleManager.CreateAsync(new IdentityRole("EstablishmentOwner"));
-
-        await userManager.AddToRoleAsync(account, "EstablishmentOwner");
     }
 }
