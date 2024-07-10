@@ -27,6 +27,7 @@ global using Comanda.WebApi.Validators;
 global using Comanda.WebApi.Utils;
 global using Comanda.WebApi.Middlewares;
 global using Comanda.WebApi.Extensions;
+global using Comanda.TestingSuite.Helpers;
 
 /* add global usage directives for Third party namespaces here */
 
