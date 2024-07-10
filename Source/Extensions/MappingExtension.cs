@@ -4,7 +4,7 @@ public static class MappingExtension
 {
     public static void AddMapping(this IServiceCollection services)
     {
-        #region mappings for accounts requests
+        #region mappings for identity requests
 
         TinyMapper.Bind<AccountRegistrationRequest, Account>(config =>
         {

@@ -9,7 +9,7 @@ public static class MediatorExtension
             options.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
         });
 
-        #region handlers for accounts requests
+        #region handlers for identity requests
 
         services.AddScoped<IRequestHandler<AccountRegistrationRequest, Response>, AccountRegistrationHandler>();
         services.AddScoped<IRequestHandler<AuthenticationCredentials, Response<AuthenticationResponse>>, AuthenticationHandler>();

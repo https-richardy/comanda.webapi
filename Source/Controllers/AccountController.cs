@@ -1,8 +1,8 @@
 namespace Comanda.WebApi.Controllers;
 
-[Route("api/accounts")]
+[Route("api/identity")]
 [ApiController]
-public sealed class AccountController(IMediator mediator) : ControllerBase
+public sealed class IdentityController(IMediator mediator) : ControllerBase
 {
     [HttpPost("register")]
     public async Task<IActionResult> RegisterAccountAsync(AccountRegistrationRequest request)
