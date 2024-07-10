@@ -1,5 +1,6 @@
 /* add global usage directives for System namespaces here */
 
+global using System.Security.Claims;
 global using System.Reflection;
 global using System.Linq.Expressions;
 global using System.Text;
@@ -12,6 +13,8 @@ global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 global using Microsoft.OpenApi.Models;
+global using Microsoft.IdentityModel.Tokens;
+global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Diagnostics.HealthChecks;
 global using Microsoft.EntityFrameworkCore;
@@ -27,6 +30,7 @@ global using Comanda.WebApi.Validators;
 global using Comanda.WebApi.Utils;
 global using Comanda.WebApi.Middlewares;
 global using Comanda.WebApi.Extensions;
+global using Comanda.WebApi.Services;
 global using Comanda.TestingSuite.Helpers;
 
 /* add global usage directives for Third party namespaces here */
