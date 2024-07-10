@@ -7,6 +7,7 @@ public static class ValidationExtension
         #region validators for identity requests
 
         services.AddTransient<IValidator<AccountRegistrationRequest>, AccountRegistrationValidator>();
+        services.AddTransient<IValidator<AuthenticationCredentials>, AuthenticationCredentialsValidator>();
 
         #endregion
     }
