@@ -12,7 +12,7 @@ public sealed class AccountController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("authenticate")]
-    public async Task<IActionResult> AuthenticateAsync(AuthenticationRequest request)
+    public async Task<IActionResult> AuthenticateAsync(AuthenticationCredentials request)
     {
         var response = await mediator.Send(request);
         return StatusCode(response.StatusCode, response);
