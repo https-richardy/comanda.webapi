@@ -2,8 +2,6 @@ namespace Comanda.WebApi.Data;
 
 public sealed class ComandaDbContext(DbContextOptions options) : IdentityDbContext<Account>(options)
 {
-    public DbSet<Establishment> Establishments { get; set; }
-    public DbSet<EstablishmentOwner> EstablishmentOwners { get; set; }
     public DbSet<Category> Categories { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<Order> Orders { get; set; }

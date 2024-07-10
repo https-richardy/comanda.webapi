@@ -4,17 +4,9 @@ public static class ValidationExtension
 {
     public static void AddValidation(this IServiceCollection services)
     {
-        #region validators for accounts requests
+        #region validators for identity requests
 
         services.AddTransient<IValidator<AccountRegistrationRequest>, AccountRegistrationValidator>();
-
-        #endregion
-
-        #region  validators for establishments requests
-
-        services.AddTransient<IValidator<CreateEstablishmentRequest>, CreateEstablishmentValidator>();
-        services.AddTransient<IValidator<CreateEstablishmentProductRequest>, CreateEstablishmentProductValidator>();
-        services.AddTransient<IValidator<EstablishmentCategoryRegistrationRequest>, EstablishmentCategoryRegistrationValidator>();
 
         #endregion
     }

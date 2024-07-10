@@ -3,10 +3,10 @@ namespace Comanda.WebApi.Handlers;
 public sealed class AuthenticationHandler(
     UserManager<Account> userManager,
     IJwtService jwtService
-) : IRequestHandler<AuthenticationRequest, Response<AuthenticationResponse>>
+) : IRequestHandler<AuthenticationCredentials, Response<AuthenticationResponse>>
 {
     # pragma warning disable CS8604
-    public async Task<Response<AuthenticationResponse>> Handle(AuthenticationRequest request, CancellationToken cancellationToken)
+    public async Task<Response<AuthenticationResponse>> Handle(AuthenticationCredentials request, CancellationToken cancellationToken)
     {
         var account = await userManager.FindByEmailAsync(request.Email);
 

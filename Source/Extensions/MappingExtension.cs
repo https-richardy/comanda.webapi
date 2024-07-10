@@ -4,34 +4,12 @@ public static class MappingExtension
 {
     public static void AddMapping(this IServiceCollection services)
     {
-        #region mappings for accounts requests
+        #region mappings for identity requests
 
         TinyMapper.Bind<AccountRegistrationRequest, Account>(config =>
         {
             config.Bind(source: source => source.Name, target: target => target.UserName);
             config.Bind(source: source => source.Email, target: target => target.Email);
-        });
-
-        #endregion
-
-        #region mappings for establishments requests
-
-        TinyMapper.Bind<CreateEstablishmentRequest, Establishment>(config =>
-        {
-            config.Bind(source: source => source.EstablishmentName, target: target => target.Name);
-        });
-
-
-        TinyMapper.Bind<CreateEstablishmentProductRequest, Product>(config =>
-        {
-            config.Bind(source: source => source.Title, target: target => target.Title);
-            config.Bind(source: source => source.Description, target: target => target.Description);
-            config.Bind(source: source => source.Price, target: target => target.Price);
-        });
-
-        TinyMapper.Bind<EstablishmentCategoryRegistrationRequest, Category>(config =>
-        {
-            config.Bind(source: source => source.Name, target: target => target.Name);
         });
 
         #endregion
