@@ -10,6 +10,8 @@ global using System.Text.Json.Serialization;
 /* add global usage directives for Microsoft namespaces here */
 
 global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.AspNetCore.Hosting;
+global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 global using Microsoft.OpenApi.Models;
@@ -31,6 +33,7 @@ global using Comanda.WebApi.Utils;
 global using Comanda.WebApi.Middlewares;
 global using Comanda.WebApi.Extensions;
 global using Comanda.WebApi.Services;
+global using Comanda.WebApi.Services.Exceptions;
 global using Comanda.TestingSuite.Helpers;
 
 /* add global usage directives for Third party namespaces here */
