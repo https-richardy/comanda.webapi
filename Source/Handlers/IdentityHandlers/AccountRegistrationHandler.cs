@@ -13,7 +13,7 @@ public sealed class AccountRegistrationHandler(
         if (!validationResult.IsValid)
             return new ValidationFailureResponse(errors: validationResult.Errors);
 
-        await RegisterAccountAsync(request);
+        await PerformAccountRegistration(request);
 
         return new Response(
             statusCode: StatusCodes.Status201Created,
@@ -21,7 +21,7 @@ public sealed class AccountRegistrationHandler(
         );
     }
 
-    private async Task RegisterAccountAsync(AccountRegistrationRequest request)
+    private async Task PerformAccountRegistration(AccountRegistrationRequest request)
     {
         var account = TinyMapper.Map<Account>(request);
         var customer = new Customer { Account = account, FullName = request.Name };
