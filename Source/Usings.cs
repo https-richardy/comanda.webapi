@@ -31,7 +31,7 @@ global using Comanda.WebApi.Handlers;
 global using Comanda.WebApi.Services;
 global using Comanda.WebApi.Services.Exceptions;
 global using Comanda.WebApi.Validators;
-global using Comanda.WebApi.Utils;
+global using Comanda.WebApi.Helpers;
 global using Comanda.WebApi.Middlewares;
 global using Comanda.WebApi.Extensions;
 

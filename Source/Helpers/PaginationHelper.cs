@@ -1,4 +1,4 @@
-namespace Comanda.WebApi.Utils;
+namespace Comanda.WebApi.Helpers;
 
 public class PaginationHelper<T>
 {
