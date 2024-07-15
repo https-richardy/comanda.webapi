@@ -11,7 +11,7 @@ public sealed class AccountRegistrationHandler(
     {
         var validationResult = await validator.ValidateAsync(request);
         if (!validationResult.IsValid)
-            throw new ValidationException(validationResult.Errors);
+            return new ValidationFailureResponse(errors: validationResult.Errors);
 
         await RegisterAccountAsync(request);
 
