@@ -1,6 +1,6 @@
 namespace Comanda.WebApi.Helpers;
 
-public class PaginationHelper<T>
+public sealed class PaginationHelper<T>
 {
     /// <summary>
     /// Gets the total count of items.
