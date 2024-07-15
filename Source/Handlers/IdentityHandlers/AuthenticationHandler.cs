@@ -11,10 +11,18 @@ public sealed class AuthenticationHandler(
         var account = await userManager.FindByEmailAsync(request.Email);
 
         if (account is null)
-            return Response<AuthenticationResponse>.Error(401, "invalid email or password.");
+            return new Response<AuthenticationResponse>(
+                data: null,
+                statusCode: StatusCodes.Status401Unauthorized,
+                message: "invalid email or password."
+            );
 
         if (!await userManager.CheckPasswordAsync(account, request.Password))
-            return Response<AuthenticationResponse>.Error(401, "invalid email or password.");
+            return new Response<AuthenticationResponse>(
+                data: null,
+                statusCode: StatusCodes.Status401Unauthorized,
+                message: "invalid email or password."
+            );
 
         var roles = await userManager.GetRolesAsync(account);
         var claims = new List<Claim>
