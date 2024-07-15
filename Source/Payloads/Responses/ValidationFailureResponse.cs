@@ -5,10 +5,10 @@ public sealed class ValidationFailureResponse : Response
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public ValidationResult Errors { get; set; }
 
-    public ValidationFailureResponse(string message, ValidationResult errors)
+    public ValidationFailureResponse(ValidationResult errors)
     {
         StatusCode = StatusCodes.Status400BadRequest;
-        Message = message;
+        Message = "We couldn't process your request because some fields are missing or invalid. Please review the details and try again.";
         Errors = errors;
     }
 }
