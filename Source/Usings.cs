@@ -32,7 +32,6 @@ global using Comanda.WebApi.Services;
 global using Comanda.WebApi.Services.Exceptions;
 global using Comanda.WebApi.Validators;
 global using Comanda.WebApi.Helpers;
-global using Comanda.WebApi.Middlewares;
 global using Comanda.WebApi.Extensions;
 
 /* add global usage directives for Third party namespaces here */

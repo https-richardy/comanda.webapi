@@ -26,7 +26,6 @@ internal static class Program
 
         app.MapControllers();
         app.UseStaticFiles();
-        app.UseValidationExceptionHandler();
 
         app.Run();
     }
