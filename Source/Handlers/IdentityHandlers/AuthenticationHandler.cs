@@ -41,6 +41,10 @@ public sealed class AuthenticationHandler(
         var token = jwtService.GenerateToken(claimsIdentity);
 
         var response = new AuthenticationResponse { Token = token };
-        return new Response<AuthenticationResponse>(data: response, statusCode: 200 , message: "authentication successful.");
+        return new Response<AuthenticationResponse>(
+            data: response,
+            statusCode: StatusCodes.Status200OK,
+            message: "authentication was successful."
+        );
     }
 }
