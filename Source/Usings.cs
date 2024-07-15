@@ -37,6 +37,7 @@ global using Comanda.WebApi.Extensions;
 
 /* add global usage directives for Third party namespaces here */
 
+global using Nelibur.ObjectMapper;
 global using MediatR;
 global using FluentValidation;
-global using Nelibur.ObjectMapper;
+global using FluentValidation.Results;
