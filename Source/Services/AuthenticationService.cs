@@ -3,17 +3,14 @@ namespace Comanda.WebApi.Services;
 public sealed class AuthenticationService : IAuthenticationService
 {
     private readonly UserManager<Account> _userManager;
-    private readonly IJwtService _jwtService;
     private readonly ILogger<AuthenticationService> _logger;
 
     public AuthenticationService(
         UserManager<Account> userManager,
-        IJwtService jwtService,
         ILogger<AuthenticationService> logger
     )
     {
         _userManager = userManager;
-        _jwtService = jwtService;
         _logger = logger;
     }
 
@@ -36,9 +33,23 @@ public sealed class AuthenticationService : IAuthenticationService
         return true;
     }
 
-    public async Task<string> GenerateTokenAsync(ClaimsIdentity claimsIdentity)
+    #pragma warning disable CS8604
+    public async Task<ClaimsIdentity> BuildClaimsIdentity(Account user)
     {
-        /* Executes the synchronous call in a separate thread to maintain asynchronicity */
-        return await Task.Run(() => _jwtService.GenerateToken(claimsIdentity));
+        var roles = await _userManager.GetRolesAsync(user);
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Name, user.UserName),
+            new(ClaimTypes.Email, user.Email),
+        };
+
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+
+        var claimsIdentity = new ClaimsIdentity(claims);
+        return claimsIdentity;
     }
 }
