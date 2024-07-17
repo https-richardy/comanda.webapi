@@ -1,22 +1,15 @@
 namespace Comanda.WebApi.Handlers;
 
-public sealed class AuthenticationHandler :
+public sealed class AuthenticationHandler(
+    UserManager<Account> userManager,
+    IAuthenticationService authenticationService,
+    IJwtService jwtService
+) :
     IRequestHandler<AuthenticationCredentials, Response<AuthenticationResponse>>
 {
-    private readonly UserManager<Account> _userManager;
-    private readonly IAuthenticationService _authenticationService;
-    private readonly IJwtService _jwtService;
-
-    public AuthenticationHandler(
-        UserManager<Account> userManager,
-        IAuthenticationService authenticationService,
-        IJwtService jwtService
-    )
-    {
-        _userManager = userManager;
-        _jwtService = jwtService;
-        _authenticationService = authenticationService;
-    }
+    private readonly UserManager<Account> _userManager = userManager;
+    private readonly IAuthenticationService _authenticationService = authenticationService;
+    private readonly IJwtService _jwtService = jwtService;
 
     # pragma warning disable CS8604
     public async Task<Response<AuthenticationResponse>> Handle(
