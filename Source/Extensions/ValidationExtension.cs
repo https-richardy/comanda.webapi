@@ -10,5 +10,12 @@ public static class ValidationExtension
         services.AddTransient<IValidator<AuthenticationCredentials>, AuthenticationCredentialsValidator>();
 
         #endregion
+
+
+        #region validators for product requests
+
+        services.AddTransient<IValidator<ProductCreationRequest>, ProductCreationValidator>();
+
+        #endregion
     }
 }
