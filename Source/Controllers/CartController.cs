@@ -21,7 +21,7 @@ public sealed class CartController(IMediator mediator) : ControllerBase
 
     [HttpPost("add-item")]
     [Authorize(Roles = "Customer")]
-    public async Task<IActionResult> AddItemToCustomerCartAsync(AddProductToCartRequest request)
+    public async Task<IActionResult> AddItemToCustomerCartAsync(InsertProductIntoCartRequest request)
     {
         request.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var response = await mediator.Send(request);
