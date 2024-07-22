@@ -2,7 +2,7 @@ namespace Comanda.WebApi.Extensions;
 
 public static class HttpPipelineBuilderExtension
 {
-    public static void SetupHttpPipeline(this IApplicationBuilder app, IWebHostEnvironment hostingEnvironment)
+    public static void SetupPipeline(this IApplicationBuilder app, IWebHostEnvironment hostingEnvironment)
     {
         app.ConfigureCORS();
         app.UseHttpsRedirection();
