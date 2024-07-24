@@ -15,13 +15,14 @@ public static class ValidationExtension
         #region validators for product requests
 
         services.AddTransient<IValidator<ProductCreationRequest>, ProductCreationValidator>();
+        services.AddTransient<IValidator<ProductEditingRequest>, ProductEditingValidator>();
 
         #endregion
 
         #region validators for category requests
 
-        services.AddScoped<IValidator<CategoryCreationRequest>, CategoryCreationValidator>();
-        services.AddScoped<IValidator<CategoryEditingRequest>, CategoryEditingValidator>();
+        services.AddTransient<IValidator<CategoryCreationRequest>, CategoryCreationValidator>();
+        services.AddTransient<IValidator<CategoryEditingRequest>, CategoryEditingValidator>();
 
         #endregion
     }
