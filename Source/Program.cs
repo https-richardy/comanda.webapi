@@ -12,6 +12,8 @@ internal static class Program
         var app = builder.Build();
 
         app.SetupPipeline(app.Environment);
+        app.MapControllers();
+
         app.Run();
     }
 }
