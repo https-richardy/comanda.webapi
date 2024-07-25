@@ -18,6 +18,7 @@ global using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 global using Microsoft.OpenApi.Models;
 global using Microsoft.Extensions.Diagnostics.HealthChecks;
 global using Microsoft.EntityFrameworkCore;
+global using Microsoft.EntityFrameworkCore.Metadata.Builders;
 global using Microsoft.IdentityModel.Tokens;
 
 /* add global usage directives for Comanda namespaces here */
