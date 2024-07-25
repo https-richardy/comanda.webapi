@@ -3,8 +3,6 @@ namespace Comanda.WebApi.Entities;
 public sealed class OrderItem : Entity
 {
     public int Quantity { get; set; }
-    public decimal Price { get; set; }
-
     public Product Product { get; set; }
 
     public OrderItem()
@@ -15,10 +13,9 @@ public sealed class OrderItem : Entity
         */
     }
 
-    public OrderItem(int quantity, decimal price, Product product)
+    public OrderItem(int quantity, Product product)
     {
         Quantity = quantity;
-        Price = price;
         Product = product;
     }
 }
