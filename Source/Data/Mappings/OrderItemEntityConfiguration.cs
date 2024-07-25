@@ -12,7 +12,6 @@ public sealed class OrderItemEntityConfiguration : IEntityTypeConfiguration<Orde
         builder.Property(orderItem => orderItem.Quantity)
             .IsRequired();
 
-        builder.Property(orderItem => orderItem.Product)
-            .IsRequired();
+        builder.HasOne(orderItem => orderItem.Product);
     }
 }

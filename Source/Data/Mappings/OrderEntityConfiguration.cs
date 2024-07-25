@@ -9,16 +9,14 @@ public sealed class OrderEntityConfiguration : IEntityTypeConfiguration<Order>
         builder.ToTable(_tableName);
         builder.HasKey(order => order.Id);
 
-        builder.Property(order => order.Customer)
-            .IsRequired();
-
-        builder.Property(order => order.ShippingAddress)
-            .IsRequired();
-
         builder.Property(order => order.Date)
             .IsRequired();
 
         builder.Property(order => order.Status)
             .IsRequired();
+
+
+        builder.HasOne(order => order.Customer);
+        builder.HasOne(order => order.ShippingAddress);
     }
 }
