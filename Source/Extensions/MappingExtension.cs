@@ -36,6 +36,14 @@ public static class MappingExtension
             config.Bind(source: source => source.Price, target: target => target.Price);
         });
 
+        TinyMapper.Bind<ProductEditingRequest, Product>(config =>
+        {
+            config.Bind(source: source => source.ProductId, target: target => target.Id);
+            config.Bind(source: source => source.Title, target: target => target.Title);
+            config.Bind(source: source => source.Description, target: target => target.Description);
+            config.Bind(source: source => source.Price, target: target => target.Price);
+        });
+
         #endregion
     }
 }
