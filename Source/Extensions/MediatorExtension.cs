@@ -18,6 +18,8 @@ public static class MediatorExtension
 
         #region handlers for product requests
 
+        services.AddScoped<IRequestHandler<ProductDetailRequest, Response<Product>>, ProductDetailHandler>();
+        services.AddScoped<IRequestHandler<ProductListingRequest, Response<PaginationHelper<Product>>>, ProductListingHandler>();
         services.AddScoped<IRequestHandler<ProductCreationRequest, Response>, ProductCreationHandler>();
         services.AddScoped<IRequestHandler<ProductEditingRequest, Response>, ProductEditingHandler>();
         services.AddScoped<IRequestHandler<ProductDeletionRequest, Response>, ProductDeletionHandler>();
