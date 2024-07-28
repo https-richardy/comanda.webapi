@@ -14,5 +14,6 @@ public static class ApplicationServicesExtension
         services.AddFileUploadService();
 
         services.AddScoped<IAuthenticationService, AuthenticationService>();
+        services.AddScoped<IUserContextService, UserContextService>();
     }
 }
