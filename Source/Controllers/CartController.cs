@@ -28,4 +28,12 @@ public sealed class CartController(IMediator mediator) : ControllerBase
 
         return StatusCode(response.StatusCode, response);
     }
+
+    [HttpPut("update-item")]
+    [Authorize(Roles = "Customer")]
+    public async Task<IActionResult> UpdateItemQuantityAsync(UpdateItemQuantityInCartRequest request)
+    {
+        var response = await mediator.Send(request);
+        return StatusCode(response.StatusCode, response);
+    }
 }
