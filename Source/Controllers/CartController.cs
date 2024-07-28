@@ -3,7 +3,7 @@
 namespace Comanda.WebApi.Controllers;
 
 [ApiController]
-[Route("api/carts")]
+[Route("api/cart")]
 public sealed class CartController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
