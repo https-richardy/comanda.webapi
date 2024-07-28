@@ -25,9 +25,15 @@ public sealed class InsertProductToCartHandler(
             It is impossible for the 'userIdentifier' to be null at this point
             since the 'CartController' restricts access only to authenticated customers.
         */
-        #pragma warning disable CS8604
+        #pragma warning disable CS8604, CS8602
 
-        var customer = await customerRepository.RetrieveByIdAsync(userIdentifier);
+        var customer = await customerRepository.FindCustomerByUserIdAsync(userIdentifier);
+
+        /*
+            Even here it can't be null because when we create an account
+            we have already created and associated a customer with it.
+        */
+
         var cart = await cartRepository.FindCartByCustomerIdAsync(customer.Id);
 
         if (cart is null)
