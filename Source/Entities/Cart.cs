@@ -2,7 +2,7 @@ namespace Comanda.WebApi.Entities;
 
 public sealed class Cart : Entity
 {
-    public decimal Total => Items.Sum(item => item.Product.Price * item.Quantity);
+    public decimal Total => Items.Sum(item => item.Total);
 
     public Customer Customer { get; set; }
     public ICollection<CartItem> Items { get; set; } = [];
