@@ -3,7 +3,10 @@ namespace Comanda.WebApi.Entities;
 public sealed class CartItem : Entity
 {
     public int Quantity { get; set; }
+    public decimal Total => CalculateTotal();
+
     public Product Product { get; set; }
+    public ICollection<CartItemAdditional> Additionals { get; set; } = [];
 
     public CartItem()
     {
@@ -17,5 +20,29 @@ public sealed class CartItem : Entity
     {
         Quantity = quantity;
         Product = product;
+    }
+
+    public void AddAdditional(Additional additional, int quantity)
+    {
+        var existingAdditional = Additionals.FirstOrDefault(additional => additional.Additional.Id == additional.Id);
+
+        if (existingAdditional != null)
+            existingAdditional.Quantity += quantity;
+
+        else
+            Additionals.Add(new CartItemAdditional(additional, quantity));
+    }
+
+    public void RemoveAdditional(Additional additional)
+    {
+        var existingAdditional = Additionals.FirstOrDefault(a => a.Additional.Id == additional.Id);
+        if (existingAdditional is not null)
+            Additionals.Remove(existingAdditional);
+    }
+
+    private decimal CalculateTotal()
+    {
+        /* Calculates the total cost of all the add-ons applied to the product. */
+        return (Additionals.Sum(item => item.Additional.Price * item.Quantity) + Product.Price) * Quantity;
     }
 }
