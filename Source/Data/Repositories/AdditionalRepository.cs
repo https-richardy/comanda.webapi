@@ -1,4 +1,3 @@
-
 namespace Comanda.WebApi.Data.Repositories;
 
 public sealed class AdditionalRepository(ComandaDbContext dbContext) :
