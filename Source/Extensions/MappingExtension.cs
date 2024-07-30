@@ -45,5 +45,16 @@ public static class MappingExtension
         });
 
         #endregion
+
+
+        #region mappings for additional requests
+
+        TinyMapper.Bind<AdditionalCreationRequest, Additional>(config =>
+        {
+            config.Bind(source: source => source.Name, target: target => target.Name);
+            config.Bind(source: source => source.Price, target: target => target.Price);
+        });
+
+        #endregion
     }
 }
