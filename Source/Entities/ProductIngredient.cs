@@ -3,6 +3,7 @@ namespace Comanda.WebApi.Entities;
 public sealed class ProductIngredient : Entity
 {
     public int StandardQuantity { get; set; }
+    public bool IsMandatory { get; set; }
 
     public Product Product { get; set; }
     public Ingredient Ingredient { get; set; }
