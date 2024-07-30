@@ -10,6 +10,7 @@ public static class DataPersistenceExtension
             options.UseSqlServer(connectionString);
         });
 
+        services.AddScoped<IIngredientRepository, IngredientRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
