@@ -22,6 +22,7 @@ public static class ValidationExtension
         #region validators for ingredient requests
 
         services.AddScoped<IValidator<IngredientCreationRequest>, IngredientCreationValidator>();
+        services.AddScoped<IValidator<IngredientEditingRequest>, IngredientEditingValidator>();
 
         #endregion
 
