@@ -48,6 +48,7 @@ public static class MediatorExtension
 
         services.AddScoped<IRequestHandler<AdditionalCreationRequest, Response>, AdditionalCreationHandler>();
         services.AddScoped<IRequestHandler<AdditionalEditingRequest, Response>, AdditionalEditingHandler>();
+        services.AddScoped<IRequestHandler<AdditionalDeletionRequest, Response>, AdditionalDeletionHandler>();
 
         #endregion
 
