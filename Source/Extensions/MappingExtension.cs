@@ -55,6 +55,14 @@ public static class MappingExtension
             config.Bind(source: source => source.Price, target: target => target.Price);
         });
 
+
+        TinyMapper.Bind<AdditionalEditingRequest, Additional>(config =>
+        {
+            config.Bind(source: source => source.AdditionalId, target: target => target.Id);
+            config.Bind(source: source => source.Name, target: target => target.Name);
+            config.Bind(source: source => source.Price, target: target => target.Price);
+        });
+
         #endregion
     }
 }
