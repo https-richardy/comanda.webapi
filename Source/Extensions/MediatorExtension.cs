@@ -40,6 +40,7 @@ public static class MediatorExtension
         services.AddScoped<IRequestHandler<IngredientListingRequest, Response<IEnumerable<Ingredient>>>, IngredientListingHandler>();
         services.AddScoped<IRequestHandler<IngredientCreationRequest, Response>, IngredientCreationHandler>();
         services.AddScoped<IRequestHandler<IngredientEditingRequest, Response>, IngredientEditingHandler>();
+        services.AddScoped<IRequestHandler<IngredientDeletionRequest, Response>, IngredientDeletionHandler>();
 
         #endregion
 
