@@ -29,6 +29,7 @@ public static class ValidationExtension
         #region validators for additional requests
 
         services.AddScoped<IValidator<AdditionalCreationRequest>, AdditionalCreationValidator>();
+        services.AddScoped<IValidator<AdditionalEditingRequest>, AdditionalEditingValidator>();
 
         #endregion
 
