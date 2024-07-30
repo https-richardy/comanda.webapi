@@ -10,11 +10,11 @@ public static class DataPersistenceExtension
             options.UseSqlServer(connectionString);
         });
 
-        services.AddScoped<IIngredientRepository, IngredientRepository>();
         services.AddScoped<IAdditionalRepository, AdditionalRepository>();
-        services.AddScoped<ICategoryRepository, CategoryRepository>();
-        services.AddScoped<IProductRepository, ProductRepository>();
-        services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<ICartRepository, CartRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<ICustomerRepository, CustomerRepository>();
+        services.AddScoped<IIngredientRepository, IngredientRepository>();
+        services.AddScoped<IProductRepository, ProductRepository>();
     }
 }
