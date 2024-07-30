@@ -35,6 +35,12 @@ public static class MediatorExtension
 
         #endregion
 
+        #region handlers for ingredient requests
+
+        services.AddScoped<IRequestHandler<IngredientCreationRequest, Response>, IngredientCreationHandler>();
+
+        #endregion
+
         #region handlers for category requests
 
         services.AddScoped<IRequestHandler<CategoryDetailRequest, Response<Category>>, CategoryDetailHandler>();
