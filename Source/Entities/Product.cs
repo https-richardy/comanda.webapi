@@ -8,7 +8,7 @@ public sealed class Product : Entity
     public decimal Price { get; set; }
 
     public Category Category { get; set; }
-    public ICollection<Ingredient> Ingredients { get; set; } = [];
+    public ICollection<ProductIngredient> Ingredients { get; set; } = [];
     public ICollection<Additional> Additionals { get; set; } = [];
 
     public Product()
