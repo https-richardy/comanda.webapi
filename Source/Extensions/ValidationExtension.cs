@@ -26,6 +26,12 @@ public static class ValidationExtension
 
         #endregion
 
+        #region validators for additional requests
+
+        services.AddScoped<IValidator<AdditionalCreationRequest>, AdditionalCreationValidator>();
+
+        #endregion
+
         #region validators for cart requests
 
         services.AddScoped<IValidator<UpdateItemQuantityInCartRequest>, UpdateItemQuantityValidator>();
