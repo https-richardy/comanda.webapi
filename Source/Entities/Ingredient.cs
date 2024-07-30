@@ -3,7 +3,6 @@ namespace Comanda.WebApi.Entities;
 public sealed class Ingredient : Entity
 {
     public string Name { get; set; }
-    public int StandardQuantity { get; set; }
 
     public Ingredient()
     {
@@ -13,9 +12,8 @@ public sealed class Ingredient : Entity
         */
     }
 
-    public Ingredient(string name, int standardQuantity)
+    public Ingredient(string name)
     {
         Name = name;
-        StandardQuantity = standardQuantity;
     }
 }
