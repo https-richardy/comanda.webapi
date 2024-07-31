@@ -30,6 +30,16 @@ public sealed class ProductController(IMediator mediator) : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
 
+    [HttpPost("upload-image/{productId}")]
+    [Authorize(Roles = "Administrator")]
+    public async Task<IActionResult> UploadProductImageAsync(ProductImageUploadRequest request, [FromRoute] int productId)
+    {
+        request.ProductId = productId;
+
+        var response = await mediator.Send(request);
+        return StatusCode(response.StatusCode, response);
+    }
+
     [HttpPut("{productId}")]
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> UpdateProductAsync(ProductEditingRequest request, [FromRoute] int productId)
