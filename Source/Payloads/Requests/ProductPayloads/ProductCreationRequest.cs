@@ -6,5 +6,5 @@ public sealed record ProductCreationRequest : IRequest<Response>
     public string Description { get; init; }
     public decimal Price { get; init; }
     public int CategoryId { get; init; }
-    public IFormFile Image { get; init; }
+    public ICollection<IngredientAssociationScheme> Ingredients { get; init; }
 }
