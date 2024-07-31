@@ -21,7 +21,6 @@ public sealed class ProductEntityConfiguration : IEntityTypeConfiguration<Produc
             .IsRequired()
             .HasPrecision(9, 2);
 
-        builder.Property(product => product.ImagePath)
-            .IsRequired();
+        builder.Property(product => product.ImagePath);
     }
 }
