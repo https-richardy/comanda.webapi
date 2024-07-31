@@ -16,5 +16,6 @@ public static class DataPersistenceExtension
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IIngredientRepository, IngredientRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<IProductIngredientRepository, ProductIngredientRepository>();
     }
 }
