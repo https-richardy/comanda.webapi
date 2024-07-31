@@ -25,12 +25,6 @@ public sealed class ProductCreationHandler(
                 message: "Category not found."
             );
 
-        var product = TinyMapper.Map<Product>(request);
-        product.Category = category;
-
-        await productRepository.SaveAsync(product);
-
-        var ingredients = new List<ProductIngredient>();
         foreach (var payload in request.Ingredients)
         {
             var ingredient = await ingredientRepository.RetrieveByIdAsync(payload.IngredientId);
@@ -40,21 +34,22 @@ public sealed class ProductCreationHandler(
                     statusCode: StatusCodes.Status404NotFound,
                     message: $"Ingredient with ID '{payload.IngredientId}' not found."
                 );
-
-            ingredients.Add(new ProductIngredient
-            {
-                Product = product,
-                Ingredient = ingredient,
-                StandardQuantity = payload.StandardQuantity
-            });
         }
 
-        foreach (var ingredient in ingredients)
+        var product = TinyMapper.Map<Product>(request);
+        product.Category = category;
+
+        var ingredients = new List<ProductIngredient>();
+        foreach (var payload in request.Ingredients)
         {
-            product.Ingredients.Add(ingredient);
+            var ingredient = await ingredientRepository.RetrieveByIdAsync(payload.IngredientId);
+            var productIngredient = new ProductIngredient(product, ingredient, payload.StandardQuantity);
+
+            ingredients.Add(productIngredient);
         }
 
-        await productRepository.UpdateAsync(product);
+        product.Ingredients = ingredients;
+        await productRepository.SaveAsync(product);
 
         logger.LogInformation("Product '{Title}' created successfully.", product.Title);
 
