@@ -5,7 +5,10 @@ public sealed class ProductIngredient : Entity
     public int StandardQuantity { get; set; }
     public bool IsMandatory { get; set; }
 
+    [JsonIgnore]
     public Product Product { get; set; }
+
+    [JsonIgnore]
     public Ingredient Ingredient { get; set; }
 
     public ProductIngredient()
