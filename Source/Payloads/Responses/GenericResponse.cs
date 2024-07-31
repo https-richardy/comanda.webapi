@@ -1,15 +1,9 @@
 namespace Comanda.WebApi.Payloads;
 
-public class Response<TData>
+public class Response<TData> : Response
 {
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public TData? Data { get; set; }
-
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Message { get; set; }
-
-    public int StatusCode { get; set; } = 200;
-    public bool IsSuccess => StatusCode >= 200 && StatusCode < 300;
 
     public Response() { }
 
