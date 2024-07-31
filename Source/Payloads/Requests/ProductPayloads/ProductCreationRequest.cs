@@ -1,6 +1,6 @@
 namespace Comanda.WebApi.Payloads;
 
-public sealed record ProductCreationRequest : IRequest<Response>
+public sealed record ProductCreationRequest : IRequest<Response<ProductCreationResponse>>
 {
     public string Title { get; init; }
     public string Description { get; init; }
