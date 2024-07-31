@@ -2,8 +2,8 @@ namespace Comanda.WebApi.Handlers;
 
 public sealed class ProductCreationHandler(
     IProductRepository productRepository,
+    IIngredientRepository ingredientRepository,
     ICategoryRepository categoryRepository,
-    IFileUploadService fileUploadService,
     IValidator<ProductCreationRequest> validator,
     ILogger<ProductCreationHandler> logger
 ) : IRequestHandler<ProductCreationRequest, Response>
@@ -25,9 +25,30 @@ public sealed class ProductCreationHandler(
             );
 
         var product = TinyMapper.Map<Product>(request);
-
         product.Category = category;
-        product.ImagePath = await fileUploadService.UploadFileAsync(request.Image);
+
+        var ingredients = new List<ProductIngredient>();
+        foreach (var payload in request.Ingredients)
+        {
+            var ingredient = await ingredientRepository.RetrieveByIdAsync(payload.IngredientId);
+            if (ingredient is null)
+                return new Response(
+                    statusCode: StatusCodes.Status404NotFound,
+                    message: $"Ingredient with ID '{payload.IngredientId}' not found."
+                );
+
+            ingredients.Add(new ProductIngredient
+            {
+                Product = product,
+                Ingredient = ingredient,
+                StandardQuantity = payload.StandardQuantity
+            });
+        }
+
+        foreach (var ingredient in ingredients)
+        {
+            product.Ingredients.Add(ingredient);
+        }
 
         await productRepository.SaveAsync(product);
 
