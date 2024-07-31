@@ -45,7 +45,7 @@ public sealed class CartDetailHandler(
                 Id = item.Product.Id,
                 Title = item.Product.Title,
                 Price = item.Product.Price,
-                ImageUrl = item.Product.ImagePath,
+                ImageUrl = item.Product?.ImagePath ?? string.Empty,
                 Quantity = item.Quantity
             });
         }
