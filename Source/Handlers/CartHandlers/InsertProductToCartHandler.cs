@@ -1,8 +1,16 @@
 namespace Comanda.WebApi.Handlers;
 
+/*
+    If Uncle Bob sees this code he'll surely have a heart attack. 
+    If there's one thing this code doesn't respect, it's SRP, God forbid, what an ugly thing... 
+    I'll refactor it later, making it work first is the most important thing. I'm agonized to see this.
+*/
+
 public sealed class InsertProductToCartHandler(
     ICartRepository cartRepository,
     IProductRepository productRepository,
+    IAdditionalRepository additionalRepository,
+    IProductIngredientRepository productIngredientRepository,
     ICustomerRepository customerRepository,
     IUserContextService userContextService
 ) : IRequestHandler<InsertProductIntoCartRequest, Response>
@@ -42,7 +50,36 @@ public sealed class InsertProductToCartHandler(
             await cartRepository.SaveAsync(cart);
         }
 
-        cart.AddItem(product, request.Quantity);
+        var cartItem = new CartItem(request.Quantity, product);
+        foreach (var payload in request.Additionals)
+        {
+            var additional = await additionalRepository.RetrieveByIdAsync(payload.AdditionalId);
+            if (additional is null)
+                return new Response(
+                    statusCode: StatusCodes.Status404NotFound,
+                    message: "Additional not found."
+                );
+
+            cartItem.AddAdditional(additional, payload.Quantity);
+        }
+
+        foreach (var ingredientId in request.IngredientsIdsToRemove)
+        {
+            var ingredient = await productIngredientRepository.RetrieveByIdAsync(ingredientId);
+            if (ingredient is null)
+                return new Response(
+                    statusCode: StatusCodes.Status404NotFound,
+                    message: "Ingredient not found."
+                );
+
+            if (ingredient.IsMandatory)
+                return new Response(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    message: "Mandatory ingredients can't be removed."
+                );
+        }
+
+        cart.AddItem(cartItem);
         await cartRepository.UpdateAsync(cart);
 
         return new Response(
