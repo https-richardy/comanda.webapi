@@ -20,6 +20,11 @@ public sealed class Cart : Entity
         Customer = customer;
     }
 
+    public void AddItem(CartItem cartItem)
+    {
+        Items.Add(cartItem);
+    }
+
     public void AddItem(Product product, int quantity)
     {
         var existingItem = Items.FirstOrDefault(item => item.Product.Id == product.Id);
