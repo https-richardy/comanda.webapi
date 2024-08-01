@@ -20,6 +20,9 @@ public sealed class CartRepository(ComandaDbContext dbContext) :
         return await _dbContext.Carts
             .Include(cart => cart.Items)
             .ThenInclude(cartItem => cartItem.Product)
+            .Include(cart => cart.Items)
+            .ThenInclude(cartItem => cartItem.Additionals)
+            .ThenInclude(additional => additional.Additional)
             .FirstOrDefaultAsync(cart => cart.Customer.Id == customerId);
     }
 
