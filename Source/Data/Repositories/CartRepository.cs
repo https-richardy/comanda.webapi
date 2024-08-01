@@ -17,6 +17,10 @@ public sealed class CartRepository(ComandaDbContext dbContext) :
 
     public async Task<Cart?> FindCartWithItemsAsync(int customerId)
     {
+        /*
+            If someone ever asks you for an example of overfetching, show them this query.
+            I swear I'll optimize this query later...
+        */
         return await _dbContext.Carts
             .Include(cart => cart.Items)
             .ThenInclude(cartItem => cartItem.Product)
