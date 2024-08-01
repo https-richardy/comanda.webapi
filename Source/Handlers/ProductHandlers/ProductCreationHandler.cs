@@ -43,7 +43,7 @@ public sealed class ProductCreationHandler(
         foreach (var payload in request.Ingredients)
         {
             var ingredient = await ingredientRepository.RetrieveByIdAsync(payload.IngredientId);
-            var productIngredient = new ProductIngredient(product, ingredient, payload.StandardQuantity);
+            var productIngredient = new ProductIngredient(product, ingredient, payload.StandardQuantity, payload.IsMandatory);
 
             ingredients.Add(productIngredient);
         }
