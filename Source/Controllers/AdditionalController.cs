@@ -11,6 +11,13 @@ public sealed class AdditionalController(IMediator mediator) : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
 
+    [HttpGet("search")]
+    public async Task<IActionResult> GetAllAdditionalsByCategoryAsync([FromQuery] AdditionalsListingByCategoryRequest request)
+    {
+        var response = await mediator.Send(request);
+        return StatusCode(response.StatusCode, response);
+    }
+
     [HttpPost]
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> CreateAdditionalAsync(AdditionalCreationRequest request)
