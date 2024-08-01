@@ -5,5 +5,7 @@ public sealed record InsertProductIntoCartRequest :
 {
     public int ProductId { get; init; }
     public int Quantity { get; init; }
-    public ICollection<int> AdditionalIds { get; init; } = [];
+
+    public ICollection<AdditionalScheme> Additionals { get; init; } = [];
+    public ICollection<int> IngredientsIdsToRemove { get; init; } = [];
 }
