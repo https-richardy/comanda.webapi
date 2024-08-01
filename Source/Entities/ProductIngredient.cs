@@ -19,10 +19,11 @@ public sealed class ProductIngredient : Entity
         */
     }
 
-    public ProductIngredient(Product product, Ingredient ingredient, int standardQuantity)
+    public ProductIngredient(Product product, Ingredient ingredient, int standardQuantity, bool isMandatory)
     {
         Product = product;
         Ingredient = ingredient;
         StandardQuantity = standardQuantity;
+        IsMandatory = isMandatory;
     }
 }
