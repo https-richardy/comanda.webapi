@@ -4,6 +4,8 @@ public static class ServicesExtension
 {
     public static void ConfigureServices(this IServiceCollection services, IConfiguration configuration)
     {
+        Stripe.StripeConfiguration.ApiKey = configuration["Stripe:SecretKey"];
+
         services.AddControllers()
             .AddJsonOptions(options =>
             {
