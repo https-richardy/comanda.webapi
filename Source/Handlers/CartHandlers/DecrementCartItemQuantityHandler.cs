@@ -40,7 +40,7 @@ public sealed class DecrementCartItemQuantityHandler(
         if (itemToDecrement.Quantity == 1)
             return new Response(
                 statusCode: StatusCodes.Status400BadRequest,
-                message: "porra."
+                message: "Cannot decrement quantity below 1."
             );
 
         itemToDecrement.Quantity--;
