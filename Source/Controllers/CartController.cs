@@ -19,7 +19,7 @@ public sealed class CartController(IMediator mediator) : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
 
-    [HttpPost("add-item")]
+    [HttpPost("items/")]
     [Authorize(Roles = "Customer")]
     public async Task<IActionResult> AddItemToCustomerCartAsync(InsertProductIntoCartRequest request)
     {
@@ -37,7 +37,7 @@ public sealed class CartController(IMediator mediator) : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
 
-    [HttpPut("update-item")]
+    [HttpPut("items/")]
     [Authorize(Roles = "Customer")]
     public async Task<IActionResult> UpdateItemQuantityAsync(UpdateItemQuantityInCartRequest request)
     {
