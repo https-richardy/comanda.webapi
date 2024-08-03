@@ -65,18 +65,21 @@ public sealed class InsertProductToCartHandler(
 
         foreach (var ingredientId in request.IngredientsIdsToRemove)
         {
-            var ingredient = await productIngredientRepository.RetrieveByIdAsync(ingredientId);
-            if (ingredient is null)
+            var productIngredient = await productIngredientRepository.RetrieveByIdAsync(ingredientId);
+            if (productIngredient is null)
                 return new Response(
                     statusCode: StatusCodes.Status404NotFound,
                     message: "Ingredient not found."
                 );
 
-            if (ingredient.IsMandatory)
+            if (productIngredient.IsMandatory)
                 return new Response(
                     statusCode: StatusCodes.Status400BadRequest,
                     message: "Mandatory ingredients can't be removed."
                 );
+
+            var unselectedIngredient = new UnselectedIngredient(productIngredient.Ingredient, cartItem);
+            cartItem.UnselectedIngredients.Add(unselectedIngredient);
         }
 
         cart.AddItem(cartItem);
