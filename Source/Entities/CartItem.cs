@@ -7,6 +7,7 @@ public sealed class CartItem : Entity
 
     public Product Product { get; set; }
     public ICollection<CartItemAdditional> Additionals { get; set; } = [];
+    public ICollection<UnselectedIngredient> UnselectedIngredients { get; set; } = [];
 
     public CartItem()
     {
