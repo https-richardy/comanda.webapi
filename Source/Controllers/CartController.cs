@@ -29,18 +29,34 @@ public sealed class CartController(IMediator mediator) : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
 
-    [HttpPost("modify-item-quantity")]
+    [HttpPut("items/")]
     [Authorize(Roles = "Customer")]
-    public async Task<IActionResult> ModifyItemQuantityAsync(ModifyCartItemQuantityRequest request)
+    public async Task<IActionResult> UpdateItemQuantityAsync(UpdateItemQuantityInCartRequest request)
     {
         var response = await mediator.Send(request);
         return StatusCode(response.StatusCode, response);
     }
 
-    [HttpPut("items/")]
-    [Authorize(Roles = "Customer")]
-    public async Task<IActionResult> UpdateItemQuantityAsync(UpdateItemQuantityInCartRequest request)
+    [HttpPost("items/{itemId}/increment")]
+    public async Task<IActionResult> IncrementCartItemQuantityAsync(int itemId)
     {
+        var request = new IncrementCartItemQuantityRequest
+        {
+            ItemId = itemId
+        };
+
+        var response = await mediator.Send(request);
+        return StatusCode(response.StatusCode, response);
+    }
+
+    [HttpPost("items/{itemId}/decrement")]
+    public async Task<IActionResult> DecrementCartItemQuantityAsync(int itemId)
+    {
+        var request = new DecrementCartItemQuantityRequest
+        {
+            ItemId = itemId
+        };
+
         var response = await mediator.Send(request);
         return StatusCode(response.StatusCode, response);
     }
