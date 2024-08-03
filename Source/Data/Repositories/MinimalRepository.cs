@@ -61,7 +61,7 @@ public abstract class MinimalRepository<TEntity, TDbContext> : IMinimalRepositor
     }
 
     # pragma warning disable CS8603
-    public virtual async Task<TEntity> RetrieveByIdAsync(object id)
+    public virtual async Task<TEntity> RetrieveByIdAsync(int id)
     {
         return await _dbContext.Set<TEntity>().FindAsync(id);
     }

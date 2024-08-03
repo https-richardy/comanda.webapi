@@ -10,6 +10,6 @@ public interface IMinimalRepository<TEntity>
     Task DeleteAsync(TEntity entity);
     Task UpdateAsync(TEntity entity);
 
-    Task<TEntity> RetrieveByIdAsync(object id);
+    Task<TEntity> RetrieveByIdAsync(int id);
     Task<IEnumerable<TEntity>> RetrieveAllAsync();
 }
