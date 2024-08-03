@@ -37,6 +37,16 @@ public sealed class CartController(IMediator mediator) : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
 
+    [HttpDelete("items/{itemId}")]
+    [Authorize(Roles = "Customer")]
+    public async Task<IActionResult> DeleteItemAsync(int itemId)
+    {
+        var request = new CartItemDeletionRequest { ItemId = itemId };
+        var response = await mediator.Send(request);
+
+        return StatusCode(response.StatusCode, response);
+    }
+
     [HttpPost("items/{itemId}/increment")]
     public async Task<IActionResult> IncrementCartItemQuantityAsync(int itemId)
     {
