@@ -39,5 +39,6 @@ global using Comanda.WebApi.Extensions;
 
 global using Nelibur.ObjectMapper;
 global using MediatR;
+global using Stripe.Checkout;
 global using FluentValidation;
 global using FluentValidation.Results;
