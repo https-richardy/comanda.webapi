@@ -44,4 +44,17 @@ public sealed class CartRepository(ComandaDbContext dbContext) :
         cart.Items.Remove(item);
         await _dbContext.SaveChangesAsync();
     }
+
+    #pragma warning disable CS8603
+    public override async Task<Cart> RetrieveByIdAsync(int id)
+    {
+        return await _dbContext.Carts
+            .Include(cart => cart.Customer)
+            .Include(cart => cart.Items)
+            .ThenInclude(cartItem => cartItem.Product)
+            .Include(cart => cart.Items)
+            .ThenInclude(cartItem => cartItem.Additionals)
+            .ThenInclude(additional => additional.Additional)
+            .FirstOrDefaultAsync(cart => cart.Id == id);
+    }
 }
