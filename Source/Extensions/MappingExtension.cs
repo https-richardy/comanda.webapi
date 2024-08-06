@@ -64,5 +64,15 @@ public static class MappingExtension
         });
 
         #endregion
+
+        #region mapping for order
+
+        TinyMapper.Bind<CartItemAdditional, OrderItemAdditional>(config =>
+        {
+            config.Bind(source => source.Quantity, target: target => target.Quantity);
+            config.Bind(source: source => source.Additional, target: target => target.Additional);
+        });
+
+        #endregion
     }
 }
