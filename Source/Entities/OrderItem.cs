@@ -3,7 +3,11 @@ namespace Comanda.WebApi.Entities;
 public sealed class OrderItem : Entity
 {
     public int Quantity { get; set; }
+    public decimal Total => CalculateTotal();
+
     public Product Product { get; set; }
+    public ICollection<OrderItemAdditional> Additionals { get; set; } = [];
+    public ICollection<UnselectedIngredient> UnselectedIngredients { get; set; } = [];
 
     public OrderItem()
     {
@@ -17,5 +21,11 @@ public sealed class OrderItem : Entity
     {
         Quantity = quantity;
         Product = product;
+    }
+
+    private decimal CalculateTotal()
+    {
+        /* Calculates the total cost of all the add-ons applied to the product. */
+        return (Additionals.Sum(item => item.Additional.Price * item.Quantity) + Product.Price) * Quantity;
     }
 }
