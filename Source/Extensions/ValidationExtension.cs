@@ -51,5 +51,11 @@ public static class ValidationExtension
         services.AddTransient<IValidator<NewAddressRegistrationRequest>, NewAddressRegistrationValidator>();
 
         #endregion
+
+        #region validators for settings requests
+
+        services.AddTransient<IValidator<SettingsEditingRequest>, SettingsEditingValidator>();
+
+        #endregion
     }
 }
