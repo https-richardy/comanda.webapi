@@ -2,6 +2,7 @@ namespace Comanda.WebApi.Handlers;
 
 public sealed class OrderProcessingHandler(
     IOrderRepository orderRepository,
+    ICartRepository cartRepository,
     ISettingsRepository settingsRepository
 ) : IRequestHandler<OrderProcessingRequest, Order>
 {
@@ -48,6 +49,7 @@ public sealed class OrderProcessingHandler(
         };
 
         await orderRepository.SaveAsync(order);
+        await cartRepository.ClearCartAsync(request.Cart);
 
         return order;
     }
