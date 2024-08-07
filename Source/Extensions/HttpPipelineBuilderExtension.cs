@@ -19,5 +19,8 @@ public static class HttpPipelineBuilderExtension
         app.UseAuthorization();
 
         app.UseStaticFiles();
+        app.UseRouting();
+
+        app.MapHubs();
     }
 }
