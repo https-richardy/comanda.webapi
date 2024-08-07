@@ -85,6 +85,14 @@ public static class MappingExtension
             config.Bind(source: source => source.DeliveryFee, target: target => target.DeliveryFee);
         });
 
+        TinyMapper.Bind<SettingsEditingRequest, Settings>(config =>
+        {
+            config.Bind(source: source => source.AcceptAutomatically, target: target => target.AcceptAutomatically);
+            config.Bind(source: source => source.MaxConcurrentAutomaticOrders, target: target => target.MaxConcurrentAutomaticOrders);
+            config.Bind(source: source => source.EstimatedDeliveryTimeInMinutes, target: target => target.EstimatedDeliveryTimeInMinutes);
+            config.Bind(source: source => source.DeliveryFee, target: target => target.DeliveryFee);
+        });
+
         #endregion
     }
 }
