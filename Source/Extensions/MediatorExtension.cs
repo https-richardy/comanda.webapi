@@ -79,5 +79,11 @@ public static class MediatorExtension
         services.AddScoped<IRequestHandler<NewAddressRegistrationRequest, Response>, NewAddressRegistrationHandler>();
 
         #endregion
+
+        #region handlers for settings requests
+
+        services.AddScoped<IRequestHandler<SettingsDetailsRequest, Response<SettingsFormattedResponse>>, SettingsDetailsHandler>();
+
+        #endregion
     }
 }
