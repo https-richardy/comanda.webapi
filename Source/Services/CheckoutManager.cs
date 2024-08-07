@@ -2,7 +2,7 @@ namespace Comanda.WebApi.Services;
 
 public sealed class CheckoutManager(IHostInformationProvider hostInformation) : ICheckoutManager
 {
-    public Task<Session> CreateCheckoutSessionAsync(Cart cart)
+    public Task<Session> CreateCheckoutSessionAsync(Cart cart, Address address)
     {
         var options = new SessionCreateOptions
         {
@@ -10,7 +10,8 @@ public sealed class CheckoutManager(IHostInformationProvider hostInformation) : 
             LineItems = cart.Items.Select(ToSessionLineItem).ToList(),
             Metadata = new Dictionary<string, string>
             {
-                { "cartId", cart.Id.ToString() }
+                { "cartId", cart.Id.ToString() },
+                { "shippingAddressId", address.Id.ToString() }
             },
             Mode = "payment",
             SuccessUrl = $"{hostInformation.HostAddress}/api/checkout/success?sessionId={{CHECKOUT_SESSION_ID}}",
