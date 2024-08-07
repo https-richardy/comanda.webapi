@@ -4,6 +4,7 @@ public sealed class CheckoutHandler(
     IUserContextService userContextService,
     ICartRepository cartRepository,
     ICustomerRepository customerRepository,
+    IAddressRepository addressRepository,
     ICheckoutManager checkoutManager
 ) : IRequestHandler<CheckoutRequest, Response<CheckoutResponse>>
 {
@@ -21,9 +22,17 @@ public sealed class CheckoutHandler(
         #pragma warning disable CS8604, CS8602
  
         var customer = await customerRepository.FindCustomerByUserIdAsync(userIdentifier);
+        var shippingAddress = await addressRepository.RetrieveByIdAsync(request.ShippingAddressId);
         var cart = await cartRepository.FindCartWithItemsAsync(customer.Id);
 
-        var session = await checkoutManager.CreateCheckoutSessionAsync(cart);
+        if (shippingAddress is null)
+            return new Response<CheckoutResponse>(
+                data: null,
+                statusCode: StatusCodes.Status404NotFound,
+                message: "address with the specified id was not found."
+            );
+
+        var session = await checkoutManager.CreateCheckoutSessionAsync(cart, shippingAddress);
         var response = new CheckoutResponse { SessionId = session.Id, Url = session.Url };
 
         return new Response<CheckoutResponse>(

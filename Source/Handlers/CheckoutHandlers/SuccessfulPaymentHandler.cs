@@ -3,6 +3,7 @@ namespace Comanda.WebApi.Handlers;
 public sealed class SuccessfulPaymentHandler(
     ICartRepository cartRepository,
     IOrderRepository orderRepository,
+    IAddressRepository addressRepository,
     ICheckoutManager checkoutManager
 ) : IRequestHandler<SuccessfulPaymentRequest, Response>
 {
@@ -12,9 +13,12 @@ public sealed class SuccessfulPaymentHandler(
     )
     {
         var session = await checkoutManager.GetSessionAsync(request.SessionId);
+
         var cartId = int.Parse(session.Metadata["cartId"]);
+        var shippingAddressId = int.Parse(session.Metadata["shippingAddressId"]);
 
         var cart = await cartRepository.RetrieveByIdAsync(cartId);
+        var address = await addressRepository.RetrieveByIdAsync(shippingAddressId);
 
         /* manual mapping of a CartItem to an OrderItem. I have a deadline, but I swear I'll make it more readable.*/
         var items = cart.Items.Select(cartItem => new OrderItem
@@ -37,6 +41,7 @@ public sealed class SuccessfulPaymentHandler(
         {
             Items = items,
             Customer = cart.Customer,
+            ShippingAddress = address,
             Status = EOrderStatus.Pending,
             Date = DateTime.Now
         };
@@ -45,7 +50,7 @@ public sealed class SuccessfulPaymentHandler(
 
         return new Response(
             statusCode: StatusCodes.Status200OK,
-            message: "payment and order created successfully."
+            message: "payment processed and order successfully created."
         );
     }
 }
