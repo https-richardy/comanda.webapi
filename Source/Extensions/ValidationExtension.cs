@@ -45,5 +45,11 @@ public static class ValidationExtension
         services.AddTransient<IValidator<CategoryEditingRequest>, CategoryEditingValidator>();
 
         #endregion
+
+        #region validators for profile requests
+
+        services.AddTransient<IValidator<NewAddressRegistrationRequest>, NewAddressRegistrationValidator>();
+
+        #endregion
     }
 }
