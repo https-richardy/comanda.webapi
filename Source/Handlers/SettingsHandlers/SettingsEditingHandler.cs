@@ -14,10 +14,13 @@ public sealed class SettingsEditingHandler(
         if (!validationResult.IsValid)
             return new ValidationFailureResponse(errors: validationResult.Errors);
 
-        var settings = await settingsRepository.GetSettingsAsync();
+        var currentSettings = await settingsRepository.GetSettingsAsync();
+        var currentSettingsId = currentSettings.Id;
 
-        settings = TinyMapper.Map<Settings>(request);
-        await settingsRepository.UpdateAsync(settings);
+        currentSettings = TinyMapper.Map<Settings>(request);
+        currentSettings.Id = currentSettingsId;
+
+        await settingsRepository.UpdateAsync(currentSettings);
 
         return new Response(
             statusCode: StatusCodes.Status200OK,
