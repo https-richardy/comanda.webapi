@@ -3,7 +3,8 @@ namespace Comanda.WebApi.Handlers;
 public sealed class OrderProcessingHandler(
     IOrderRepository orderRepository,
     ICartRepository cartRepository,
-    ISettingsRepository settingsRepository
+    ISettingsRepository settingsRepository,
+    IHubContext<NotificationHub> notificationHubContext
 ) : IRequestHandler<OrderProcessingRequest, Order>
 {
     public async Task<Order> Handle(
@@ -51,6 +52,20 @@ public sealed class OrderProcessingHandler(
         await orderRepository.SaveAsync(order);
         await cartRepository.ClearCartAsync(request.Cart);
 
+        await NotifyNewOrderAsync(order);
+
         return order;
+    }
+
+    private async Task NotifyNewOrderAsync(Order order)
+    {
+        var notification = new Notification
+        {
+            Title = "New Order!",
+            Message = $"A new order has been created with ID: {order.Id}",
+            Timestamp = DateTime.Now
+        };
+
+        await notificationHubContext.Clients.All.SendAsync("receiveNotification", notification);
     }
 }
