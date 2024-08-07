@@ -8,7 +8,16 @@ public sealed class CheckoutController(IMediator mediator) : ControllerBase
     [Authorize(Roles = "Customer")]
     public async Task<IActionResult> CreateCheckoutSessionAsync()
     {
-        var response = await mediator.Send((CheckoutRequest) new());
+        var response = await mediator.Send((CheckoutRequest)new());
+        return StatusCode(response.StatusCode, response);
+    }
+
+    [HttpGet("success")]
+    public async Task<IActionResult> HandleSuccessfulPaymentAsync([FromQuery] string sessionId)
+    {
+        var request = new SuccessfulPaymentRequest { SessionId = sessionId };
+        var response = await mediator.Send(request);
+
         return StatusCode(response.StatusCode, response);
     }
 }
