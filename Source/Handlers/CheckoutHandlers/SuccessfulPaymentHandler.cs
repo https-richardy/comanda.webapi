@@ -4,7 +4,8 @@ public sealed class SuccessfulPaymentHandler(
     ICartRepository cartRepository,
     IOrderRepository orderRepository,
     IAddressRepository addressRepository,
-    ICheckoutManager checkoutManager
+    ICheckoutManager checkoutManager,
+    ISettingsRepository settingsRepository
 ) : IRequestHandler<SuccessfulPaymentRequest, Response>
 {
     public async Task<Response> Handle(
@@ -19,6 +20,18 @@ public sealed class SuccessfulPaymentHandler(
 
         var cart = await cartRepository.RetrieveByIdAsync(cartId);
         var address = await addressRepository.RetrieveByIdAsync(shippingAddressId);
+
+        var settings = await settingsRepository.GetSettingsAsync();
+
+        var orderStatus = EOrderStatus.Pending;
+        if (settings.AcceptAutomatically)
+        {
+            var currentPendingOrders = await orderRepository.FindAllAsync(orders => orders.Status == EOrderStatus.Pending);
+            if (currentPendingOrders.Count() < settings.MaxConcurrentAutomaticOrders)
+            {
+                orderStatus = EOrderStatus.Processing;
+            }
+        }
 
         /* manual mapping of a CartItem to an OrderItem. I have a deadline, but I swear I'll make it more readable.*/
         var items = cart.Items.Select(cartItem => new OrderItem
@@ -42,7 +55,7 @@ public sealed class SuccessfulPaymentHandler(
             Items = items,
             Customer = cart.Customer,
             ShippingAddress = address,
-            Status = EOrderStatus.Pending,
+            Status = orderStatus,
             Date = DateTime.Now
         };
 
