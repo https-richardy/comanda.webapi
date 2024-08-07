@@ -30,6 +30,7 @@ global using Comanda.WebApi.Data;
 global using Comanda.WebApi.Data.Repositories;
 global using Comanda.WebApi.Payloads;
 global using Comanda.WebApi.Handlers;
+global using Comanda.WebApi.Hubs;
 global using Comanda.WebApi.Services;
 global using Comanda.WebApi.Services.Exceptions;
 global using Comanda.WebApi.Validators;
