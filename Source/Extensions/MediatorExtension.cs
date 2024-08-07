@@ -83,6 +83,7 @@ public static class MediatorExtension
         #region handlers for settings requests
 
         services.AddScoped<IRequestHandler<SettingsDetailsRequest, Response<SettingsFormattedResponse>>, SettingsDetailsHandler>();
+        services.AddScoped<IRequestHandler<SettingsEditingRequest, Response>, SettingsEditingHandler>();
 
         #endregion
     }
