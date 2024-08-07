@@ -7,6 +7,7 @@ public sealed class CustomerRepository(ComandaDbContext dbContext) :
     public async Task<Customer?> FindCustomerByUserIdAsync(string userId)
     {
         return await _dbContext.Customers
+            .Include(customer => customer.Addresses)
             .Where(customer => customer.Account.Id == userId)
             .FirstOrDefaultAsync();
     }
