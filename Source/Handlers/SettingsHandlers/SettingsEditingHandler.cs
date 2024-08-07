@@ -11,7 +11,7 @@ public sealed class SettingsEditingHandler(
     )
     {
         var validationResult = await validator.ValidateAsync(request);
-        if (validationResult.IsValid)
+        if (!validationResult.IsValid)
             return new ValidationFailureResponse(errors: validationResult.Errors);
 
         var settings = await settingsRepository.GetSettingsAsync();
