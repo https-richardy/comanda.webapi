@@ -7,6 +7,10 @@ public sealed record SettingsFormattedResponse
     public int EstimatedDeliveryTimeInMinutes { get; set; }
     public decimal DeliveryFee { get; set; }
 
+    public SettingsFormattedResponse()
+    {
+    }
+
     public SettingsFormattedResponse(
         bool acceptAutomatically,
         int maxConcurrentAutomaticOrders,
