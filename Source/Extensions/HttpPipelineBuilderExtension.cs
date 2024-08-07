@@ -15,12 +15,18 @@ public static class HttpPipelineBuilderExtension
             app.Bootstrap();
         }
 
+        app.UseRouting();
+
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.UseStaticFiles();
-        app.UseRouting();
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllers();
+            endpoints.MapHub<NotificationHub>("/notification");
+        });
 
-        app.MapHubs();
+
+        app.UseStaticFiles();
     }
 }
