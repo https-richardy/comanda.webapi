@@ -11,6 +11,7 @@ public static class DataPersistenceExtension
         });
 
         services.AddScoped<IAdditionalRepository, AdditionalRepository>();
+        services.AddScoped<IAddressRepository, AddressRepository>();
         services.AddScoped<ICartRepository, CartRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
