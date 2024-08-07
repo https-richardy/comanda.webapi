@@ -1,10 +1,10 @@
 namespace Comanda.WebApi.Validators;
 
-public sealed class NewAddressRegistrationValidators :
+public sealed class NewAddressRegistrationValidator :
     AbstractValidator<NewAddressRegistrationRequest>,
     IValidator<NewAddressRegistrationRequest>
 {
-    public NewAddressRegistrationValidators()
+    public NewAddressRegistrationValidator()
     {
         RuleFor(address => address.PostalCode)
             .NotEmpty().WithMessage("Postal code cannot be empty.")
