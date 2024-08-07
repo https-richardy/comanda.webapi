@@ -47,6 +47,7 @@ public sealed class SuccessfulPaymentHandler(
         };
 
         await orderRepository.SaveAsync(order);
+        await cartRepository.ClearCartAsync(cart);
 
         return new Response(
             statusCode: StatusCodes.Status200OK,
