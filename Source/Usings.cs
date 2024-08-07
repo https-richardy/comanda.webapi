@@ -10,6 +10,7 @@ global using System.IdentityModel.Tokens.Jwt;
 
 /* add global usage directives for Microsoft namespaces here */
 
+global using Microsoft.AspNetCore.SignalR;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;
