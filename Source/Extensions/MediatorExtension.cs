@@ -30,6 +30,7 @@ public static class MediatorExtension
         #region handlers for checkout requests
 
         services.AddScoped<IRequestHandler<CheckoutRequest, Response<CheckoutResponse>>, CheckoutHandler>();
+        services.AddScoped<IRequestHandler<SuccessfulPaymentRequest, Response>, SuccessfulPaymentHandler>();
 
         #endregion
 
