@@ -29,7 +29,7 @@ public sealed class AddressEntityConfiguration : IEntityTypeConfiguration<Addres
             .IsRequired();
 
         builder.Property(address => address.PostalCode)
-            .HasMaxLength(8)
+            .HasMaxLength(9)
             .IsRequired();
 
         builder.Property(address => address.Complement)
