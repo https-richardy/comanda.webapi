@@ -24,6 +24,7 @@ public static class MediatorExtension
         services.AddScoped<IRequestHandler<CartItemDeletionRequest, Response>, CartItemDeletionHandler>();
         services.AddScoped<IRequestHandler<IncrementCartItemQuantityRequest, Response>, IncrementCartItemQuantityHandler>();
         services.AddScoped<IRequestHandler<DecrementCartItemQuantityRequest, Response>, DecrementCartItemQuantityHandler>();
+        services.AddScoped<IRequestHandler<RetrieveCartAndAddressRequest, (Cart cart, Address addres)>, RetrieveCartAndAddressHandler>();
 
         #endregion
 
