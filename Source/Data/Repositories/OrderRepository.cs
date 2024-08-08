@@ -18,4 +18,20 @@ public sealed class OrderRepository(ComandaDbContext dbContext) :
             .Take(pageSize)
             .ToListAsync();
     }
+
+    public override async Task<IEnumerable<Order>> PagedAsync(Expression<Func<Order, bool>> predicate, int pageNumber, int pageSize)
+    {
+        /* Represents the adjustment applied to page numbers to align with zero-based indices in LINQ queries. */
+        const int pageIndexAdjustment = 1;
+
+        return await _dbContext.Orders
+            .Include(order => order.Customer)
+            .Include(order => order.ShippingAddress)
+            .Include(order => order.Items)
+            .ThenInclude(item => item.Product)
+            .Where(predicate)
+            .Skip((pageNumber - pageIndexAdjustment) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+    }
 }
