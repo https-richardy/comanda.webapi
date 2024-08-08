@@ -1,7 +1,7 @@
 namespace Comanda.WebApi.Payloads;
 
 public sealed record FetchOrdersRequest :
-    IRequest<Response<IEnumerable<FormattedOrder>>>
+    IRequest<Response<PaginationHelper<IEnumerable<FormattedOrder>>>>
 {
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = 10;
