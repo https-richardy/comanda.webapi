@@ -30,4 +30,16 @@ public sealed record FormattedOrder
         Status = status;
         Date = date;
     }
+
+    public static implicit operator FormattedOrder(Order order)
+    {
+        return new FormattedOrder(
+            id: order.Id,
+            customer: order.Customer.FullName ?? string.Empty,
+            shippingAddress: $"{order.ShippingAddress.Street}, {order.ShippingAddress.City}",
+            total: order.Total,
+            status: order.Status,
+            date: order.Date
+        );
+    }
 }
