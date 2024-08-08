@@ -39,6 +39,7 @@ public static class MediatorExtension
         #region handlers for orders requests
 
         services.AddScoped<IRequestHandler<OrderProcessingRequest, Order>, OrderProcessingHandler>();
+        services.AddScoped<IRequestHandler<FetchOrdersRequest, Response<PaginationHelper<FormattedOrder>>>, FetchOrdersHandler>();
 
         #endregion
 
