@@ -12,9 +12,12 @@ public sealed class FetchOrdersHandler(
         CancellationToken cancellationToken
     )
     {
+        Expression<Func<Order, bool>> predicate = order => order.Status == request.Status;
+
         var orders = await orderRepository.PagedAsync(
             pageNumber: request.PageNumber,
-            pageSize: request.PageSize
+            pageSize: request.PageSize,
+            predicate: predicate
         );
 
         var formattedOrders = orders
