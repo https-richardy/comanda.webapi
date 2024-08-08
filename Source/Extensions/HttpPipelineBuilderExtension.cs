@@ -4,7 +4,6 @@ public static class HttpPipelineBuilderExtension
 {
     public static void SetupPipeline(this IApplicationBuilder app, IWebHostEnvironment hostingEnvironment)
     {
-        app.ConfigureCORS();
         app.UseHttpsRedirection();
 
         if (hostingEnvironment.IsDevelopment())
@@ -16,6 +15,7 @@ public static class HttpPipelineBuilderExtension
         }
 
         app.UseRouting();
+        app.UseCors();
 
         app.UseAuthentication();
         app.UseAuthorization();
@@ -23,7 +23,8 @@ public static class HttpPipelineBuilderExtension
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
-            endpoints.MapHub<NotificationHub>("/notification");
+            endpoints.MapHub<NotificationHub>("/notification")
+                     .RequireCors("RestrictedHubPolicy");
         });
 
 
