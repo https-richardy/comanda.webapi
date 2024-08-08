@@ -36,7 +36,7 @@ public sealed record FormattedOrder
         return new FormattedOrder(
             id: order.Id,
             customer: order.Customer.FullName ?? string.Empty,
-            shippingAddress: $"{order.ShippingAddress.Street}, {order.ShippingAddress.City}",
+            shippingAddress: AddressFormatter.Format(order.ShippingAddress),
             total: order.Total,
             status: order.Status,
             date: order.Date
