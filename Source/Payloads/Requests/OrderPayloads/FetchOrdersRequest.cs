@@ -5,5 +5,5 @@ public sealed record FetchOrdersRequest :
 {
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = 10;
-    public EOrderStatus StatusFilter = EOrderStatus.Pending;
+    public EOrderStatus Status = EOrderStatus.Pending;
 }
