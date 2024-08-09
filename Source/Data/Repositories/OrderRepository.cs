@@ -34,4 +34,21 @@ public sealed class OrderRepository(ComandaDbContext dbContext) :
             .Take(pageSize)
             .ToListAsync();
     }
+
+    #pragma warning disable CS8603
+    public override async Task<Order> RetrieveByIdAsync(int id)
+    {
+        return await _dbContext.Orders
+            .Include(order => order.Customer)
+            .Include(order => order.ShippingAddress)
+            .Include(order => order.Items)
+            .ThenInclude(item => item.Product)
+            .Include(order => order.Items)
+            .ThenInclude(item => item.UnselectedIngredients)
+            .ThenInclude(unselectedIngredient => unselectedIngredient.Ingredient)
+            .Include(order => order.Items)
+            .ThenInclude(item => item.Additionals)
+            .ThenInclude(additional => additional.Additional)
+            .FirstOrDefaultAsync(order => order.Id == id);
+    }
 }
