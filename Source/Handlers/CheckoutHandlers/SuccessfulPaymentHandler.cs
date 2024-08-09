@@ -18,7 +18,10 @@ public sealed class SuccessfulPaymentHandler(IMediator mediator) :
         var (cart, address) = await mediator.Send(retrieveCartAndAddressRequest);
 
         var orderProcessingRequest = new OrderProcessingRequest { Cart = cart, Address = address };
-        await mediator.Send(orderProcessingRequest);
+        var order = await mediator.Send(orderProcessingRequest);
+
+        var paymentProcessingRequest = new PaymentProcessingRequest { Order = order, Session = session };
+        await mediator.Send(paymentProcessingRequest);
 
         return new Response(
             statusCode: StatusCodes.Status200OK,
