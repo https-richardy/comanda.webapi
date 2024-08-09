@@ -32,7 +32,7 @@ public sealed class OrderController(IMediator mediator) : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
 
-    [HttpPost("orderId/cancel")]
+    [HttpPost("{orderId}/cancel")]
     [Authorize(Roles = "Administrator, Customer")]
     public async Task<IActionResult> CancelOrderAsync(OrderCancellationRequest request, [FromRoute] int orderId)
     {
