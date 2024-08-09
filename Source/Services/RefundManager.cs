@@ -63,7 +63,7 @@ public sealed class RefundManager(
 
     public async Task<Refund> RefundOrderAsync(Order order)
     {
-        var payment = await paymentRepository.FindSingleAsync(payment => payment.Order.Id == order.Id);
+        var payment = await paymentRepository.FindByOrderIdAsync(order.Id);
 
         if (payment is null)
         {
