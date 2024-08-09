@@ -10,6 +10,8 @@ public sealed class Order : Entity
     public EOrderStatus Status { get; set; }
     public DateTime Date { get; set; }
 
+    public string? CancelledReason { get; set; }
+
     public Order()
     {
         /*
