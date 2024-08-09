@@ -41,6 +41,7 @@ public static class MediatorExtension
         services.AddScoped<IRequestHandler<OrderProcessingRequest, Order>, OrderProcessingHandler>();
         services.AddScoped<IRequestHandler<SetOrderStatusRequest, Response>, SetOrderStatusHandler>();
         services.AddScoped<IRequestHandler<FetchOrdersRequest, Response<PaginationHelper<FormattedOrder>>>, FetchOrdersHandler>();
+        services.AddScoped<IRequestHandler<OrderDetailsRequest, Response<FormattedOrderDetails>>, FetchOrderHandler>();
 
         #endregion
 
