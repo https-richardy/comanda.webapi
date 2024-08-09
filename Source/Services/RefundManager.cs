@@ -2,10 +2,7 @@ using Stripe;
 
 namespace Comanda.WebApi.Services;
 
-public sealed class RefundManager(
-    IPaymentRepository paymentRepository,
-    ILogger<RefundManager> logger
-) : IRefundManager
+public sealed class RefundManager(IPaymentRepository paymentRepository, ILogger<RefundManager> logger) : IRefundManager
 {
     public async Task<Refund> RefundAsync(string paymentIntentId, decimal amount)
     {
