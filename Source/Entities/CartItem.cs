@@ -46,4 +46,19 @@ public sealed class CartItem : Entity
         /* Calculates the total cost of all the add-ons applied to the product. */
         return (Additionals.Sum(item => item.Additional.Price * item.Quantity) + Product.Price) * Quantity;
     }
+
+    public static implicit operator OrderItem(CartItem cartItem)
+    {
+        return new OrderItem
+        {
+            Quantity = cartItem.Quantity,
+            Product = cartItem.Product,
+            Additionals = cartItem.Additionals.Select(additional => (OrderItemAdditional)additional).ToList(),
+            UnselectedIngredients = cartItem.UnselectedIngredients.Select(ingredient => new UnselectedIngredient
+            {
+                Ingredient = ingredient.Ingredient,
+                CartItem = cartItem
+            }).ToList()
+        };
+    }
 }
