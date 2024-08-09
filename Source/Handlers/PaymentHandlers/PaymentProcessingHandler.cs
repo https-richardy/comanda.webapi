@@ -16,7 +16,8 @@ public sealed class PaymentProcessingHandler(
         var paymentIntentId = session.PaymentIntentId;
         var payment = new Payment
         {
-            Order = request.Order,
+            Order = order,
+            Amount = order.Total,
             PaymentIntentId = paymentIntentId
         };
 
