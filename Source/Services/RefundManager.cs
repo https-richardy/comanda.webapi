@@ -4,13 +4,24 @@ namespace Comanda.WebApi.Services;
 
 public sealed class RefundManager(ILogger<RefundManager> logger) : IRefundManager
 {
-    public async Task<Refund> RefundAsync(string paymentItentId, decimal amount)
+    public async Task<Refund> RefundAsync(string paymentIntentId, decimal amount)
     {
         try
         {
+            var paymentIntentService = new PaymentIntentService();
+            var paymentIntent = await paymentIntentService.GetAsync(paymentIntentId);
+
+            var availableForRefund = (decimal)paymentIntent.AmountReceived / 100 - (decimal)paymentIntent.AmountReceived / 100;
+
+            if (amount > availableForRefund)
+            {
+                logger.LogError("Error: Refund amount ({RefundAmount:C}) is greater than available amount ({AvailableForRefund:C}).", amount, availableForRefund);
+                throw new InvalidOperationException($"Refund amount ({amount:C}) is greater than the available amount ({availableForRefund:C}).");
+            }
+
             var options = new RefundCreateOptions
             {
-                PaymentIntent = paymentItentId,
+                PaymentIntent = paymentIntentId,
                 Amount = (long)(amount * 100)
             };
 
