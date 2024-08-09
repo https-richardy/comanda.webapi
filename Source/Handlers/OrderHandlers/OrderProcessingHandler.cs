@@ -20,7 +20,7 @@ public sealed class OrderProcessingHandler(
             var currentPendingOrders = await orderRepository.FindAllAsync(orders => orders.Status == EOrderStatus.Pending);
             if (currentPendingOrders.Count() < settings.MaxConcurrentAutomaticOrders)
             {
-                orderStatus = EOrderStatus.Processing;
+                orderStatus = EOrderStatus.Confirmed;
             }
         }
 
