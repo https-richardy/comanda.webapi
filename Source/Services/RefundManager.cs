@@ -2,7 +2,10 @@ using Stripe;
 
 namespace Comanda.WebApi.Services;
 
-public sealed class RefundManager(ILogger<RefundManager> logger) : IRefundManager
+public sealed class RefundManager(
+    IPaymentRepository paymentRepository,
+    ILogger<RefundManager> logger
+) : IRefundManager
 {
     public async Task<Refund> RefundAsync(string paymentIntentId, decimal amount)
     {
@@ -56,5 +59,18 @@ public sealed class RefundManager(ILogger<RefundManager> logger) : IRefundManage
             logger.LogError("Unexpected error: {message}", exception.Message);
             throw new InvalidOperationException("An unexpected error occurred while processing the refund.", exception);
         }
+    }
+
+    public async Task<Refund> RefundOrderAsync(Order order)
+    {
+        var payment = await paymentRepository.FindSingleAsync(payment => payment.Order.Id == order.Id);
+
+        if (payment is null)
+        {
+            logger.LogError("Error: Payment not found for Order ID {orderId}.", order.Id);
+            throw new InvalidOperationException($"Payment not found for Order ID {order.Id}.");
+        }
+
+        return await RefundAsync(payment.PaymentIntentId, order.Total);
     }
 }
