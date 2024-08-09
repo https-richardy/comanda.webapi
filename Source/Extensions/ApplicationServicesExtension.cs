@@ -17,5 +17,6 @@ public static class ApplicationServicesExtension
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IUserContextService, UserContextService>();
         services.AddScoped<ICheckoutManager, CheckoutManager>();
+        services.AddScoped<IRefundManager, RefundManager>();
     }
 }
