@@ -24,21 +24,9 @@ public sealed class OrderProcessingHandler(
             }
         }
 
-        var items = request.Cart.Items.Select(cartItem => new OrderItem
-        {
-            Quantity = cartItem.Quantity,
-            Product = cartItem.Product,
-            Additionals = cartItem.Additionals.Select(additional => new OrderItemAdditional
-            {
-                Additional = additional.Additional,
-                Quantity = additional.Quantity
-            }).ToList(),
-            UnselectedIngredients = cartItem.UnselectedIngredients.Select(ingredient => new UnselectedIngredient
-            {
-                Ingredient = ingredient.Ingredient,
-                CartItem = cartItem
-            }).ToList()
-        }).ToList();
+        var items = request.Cart.Items
+            .Select(cartItem => (OrderItem)cartItem)
+            .ToList();
 
         var order = new Order
         {
