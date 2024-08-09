@@ -3,9 +3,11 @@ namespace Comanda.WebApi.Entities;
 public enum EOrderStatus
 {
     Pending,
-    Processing,
+    Confirmed,
+    InPreparation,
     Shipped,
     Returned,
-    Cancelled,
-    Delivered
+    Delivered,
+    CancelledByCustomer,
+    CancelledBySystem
 }
