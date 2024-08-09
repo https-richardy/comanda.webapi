@@ -12,6 +12,15 @@ public sealed class OrderController(IMediator mediator) : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
 
+    [HttpGet("{orderId}")]
+    public async Task<IActionResult> GetOrderDetailsAsync(int orderId)
+    {
+        var request = new OrderDetailsRequest { OrderId = orderId };
+        var response = await mediator.Send(request);
+
+        return StatusCode(response.StatusCode, response);
+    }
+
     [HttpPut("{orderId}/set-status")]
     public async Task<IActionResult> SetOrderStatus(SetOrderStatusRequest request, int orderId)
     {
