@@ -13,7 +13,7 @@ public sealed class SetOrderStatusHandler(
         if (order is null)
             return new Response(
                 statusCode: StatusCodes.Status404NotFound,
-                message: "order with ID '{request.OrderId}' was not found."
+                message: $"order with ID '{request.OrderId}' was not found."
             );
 
         order.Status = request.Status;
