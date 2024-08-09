@@ -13,11 +13,16 @@ public sealed class CheckoutController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("success")]
-    public async Task<IActionResult> HandleSuccessfulPaymentAsync([FromQuery] string sessionId)
+    public async Task<IActionResult> HandleSuccessfulPaymentAsync([FromQuery] SuccessfulPaymentRequest request)
     {
-        var request = new SuccessfulPaymentRequest { SessionId = sessionId };
         var response = await mediator.Send(request);
+        return StatusCode(response.StatusCode, response);
+    }
 
+    [HttpGet("cancel")]
+    public async Task<IActionResult> HandleCanceledPaymentAsync([FromQuery] CanceledPaymentRequest request)
+    {
+        var response = await mediator.Send(request);
         return StatusCode(response.StatusCode, response);
     }
 }
