@@ -55,7 +55,6 @@ public sealed class CheckoutManager(
         return retrievedSession;
     }
 
-
     private SessionLineItemOptions ToSessionLineItem(CartItem item)
     {
         return new SessionLineItemOptions
