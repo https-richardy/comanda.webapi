@@ -2,6 +2,7 @@ namespace Comanda.WebApi.Controllers;
 
 [ApiController]
 [Route("api/profile")]
+[Authorize(Roles = "Customer")]
 public sealed class ProfileController(IMediator mediator) : ControllerBase
 {
     [HttpGet("addresses")]
@@ -12,7 +13,6 @@ public sealed class ProfileController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("addresses")]
-    [Authorize(Roles = "Customer")]
     public async Task<IActionResult> RegisterNewAddressAsync(NewAddressRegistrationRequest request)
     {
         var response = await mediator.Send(request);
@@ -28,8 +28,16 @@ public sealed class ProfileController(IMediator mediator) : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
 
+    [HttpDelete("addresses/{addressId}")]
+    public async Task<IActionResult> DeleteCustomerAddressAsync(int addressId)
+    {
+        var request = new AddressDeletionRequest { AddressId = addressId };
+
+        var response = await mediator.Send(request);
+        return StatusCode(response.StatusCode, response);
+    }
+
     [HttpGet("orders")]
-    [Authorize(Roles = "Customer")]
     public async Task<IActionResult> GetCurrentOrdersAsync()
     {
         var response = await mediator.Send((CustomerCurrentOrdersRequest)new());
@@ -46,7 +54,6 @@ public sealed class ProfileController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("orders/history")]
-    [Authorize(Roles = "Customer")]
     public async Task<IActionResult> GetOrderHistoryAsync([FromQuery] CustomerOrderHistoryRequest request)
     {
         var response = await mediator.Send(request);
