@@ -98,6 +98,7 @@ public static class MediatorExtension
         services.AddScoped<IRequestHandler<NewAddressRegistrationRequest, Response>, NewAddressRegistrationHandler>();
         services.AddScoped<IRequestHandler<CustomerOrderHistoryRequest, Response<PaginationHelper<FormattedOrder>>>, CustomerOrdersHistoryHandler>();
         services.AddScoped<IRequestHandler<CustomerCurrentOrdersRequest, Response<IEnumerable<FormattedOrder>>>, CustomerCurrentOrdersHandler>();
+        services.AddScoped<IRequestHandler<CustomerOrderDetailsRequest, Response<FormattedOrderDetails>>, CustomerOrderDetailsHandler>();
 
         #endregion
 
