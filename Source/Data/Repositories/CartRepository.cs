@@ -34,6 +34,7 @@ public sealed class CartRepository(ComandaDbContext dbContext) :
     public async Task<Cart?> FindCartByCustomerIdAsync(int customerId)
     {
         var cart = await _dbContext.Carts
+            .AsNoTracking()
             .Where(cart => cart.Customer.Id == customerId)
             .FirstOrDefaultAsync();
 
@@ -50,6 +51,7 @@ public sealed class CartRepository(ComandaDbContext dbContext) :
     public override async Task<Cart> RetrieveByIdAsync(int id)
     {
         return await _dbContext.Carts
+            .AsNoTracking()
             .Include(cart => cart.Customer)
             .Include(cart => cart.Items)
             .ThenInclude(cartItem => cartItem.Product)
