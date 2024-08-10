@@ -4,6 +4,13 @@ namespace Comanda.WebApi.Controllers;
 [Route("api/profile")]
 public sealed class ProfileController(IMediator mediator) : ControllerBase
 {
+    [HttpGet("addresses")]
+    public async Task<IActionResult> GetCustomerAddressesAsync()
+    {
+        var response = await mediator.Send((FetchCustomerAddressesRequest) new());
+        return StatusCode(response.StatusCode, response);
+    }
+
     [HttpPost("addresses")]
     [Authorize(Roles = "Customer")]
     public async Task<IActionResult> RegisterNewAddressAsync(NewAddressRegistrationRequest request)
