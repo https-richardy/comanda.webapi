@@ -22,6 +22,7 @@ public sealed class CartRepository(ComandaDbContext dbContext) :
             I swear I'll optimize this query later...
         */
         return await _dbContext.Carts
+            .AsNoTracking()
             .Include(cart => cart.Items)
             .ThenInclude(cartItem => cartItem.Product)
             .Include(cart => cart.Items)
