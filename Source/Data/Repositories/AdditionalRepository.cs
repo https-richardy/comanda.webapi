@@ -7,7 +7,8 @@ public sealed class AdditionalRepository(ComandaDbContext dbContext) :
     public async override Task<IEnumerable<Additional>> RetrieveAllAsync()
     {
         return await _dbContext.Additionals
-            .Include(cart => cart.Category)
+            .AsNoTracking()
+            .Include(additional => additional.Category)
             .ToListAsync();
     }
 }
