@@ -23,6 +23,8 @@ public sealed class NewAddressRegistrationHandler(
         var address = await addressService.GetByZipCodeAsync(request.PostalCode);
         var customer = await customerRepository.FindCustomerByUserIdAsync(userIdentifier);
 
+        address.Number = !string.IsNullOrEmpty(request.Number) ? request.Number : address.Number;
+
         customer?.Addresses.Add(address);
         await addressRepository.SaveAsync(address);
 
