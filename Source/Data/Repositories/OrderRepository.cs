@@ -10,6 +10,7 @@ public sealed class OrderRepository(ComandaDbContext dbContext) :
         const int pageIndexAdjustment = 1;
 
         return await _dbContext.Orders
+            .AsNoTracking()
             .Include(order => order.Customer)
             .Include(order => order.ShippingAddress)
             .Include(order => order.Items)
@@ -25,6 +26,7 @@ public sealed class OrderRepository(ComandaDbContext dbContext) :
         const int pageIndexAdjustment = 1;
 
         return await _dbContext.Orders
+            .AsNoTracking()
             .Include(order => order.Customer)
             .Include(order => order.ShippingAddress)
             .Include(order => order.Items)
@@ -39,6 +41,7 @@ public sealed class OrderRepository(ComandaDbContext dbContext) :
     public override async Task<Order> RetrieveByIdAsync(int id)
     {
         return await _dbContext.Orders
+            .AsNoTracking()
             .Include(order => order.Customer)
             .Include(order => order.ShippingAddress)
             .Include(order => order.Items)
