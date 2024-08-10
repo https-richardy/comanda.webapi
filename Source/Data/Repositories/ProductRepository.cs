@@ -10,6 +10,7 @@ public sealed class ProductRepository(ComandaDbContext dbContext) :
         const int pageIndexAdjustment = 1;
 
         return await _dbContext.Products
+            .AsNoTracking()
             .Include(product => product.Category)
             .Include(product => product.Ingredients)
             .Skip((pageNumber - pageIndexAdjustment) * pageSize)
@@ -23,6 +24,7 @@ public sealed class ProductRepository(ComandaDbContext dbContext) :
         const int pageIndexAdjustment = 1;
 
         return await _dbContext.Products
+            .AsNoTracking()
             .Include(product => product.Category)
             .Include(product => product.Ingredients)
             .Where(predicate)

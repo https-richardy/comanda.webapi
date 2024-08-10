@@ -8,6 +8,7 @@ public sealed class ProductIngredientRepository(ComandaDbContext dbContext) :
     public override async Task<ProductIngredient> RetrieveByIdAsync(int id)
     {
         return await _dbContext.ProductIngredients
+            .AsNoTracking()
             .Include(productIngredient => productIngredient.Ingredient)
             .Where(productIgredient => productIgredient.Id == id)
             .FirstOrDefaultAsync();
