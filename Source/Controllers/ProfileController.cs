@@ -12,6 +12,15 @@ public sealed class ProfileController(IMediator mediator) : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
 
+    [HttpPut("addresses/{addressId}")]
+    public async Task<IActionResult> UpdateAddressAsync(AddressEditingRequest request, [FromRoute] int addressId)
+    {
+        request.AddressId = addressId;
+
+        var response = await mediator.Send(request);
+        return StatusCode(response.StatusCode, response);
+    }
+
     [HttpGet("orders")]
     [Authorize(Roles = "Customer")]
     public async Task<IActionResult> GetCurrentOrdersAsync()
