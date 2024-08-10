@@ -1,9 +1,13 @@
 namespace Comanda.WebApi.Services;
 
-public sealed class CheckoutManager(IHostInformationProvider hostInformation) : ICheckoutManager
+public sealed class CheckoutManager(
+    IHostInformationProvider hostInformation,
+    ISettingsRepository settingsRepository
+) : ICheckoutManager
 {
-    public Task<Session> CreateCheckoutSessionAsync(Cart cart, Address address)
+    public async Task<Session> CreateCheckoutSessionAsync(Cart cart, Address address)
     {
+        var settings = await settingsRepository.GetSettingsAsync();
         var options = new SessionCreateOptions
         {
             PaymentMethodTypes = new List<string> { "card" },
@@ -15,8 +19,22 @@ public sealed class CheckoutManager(IHostInformationProvider hostInformation) : 
             },
             Mode = "payment",
             SuccessUrl = $"{hostInformation.HostAddress}/api/checkout/success?sessionId={{CHECKOUT_SESSION_ID}}",
-            CancelUrl = $"{hostInformation.HostAddress}/api/checkout/cancel?sessionId={{CHECKOUT_SESSION_ID}}"
+            CancelUrl = $"{hostInformation.HostAddress}/api/checkout/cancel?sessionId={{CHECKOUT_SESSION_ID}}",
         };
+
+        options.LineItems.Add(new SessionLineItemOptions
+        {
+            PriceData = new SessionLineItemPriceDataOptions
+            {
+                Currency = "BRL",
+                ProductData = new SessionLineItemPriceDataProductDataOptions
+                {
+                    Name = "Delivery Fee"
+                },
+                UnitAmount = (long)(settings.DeliveryFee * 100),
+            },
+            Quantity = 1
+        });
 
         /*
             I even tried to DI the SessionService, but it seems that StripeClient decided to
@@ -24,7 +42,7 @@ public sealed class CheckoutManager(IHostInformationProvider hostInformation) : 
             back to basics and instantiating manually.
         */
         var sessionService = new SessionService();
-        var session = sessionService.CreateAsync(options);
+        var session = await sessionService.CreateAsync(options);
 
         return session;
     }
