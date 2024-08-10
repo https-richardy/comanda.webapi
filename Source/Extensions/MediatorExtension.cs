@@ -98,6 +98,7 @@ public static class MediatorExtension
         services.AddScoped<IRequestHandler<FetchCustomerAddressesRequest, Response<IEnumerable<Address>>>, FetchCustomerAddressesHandler>();
         services.AddScoped<IRequestHandler<NewAddressRegistrationRequest, Response>, NewAddressRegistrationHandler>();
         services.AddScoped<IRequestHandler<AddressEditingRequest, Response>, AddressEditingHandler>();
+        services.AddScoped<IRequestHandler<AddressDeletionRequest, Response>, AddressDeletionHandler>();
         services.AddScoped<IRequestHandler<CustomerOrderHistoryRequest, Response<PaginationHelper<FormattedOrder>>>, CustomerOrdersHistoryHandler>();
         services.AddScoped<IRequestHandler<CustomerCurrentOrdersRequest, Response<IEnumerable<FormattedOrder>>>, CustomerCurrentOrdersHandler>();
         services.AddScoped<IRequestHandler<CustomerOrderDetailsRequest, Response<FormattedOrderDetails>>, CustomerOrderDetailsHandler>();
