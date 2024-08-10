@@ -3,8 +3,7 @@ namespace Comanda.WebApi.Handlers;
 public sealed class CanceledPaymentHandler(
     ICheckoutManager checkoutManager,
     ILogger<CanceledPaymentHandler> logger
-) :
-    IRequestHandler<CanceledPaymentRequest, Response>
+) : IRequestHandler<CanceledPaymentRequest, Response>
 {
     public async Task<Response> Handle(
         CanceledPaymentRequest request,
