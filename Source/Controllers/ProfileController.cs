@@ -20,6 +20,15 @@ public sealed class ProfileController(IMediator mediator) : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
 
+    [HttpGet("orders/{orderId}")]
+    public async Task<IActionResult> GetOrderDetailsAsync(int orderId)
+    {
+        var request = new CustomerOrderDetailsRequest { OrderId = orderId };
+        var response = await mediator.Send(request);
+
+        return StatusCode(response.StatusCode, response);
+    }
+
     [HttpGet("orders/history")]
     [Authorize(Roles = "Customer")]
     public async Task<IActionResult> GetOrderHistoryAsync([FromQuery] CustomerOrderHistoryRequest request)
