@@ -95,6 +95,7 @@ public static class MediatorExtension
 
         #region handlers for profile requests
 
+        services.AddScoped<IRequestHandler<FetchCustomerAddressesRequest, Response<IEnumerable<Address>>>, FetchCustomerAddressesHandler>();
         services.AddScoped<IRequestHandler<NewAddressRegistrationRequest, Response>, NewAddressRegistrationHandler>();
         services.AddScoped<IRequestHandler<AddressEditingRequest, Response>, AddressEditingHandler>();
         services.AddScoped<IRequestHandler<CustomerOrderHistoryRequest, Response<PaginationHelper<FormattedOrder>>>, CustomerOrdersHistoryHandler>();
