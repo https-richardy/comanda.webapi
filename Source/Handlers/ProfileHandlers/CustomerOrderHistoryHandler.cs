@@ -23,21 +23,6 @@ public sealed class CustomerOrdersHistoryHandler(
 
         Expression<Func<Order, bool>> predicate = order => order.Customer.Id == customer.Id;
 
-        if (request.StartDate.HasValue)
-            predicate = predicate.And(order => order.Date >= request.StartDate.Value);
-
-        if (request.EndDate.HasValue)
-            predicate = predicate.And(order => order.Date <= request.EndDate.Value.Date.AddDays(1).AddTicks(-1));
-
-        if (request.Status.HasValue)
-            predicate = predicate.And(order => order.Status == request.Status.Value);
-
-        if (request.MinPrice.HasValue)
-            predicate = predicate.And(order => order.Total >= request.MinPrice.Value);
-
-        if (request.MaxPrice.HasValue)
-            predicate = predicate.And(order => order.Total <= request.MaxPrice.Value);
-
         var orders = await orderRepository.PagedAsync(
             pageNumber: request.PageNumber,
             pageSize: request.PageSize,
