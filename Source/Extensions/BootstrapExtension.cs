@@ -1,5 +1,3 @@
-#pragma warning disable CS8604
-
 namespace Comanda.WebApi.Extensions;
 
 /*
@@ -22,66 +20,72 @@ public static class BootstrapExtension
         {
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Account>>();
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<AdminSettings>>();
 
-            var adminRoleExists = await roleManager.RoleExistsAsync("Administrator");
-            if (!adminRoleExists)
-            {
-                var adminRole = new IdentityRole("Administrator");
-                await roleManager.CreateAsync(adminRole);
-            }
-
-            IdentityResult result;
-
-            do
-            {
-                var usersInRole = await userManager.GetUsersInRoleAsync("Administrator");
-                if (usersInRole.Count > 0)
-                {
-                    break;
-                }
-
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("admin user not found. Let's create a new one.");
-                Console.ResetColor();
-
-                Console.Write("Enter an username: ");
-                var username = Console.ReadLine();
-
-                Console.Write("Enter an email: ");
-                var email = Console.ReadLine();
-
-                Console.Write("Enter a password: ");
-                var password = Console.ReadLine();
-
-                var adminUser = new Account
-                {
-                    UserName = username,
-                    Email = email,
-                };
-
-                result = await userManager.CreateAsync(adminUser, password);
-
-                if (result.Succeeded)
-                {
-                    await userManager.AddToRoleAsync(adminUser, "Administrator");
-
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine($"administrator ({username} - {email}) user successfully created.");
-                    Console.ResetColor();
-                }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Error creating admin user:");
-
-                    foreach (var error in result.Errors)
-                    {
-                        Console.WriteLine($"- {error.Description}");
-                    }
-
-                    Console.ResetColor();
-                }
-            } while (!result.Succeeded);
+            await EnsureAdministratorRoleAsync(roleManager);
+            await EnsureAdminUserAsync(userManager, logger, builder.ApplicationServices);
         }
+    }
+
+    private static async Task EnsureAdminUserAsync(UserManager<Account> userManager, ILogger logger, IServiceProvider serviceProvider)
+    {
+        var adminSettings = serviceProvider.GetRequiredService<IConfiguration>()
+            .GetSection("AdminSettings")
+            .Get<AdminSettings>();
+
+        if (adminSettings == null)
+        {
+            logger.LogError("Admin settings are missing from configuration.");
+            return;
+        }
+
+        var usersInRole = await userManager.GetUsersInRoleAsync("Administrator");
+
+        if (usersInRole.Count > 0)
+        {
+            logger.LogInformation("Administrator user already exists.");
+            return;
+        }
+
+        logger.LogWarning("No administrator user found. Creating one.");
+
+        var adminUser = new Account
+        {
+            UserName = adminSettings.UserName,
+            Email = adminSettings.Email,
+        };
+
+        var result = await userManager.CreateAsync(adminUser, adminSettings.Password);
+
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(adminUser, "Administrator");
+            logger.LogInformation("Administrator user ({username} - {email}) successfully created.", adminSettings.UserName, adminSettings.Email);
+        }
+        else
+        {
+            logger.LogError("Error creating admin user:");
+
+            foreach (var error in result.Errors)
+            {
+                logger.LogError($"> {error.Description}");
+            }
+        }
+    }
+
+    private static async Task EnsureAdministratorRoleAsync(RoleManager<IdentityRole> roleManager)
+    {
+        if (!await roleManager.RoleExistsAsync("Administrator"))
+        {
+            var adminRole = new IdentityRole("Administrator");
+            await roleManager.CreateAsync(adminRole);
+        }
+    }
+
+    public sealed record AdminSettings
+    {
+        public string UserName { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
     }
 }
