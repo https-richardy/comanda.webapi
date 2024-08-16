@@ -16,13 +16,12 @@ public sealed class CustomerCurrentOrdersHandler(
             It is impossible for the 'userIdentifier' to be null at this point
             since the 'ProfileController' restricts access only to authenticated customers.
         */
-        #pragma warning disable CS8604, CS8602
 
         var userId = userContextService.GetCurrentUserIdentifier();
-        var customer = await customerRepository.FindCustomerByUserIdAsync(userId);
+        var customer = await customerRepository.FindCustomerByUserIdAsync(userId!);
 
         Expression<Func<Order, bool>> predicate = order =>
-            order.Customer.Id == customer.Id &&
+            order.Customer.Id == customer!.Id &&
             order.Status == EOrderStatus.Pending ||
             order.Status == EOrderStatus.Confirmed ||
             order.Status == EOrderStatus.InPreparation;
