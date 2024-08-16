@@ -24,8 +24,8 @@ public sealed class CustomerCurrentOrdersHandler(
         Expression<Func<Order, bool>> predicate = order =>
             order.Customer.Id == customer.Id &&
             order.Status == EOrderStatus.Pending ||
-            order.Status == EOrderStatus.InPreparation ||
-            order.Status == EOrderStatus.Confirmed;
+            order.Status == EOrderStatus.Confirmed ||
+            order.Status == EOrderStatus.InPreparation;
 
         var orders = await orderRepository.FindAllAsync(predicate: predicate);
         var formattedOrders = orders
