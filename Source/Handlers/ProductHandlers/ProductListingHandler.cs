@@ -3,10 +3,10 @@ namespace Comanda.WebApi.Handlers;
 public sealed class ProductListingHandler(
     IProductRepository productRepository,
     IHttpContextAccessor contextAccessor
-) : IRequestHandler<ProductListingRequest, Response<PaginationHelper<Product>>>
+) : IRequestHandler<ProductListingRequest, Response<PaginationHelper<FormattedProduct>>>
 {
     #pragma warning disable CS8604, CS8600
-    public async Task<Response<PaginationHelper<Product>>> Handle(
+    public async Task<Response<PaginationHelper<FormattedProduct>>> Handle(
         ProductListingRequest request,
         CancellationToken cancellationToken
     )
@@ -46,14 +46,18 @@ public sealed class ProductListingHandler(
             );
         }
 
-        var pagination = new PaginationHelper<Product>(
-            data: products,
+        var formattedProducts = products
+            .Select(product => (FormattedProduct) product)
+            .ToList();
+
+        var pagination = new PaginationHelper<FormattedProduct>(
+            data: formattedProducts,
             pageNumber: request.Page,
             pageSize: request.PageSize,
             httpContext: contextAccessor.HttpContext
         );
 
-        return new Response<PaginationHelper<Product>>(
+        return new Response<PaginationHelper<FormattedProduct>>(
             data: pagination,
             statusCode: StatusCodes.Status200OK,
             message: "products retrieved successfully."
