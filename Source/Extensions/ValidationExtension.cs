@@ -8,6 +8,8 @@ public static class ValidationExtension
 
         services.AddTransient<IValidator<AccountRegistrationRequest>, AccountRegistrationValidator>();
         services.AddTransient<IValidator<AuthenticationCredentials>, AuthenticationCredentialsValidator>();
+        services.AddTransient<IValidator<SendPasswordResetTokenRequest>, SendPasswordResetTokenValidator>();
+        services.AddTransient<IValidator<ResetPasswordRequest>, ResetPasswordValidator>();
 
         #endregion
 
