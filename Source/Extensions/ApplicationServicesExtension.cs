@@ -5,6 +5,8 @@ public static class ApplicationServicesExtension
 {
     public static void AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
+        var smtpSettings = configuration.GetSection(nameof(SmtpSettings)).Get<SmtpSettings>();
+
         services.AddScoped<IAddressService, AddressService>();
         services.AddHttpClient<IAddressService, AddressService>(client =>
         {
@@ -18,5 +20,9 @@ public static class ApplicationServicesExtension
         services.AddScoped<IUserContextService, UserContextService>();
         services.AddScoped<ICheckoutManager, CheckoutManager>();
         services.AddScoped<IRefundManager, RefundManager>();
+        services.AddScoped<IEmailService, SmtpEmailService>(provider =>
+        {
+            return new SmtpEmailService(smtpSettings);
+        });
     }
 }
