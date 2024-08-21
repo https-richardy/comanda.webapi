@@ -3,7 +3,7 @@ using System.Net.Mail;
 
 namespace Comanda.WebApi.Services;
 
-public sealed class SmtpEmailService(SmtpSettings settings, ILogger<SmtpEmailService> logger) : IEmailService
+public sealed class SmtpEmailService(SmtpSettings settings) : IEmailService
 {
     public async Task SendEmailAsync(string to, string subject, string body)
     {
@@ -23,14 +23,6 @@ public sealed class SmtpEmailService(SmtpSettings settings, ILogger<SmtpEmailSer
         };
 
         mailMessage.To.Add(to);
-
-        try
-        {
-            await smtpClient.SendMailAsync(mailMessage);
-        }
-        catch (Exception exception)
-        {
-            logger.LogError("Failed to send email. Cause: {exception}", exception);
-        }
+        await smtpClient.SendMailAsync(mailMessage);
     }
 }
