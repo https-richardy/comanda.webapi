@@ -17,4 +17,11 @@ public sealed class IdentityController(IMediator mediator) : ControllerBase
         var response = await mediator.Send(request);
         return StatusCode(response.StatusCode, response);
     }
+
+    [HttpPost("request-password-reset")]
+    public async Task<IActionResult> RequestPasswordResetAsync(SendPasswordResetTokenRequest request)
+    {
+        var response = await mediator.Send(request);
+        return StatusCode(response.StatusCode, response);
+    }
 }
