@@ -20,6 +20,7 @@ public static class ApplicationServicesExtension
         services.AddScoped<IUserContextService, UserContextService>();
         services.AddScoped<ICheckoutManager, CheckoutManager>();
         services.AddScoped<IRefundManager, RefundManager>();
+        services.AddScoped<IConfirmationTokenService, ConfirmationTokenService>();
         services.AddScoped<IEmailService, SmtpEmailService>(provider =>
         {
             return new SmtpEmailService(smtpSettings);
