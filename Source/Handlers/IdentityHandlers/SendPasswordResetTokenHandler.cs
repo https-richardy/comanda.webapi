@@ -2,9 +2,9 @@ namespace Comanda.WebApi.Handlers;
 
 public sealed class SendPasswordResetTokenHandler(
     UserManager<Account> userManager,
-    IHostInformationProvider hostInformation,
     IWebHostEnvironment environment,
     IEmailService emailService,
+    IConfirmationTokenService tokenService,
     IValidator<SendPasswordResetTokenRequest> validator
 ) : IRequestHandler<SendPasswordResetTokenRequest, Response>
 {
@@ -24,16 +24,15 @@ public sealed class SendPasswordResetTokenHandler(
                 message: "User not found."
             );
 
-        var token = await userManager.GeneratePasswordResetTokenAsync(user);
-        var resetLink = $"{hostInformation.HostAddress}/api/identity/reset-password" +
-            $"?token={Uri.EscapeDataString(token)}" +
-            $"&email={Uri.EscapeDataString(user.Email!)}";
+        var token = tokenService.GenerateToken();
 
-        var emailBody = await BuildEmailTemplateAsync(resetLink);
+        user.ConfirmationToken = token;
+        await userManager.UpdateAsync(user);
 
+        var emailBody = await BuildEmailTemplateAsync(token);
         await emailService.SendEmailAsync(
             to: user.Email!,
-            subject: "Esqueceu sua Senha? Vamos Resolver Isso Juntos!",
+            subject: "Esqueceu sua Senha?",
             body: emailBody
         );
 
@@ -43,11 +42,11 @@ public sealed class SendPasswordResetTokenHandler(
         );
     }
 
-    private async Task<string> BuildEmailTemplateAsync(string resetLink)
+    private async Task<string> BuildEmailTemplateAsync(ConfirmationToken confirmationToken)
     {
         var filePath = Path.Combine(environment.WebRootPath, "password-reset.html");
         var emailTemplate = await File.ReadAllTextAsync(filePath);
 
-        return emailTemplate.Replace("{{ResetLink}}", resetLink);
+        return emailTemplate.Replace("{{TOKEN}}", confirmationToken.Token);
     }
 }
