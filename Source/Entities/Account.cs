@@ -2,6 +2,8 @@ namespace Comanda.WebApi.Entities;
 
 public sealed class Account : IdentityUser
 {
+    public ConfirmationToken ConfirmationToken { get; set; }
+
     public Account()
     {
         /*
