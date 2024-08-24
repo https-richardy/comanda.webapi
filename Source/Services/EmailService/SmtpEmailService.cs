@@ -16,7 +16,7 @@ public sealed class SmtpEmailService(SmtpSettings settings) : IEmailService
 
         var mailMessage = new MailMessage
         {
-            From = new MailAddress(settings.UserName),
+            From = new MailAddress(settings.FromAddress, settings.DisplayName),
             Subject = subject,
             Body = body,
             IsBodyHtml = true,
