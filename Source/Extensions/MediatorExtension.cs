@@ -14,6 +14,7 @@ public static class MediatorExtension
         services.AddScoped<IRequestHandler<AccountRegistrationRequest, Response>, AccountRegistrationHandler>();
         services.AddScoped<IRequestHandler<AuthenticationCredentials, Response<AuthenticationResponse>>, AuthenticationHandler>();
         services.AddScoped<IRequestHandler<SendPasswordResetTokenRequest, Response>, SendPasswordResetTokenHandler>();
+        services.AddScoped<IRequestHandler<ResetPasswordRequest, Response>, ResetPasswordHandler>();
 
         #endregion
 
