@@ -37,10 +37,14 @@ public sealed class RecommendationService : IRecommendationService
         var formattedHistory = _orderHistoryFormatter.Format(orders);
         var formattedMenu = _menuFormatter.Format(products);
 
-        var prompt = $"Dado os ultimos 10 pedidos do cliente: {formattedHistory}. " +
-                     $"E Dado nosso menu: {formattedMenu}." +
-                     $"Dê uma sugestão para o Usuário '{customer.FullName}' chame ele, se refira a ele. " +
-                     $"Por exemplo: Olá {customer.FullName}, que tal comer hoje um {{suggestion}}.";
+        var prompt = $@"
+        Dado os últimos 10 pedidos do cliente: {(orders.Any() ? _orderHistoryFormatter.Format(orders) : "Nenhum histórico de pedidos encontrado.")}.
+        E dado nosso menu: {(products.Any() ? _menuFormatter.Format(products) : "Nenhum item disponível no menu atualmente.")}.
+        Sugira uma refeição para o usuário '{customer.FullName}', chamando-o pelo nome.
+        Se não houver histórico de pedidos, recomende um item do menu.
+        Se não houver itens no menu, envie uma mensagem genérica.
+        Por exemplo: Olá {customer.FullName}, que tal experimentar hoje um {{suggestion}}.
+        Induza-o a compra, chamando para ação. E justifique a sugestão.";
 
         var response = await _geminiService.GenerateContent(prompt);
         return response;
