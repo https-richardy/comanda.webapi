@@ -13,6 +13,7 @@ public sealed class ProductRepository(ComandaDbContext dbContext) :
             .AsNoTracking()
             .Include(product => product.Category)
             .Include(product => product.Ingredients)
+            .ThenInclude(ingredient => ingredient.Ingredient)
             .Skip((pageNumber - pageIndexAdjustment) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -27,6 +28,7 @@ public sealed class ProductRepository(ComandaDbContext dbContext) :
             .AsNoTracking()
             .Include(product => product.Category)
             .Include(product => product.Ingredients)
+            .ThenInclude(ingredient => ingredient.Ingredient)
             .Where(predicate)
             .Skip((pageNumber - pageIndexAdjustment) * pageSize)
             .Take(pageSize)
