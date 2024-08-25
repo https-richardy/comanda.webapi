@@ -113,5 +113,11 @@ public static class MediatorExtension
         services.AddScoped<IRequestHandler<SettingsEditingRequest, Response>, SettingsEditingHandler>();
 
         #endregion
+
+        #region handlers for recommendation requests
+
+        services.AddScoped<IRequestHandler<RecommendationRequest, Response<RecommendationResponse>>, RecommendationHandler>();
+
+        #endregion
     }
 }
