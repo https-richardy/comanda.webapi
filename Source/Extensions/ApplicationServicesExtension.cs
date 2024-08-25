@@ -21,6 +21,11 @@ public static class ApplicationServicesExtension
         services.AddScoped<ICheckoutManager, CheckoutManager>();
         services.AddScoped<IRefundManager, RefundManager>();
         services.AddScoped<IConfirmationTokenService, ConfirmationTokenService>();
+        services.AddScoped<IOrderHistoryFormatter, OrderHistoryFormatter>();
+        services.AddScoped<IMenuFormatter, MenuFormatterService>();
+        services.AddScoped<IGeminiService, GeminiService>();
+        services.AddScoped<IRecommendationService, RecommendationService>();
+
         services.AddScoped<IEmailService, SmtpEmailService>(provider =>
         {
             return new SmtpEmailService(smtpSettings);
