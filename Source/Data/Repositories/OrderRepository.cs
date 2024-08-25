@@ -4,6 +4,15 @@ public sealed class OrderRepository(ComandaDbContext dbContext) :
     Repository<Order, ComandaDbContext>(dbContext),
     IOrderRepository
 {
+    public override async Task SaveAsync(Order entity)
+    {
+        // Ensure the entity state is set to Added to avoid the IDENTITY_INSERT error
+        // when saving a new Order entity without explicitly setting the ID.
+
+        _dbContext.Entry(entity).State = EntityState.Added;
+        await _dbContext.SaveChangesAsync();
+    }
+
     public override async Task<IEnumerable<Order>> PagedAsync(int pageNumber, int pageSize)
     {
         /* Represents the adjustment applied to page numbers to align with zero-based indices in LINQ queries. */
