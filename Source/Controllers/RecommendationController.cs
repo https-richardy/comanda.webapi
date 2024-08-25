@@ -6,7 +6,7 @@ public sealed class RecommendationController(IMediator mediator) : ControllerBas
 {
     [HttpGet]
     [Authorize(Roles = "Customer")]
-    public async Task<IActionResult> GetRecommendation()
+    public async Task<IActionResult> GetSuggestionAsync()
     {
         var response = await mediator.Send((RecommendationRequest) new());
         return StatusCode(response.StatusCode, response);
