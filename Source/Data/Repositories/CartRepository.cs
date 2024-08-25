@@ -3,6 +3,15 @@ namespace Comanda.WebApi.Data.Repositories;
 public sealed class CartRepository(ComandaDbContext dbContext) :
     MinimalRepository<Cart, ComandaDbContext>(dbContext), ICartRepository
 {
+    public override async Task SaveAsync(Cart entity)
+    {
+        // Ensure the entity state is set to Added to avoid the IDENTITY_INSERT error
+        // when saving a new Cart entity without explicitly setting the ID.
+
+        _dbContext.Entry(entity).State = EntityState.Added;
+        await _dbContext.SaveChangesAsync();
+    }
+
     public async Task AddItemAsync(Cart cart, CartItem item)
     {
         cart.Items.Add(item);
