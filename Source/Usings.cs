@@ -44,3 +44,5 @@ global using MediatR;
 global using Stripe.Checkout;
 global using FluentValidation;
 global using FluentValidation.Results;
+global using DotnetGeminiSDK.Client.Interfaces;
+global using DotnetGeminiSDK.Client;
