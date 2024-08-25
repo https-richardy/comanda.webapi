@@ -30,5 +30,10 @@ public static class ServicesExtension
 
         services.AddJwtBearer(configuration);
         services.AddApplicationServices(configuration);
+
+        services.AddGeminiClient(options =>
+        {
+            options.ApiKey = configuration["Gemini:ApiKey"]!;
+        });
     }
 }
