@@ -130,4 +130,29 @@ public sealed class ProductRepositoryTests : InMemoryDatabaseFixture<ComandaDbCo
         var pagedProducts = await _repository.PagedAsync(pageNumber, pageSize);
         Assert.Equal(pageSize, pagedProducts.Count());
     }
+
+    [Fact(DisplayName = "Given a valid id, should return true for existing product")]
+    public async Task GivenValidId_ShouldReturnTrueForExistingProduct()
+    {
+        var category = Fixture.Create<Category>();
+        var product = Fixture.Build<Product>()
+            .With(product => product.Category, category)
+            .Create();
+
+        await DbContext.Products.AddAsync(product);
+        await DbContext.SaveChangesAsync();
+
+        var exists = await _repository.ExistsAsync(product.Id);
+
+        Assert.True(exists);
+    }
+
+    [Fact(DisplayName = "Given an invalid id, should return false for non-existing product")]
+    public async Task GivenInvalidId_ShouldReturnFalseForNonExistingProduct()
+    {
+        var invalidId = -1;
+        var exists = await _repository.ExistsAsync(invalidId);
+
+        Assert.False(exists);
+    }
 }
