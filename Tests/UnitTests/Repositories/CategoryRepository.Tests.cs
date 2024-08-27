@@ -91,4 +91,24 @@ public sealed class CategoryRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
         Assert.NotNull(foundCategory);
         Assert.Equal(category.Name, foundCategory.Name);
     }
+
+        [Fact(DisplayName = "Should find all categories by predicate")]
+        public async Task ShouldFindAllCategoriesByPredicate()
+        {
+            var categories = new List<Category>
+            {
+                new Category { Name = "Combos" },
+                new Category { Name = "Classic" },
+                new Category { Name = "Drinks" }
+            };
+
+            await DbContext.Categories.AddRangeAsync(categories);
+            await DbContext.SaveChangesAsync();
+
+            var foundCategories = await _repository.FindAllAsync(category => category.Name.StartsWith('C'));
+
+            Assert.Equal(2, foundCategories.Count());
+            Assert.Contains(categories[0], foundCategories);
+            Assert.Contains(categories[1], foundCategories);
+        }
 }
