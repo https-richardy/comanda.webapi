@@ -40,4 +40,19 @@ public sealed class AddressRepositoryTests : InMemoryDatabaseFixture<ComandaDbCo
         Assert.Equal(address.Id, updatedAddress.Id);
         Assert.Equal(address.City, updatedAddress.City);
     }
+
+
+    [Fact(DisplayName = "Given a valid address, should delete successfully from the database")]
+    public async Task GivenValidAddress_ShouldDeleteSuccessfullyFromTheDatabase()
+    {
+        var address = Fixture.Create<Address>();
+
+        await DbContext.Addresses.AddAsync(address);
+        await DbContext.SaveChangesAsync();
+
+        await _repository.DeleteAsync(address);
+        var deletedAddress = await DbContext.Addresses.FindAsync(address.Id);
+
+        Assert.Null(deletedAddress);
+    }
 }
