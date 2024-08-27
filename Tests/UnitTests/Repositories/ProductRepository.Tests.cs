@@ -1,6 +1,5 @@
 namespace Comanda.TestingSuite.UnitTests.Repositories;
 
-
 public sealed class ProductRepositoryTests : InMemoryDatabaseFixture<ComandaDbContext>
 {
     private readonly IProductRepository _repository;
