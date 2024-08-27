@@ -14,6 +14,21 @@ public sealed class CartRepository(ComandaDbContext dbContext) :
 
     public async Task AddItemAsync(Cart cart, CartItem item)
     {
+        /*
+            To avoid the “DbUpdateConcurrencyException” concurrency exception that occurs when we
+            we try to update or delete an entity that is no longer present in the database,
+            it was necessary to ensure that all the entities involved are in the correct state for the
+            the operation.
+        */
+
+        _dbContext.ChangeTracker.Clear();
+
+        if (_dbContext.Entry(cart).State == EntityState.Detached)
+            _dbContext.Carts.Attach(cart);
+
+        if (_dbContext.Entry(item).State == EntityState.Detached)
+            _dbContext.CartItems.Add(item);
+
         cart.Items.Add(item);
         await _dbContext.SaveChangesAsync();
     }
