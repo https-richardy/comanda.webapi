@@ -167,4 +167,32 @@ public sealed class AddressRepositoryTests : InMemoryDatabaseFixture<ComandaDbCo
         Assert.Contains(foundAddresses, address => address.Id == address1.Id);
         Assert.Contains(foundAddresses, address => address.Id == address2.Id);
     }
+
+    [Fact(DisplayName = "Should count total number of addresses")]
+    public async Task ShouldCountTotalNumberOfAddresses()
+    {
+        var addresses = Fixture.CreateMany<Address>(10).ToList();
+
+        await DbContext.Addresses.AddRangeAsync(addresses);
+        await DbContext.SaveChangesAsync();
+
+        var count = await _repository.CountAsync();
+        Assert.Equal(addresses.Count, count);
+    }
+
+    [Fact(DisplayName = "Given a predicate, should count matching addresses")]
+    public async Task GivenPredicate_ShouldCountMatchingAddresses()
+    {
+        var addresses = Fixture.CreateMany<Address>(10).ToList();
+        const string cityToSearch = "Rio de Janeiro";
+
+        addresses[0].City = cityToSearch;
+        addresses[1].City = cityToSearch;
+
+        await DbContext.Addresses.AddRangeAsync(addresses);
+        await DbContext.SaveChangesAsync();
+
+        var count = await _repository.CountAsync(addr => addr.City == cityToSearch);
+        Assert.Equal(2, count);
+    }
 }
