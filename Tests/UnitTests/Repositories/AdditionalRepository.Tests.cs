@@ -57,4 +57,17 @@ public sealed class AdditionalRepositoryTests : InMemoryDatabaseFixture<ComandaD
 
         Assert.Null(deletedAdditional);
     }
+
+    [Fact(DisplayName = "Should fetch all additionals")]
+    public async Task ShouldFetchAllAdditionals()
+    {
+        var additionals = Fixture.CreateMany<Additional>(5).ToList();
+
+        await DbContext.Additionals.AddRangeAsync(additionals);
+        await DbContext.SaveChangesAsync();
+
+        var foundAdditionals = await _repository.RetrieveAllAsync();
+
+        Assert.Equal(additionals.Count, foundAdditionals.Count());
+    }
 }
