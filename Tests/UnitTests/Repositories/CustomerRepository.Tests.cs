@@ -112,4 +112,20 @@ public sealed class CustomerRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
         Assert.Equal(customer.Account, foundCustomer.Account);
         Assert.Equal(customer.Addresses, foundCustomer.Addresses);
     }
+
+    [Fact(DisplayName = "Should fetch customers in pages")]
+    public async Task ShouldFetchCustomersInPages()
+    {
+        var customers = Fixture.CreateMany<Customer>(10).ToList();
+
+        await DbContext.Customers.AddRangeAsync(customers);
+        await DbContext.SaveChangesAsync();
+
+        const int pageNumber = 1;
+        const int pageSize = 5;
+
+        var pagedCustomers = await _repository.PagedAsync(pageNumber, pageSize);
+        Assert.Equal(pageSize, pagedCustomers.Count());
+    }
+
 }
