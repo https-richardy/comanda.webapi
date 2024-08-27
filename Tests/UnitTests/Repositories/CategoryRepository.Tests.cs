@@ -47,4 +47,16 @@ public sealed class CategoryRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
 
         Assert.Equal("Updated Name", updatedCategory!.Name);
     }
+
+    [Fact(DisplayName = "Should retrieve a category by ID successfully")]
+    public async Task ShouldRetrieveCategoryByIdSuccessfully()
+    {
+        var category = new Category { Name = "Category to Retrieve" };
+        await _repository.SaveAsync(category);
+
+        var retrievedCategory = await _repository.RetrieveByIdAsync(category.Id);
+
+        Assert.NotNull(retrievedCategory);
+        Assert.Equal(category.Name, retrievedCategory.Name);
+    }
 }
