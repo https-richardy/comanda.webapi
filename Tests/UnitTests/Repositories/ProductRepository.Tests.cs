@@ -92,4 +92,27 @@ public sealed class ProductRepositoryTests : InMemoryDatabaseFixture<ComandaDbCo
 
         Assert.Equal(2, foundProducts.Count());
     }
+
+    [Fact(DisplayName = "Given a valid id, should fetch a product by id")]
+    public async Task GivenValidId_ShouldFetchProductById()
+    {
+        var category = Fixture.Create<Category>();
+        var product = Fixture.Build<Product>()
+            .With(product => product.Category, category)
+            .Create();
+
+        await DbContext.Products.AddAsync(product);
+        await DbContext.SaveChangesAsync();
+
+        var foundProduct = await _repository.RetrieveByIdAsync(product.Id);
+
+        Assert.NotNull(foundProduct);
+        Assert.Equal(product.Id, foundProduct.Id);
+        Assert.Equal(product.Title, foundProduct.Title);
+        Assert.Equal(product.Description, foundProduct.Description);
+        Assert.Equal(product.Price, foundProduct.Price);
+        Assert.Equal(product.Category.Id, foundProduct.Category.Id);
+        Assert.Equal(product.Category.Name, foundProduct.Category.Name);
+        Assert.Equal(product.ImagePath, foundProduct.ImagePath);
+    }
 }
