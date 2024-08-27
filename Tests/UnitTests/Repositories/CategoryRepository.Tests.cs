@@ -33,4 +33,18 @@ public sealed class CategoryRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
 
         Assert.Null(deletedCategory);
     }
+
+    [Fact(DisplayName = "Given an updated category, should update it successfully")]
+    public async Task GivenUpdatedCategory_ShouldUpdateSuccessfully()
+    {
+        var category = new Category { Name = "Old Name" };
+        await _repository.SaveAsync(category);
+
+        category.Name = "Updated Name";
+        await _repository.UpdateAsync(category);
+
+        var updatedCategory = await DbContext.Categories.FindAsync(category.Id);
+
+        Assert.Equal("Updated Name", updatedCategory!.Name);
+    }
 }
