@@ -43,4 +43,18 @@ public sealed class AdditionalRepositoryTests : InMemoryDatabaseFixture<ComandaD
         Assert.Equal(additional.Name, updatedAdditional.Name);
         Assert.Equal(additional.Price, updatedAdditional.Price);
     }
+
+    [Fact(DisplayName = "Given a valid additional, should delete successfully from the database")]
+    public async Task GivenValidAdditional_ShouldDeleteSuccessfullyFromTheDatabase()
+    {
+        var additional = Fixture.Create<Additional>();
+
+        await DbContext.Additionals.AddAsync(additional);
+        await DbContext.SaveChangesAsync();
+
+        await _repository.DeleteAsync(additional);
+        var deletedAdditional = await DbContext.Additionals.FindAsync(additional.Id);
+
+        Assert.Null(deletedAdditional);
+    }
 }
