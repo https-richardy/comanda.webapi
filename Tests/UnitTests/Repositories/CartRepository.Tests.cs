@@ -22,6 +22,33 @@ public sealed class CartRepositoryTests : InMemoryDatabaseFixture<ComandaDbConte
         Assert.Equal(cart.Customer.Id, savedCart.Customer.Id);
     }
 
+    [Fact(DisplayName = "Given a cart with items, should add item successfully")]
+    public async Task GivenCartWithItems_ShouldAddItemSuccessfully()
+    {
+        var startItems = Fixture.Build<CartItem>()
+            .Without(item => item.Additionals)
+            .CreateMany()
+            .ToList();
+
+        var cart = Fixture.Build<Cart>()
+            .With(cart => cart.Items, startItems)
+            .Create();
+
+        var item = Fixture.Create<CartItem>();
+
+        await DbContext.Carts.AddAsync(cart);
+        await DbContext.SaveChangesAsync();
+
+        await _repository.AddItemAsync(cart, item);
+
+        var updatedCart = await DbContext.Carts
+            .Include(cart => cart.Items)
+            .FirstOrDefaultAsync(cart => cart.Id == cart.Id);
+
+        Assert.NotNull(updatedCart);
+        Assert.Contains(item, updatedCart.Items);
+    }
+
     [Fact(DisplayName = "Given a cart with items, should remove item successfully")]
     public async Task GivenCartWithItems_ShouldRemoveItemSuccessfully()
     {
