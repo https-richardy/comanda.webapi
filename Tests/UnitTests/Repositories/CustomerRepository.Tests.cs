@@ -211,4 +211,16 @@ public sealed class CustomerRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
         var count = await _repository.CountAsync(customer => customer.Addresses.Any(address => address.City == cityToSearch));
         Assert.Equal(2, count);
     }
+
+    [Fact(DisplayName = "Given an existing customer ID, should return true")]
+    public async Task GivenExistingCustomerId_ShouldReturnTrue()
+    {
+        var customer = Fixture.Create<Customer>();
+
+        await DbContext.Customers.AddAsync(customer);
+        await DbContext.SaveChangesAsync();
+
+        var exists = await _repository.ExistsAsync(customer.Id);
+        Assert.True(exists);
+    }
 }
