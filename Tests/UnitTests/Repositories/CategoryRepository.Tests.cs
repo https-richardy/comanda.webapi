@@ -20,4 +20,17 @@ public sealed class CategoryRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
         Assert.NotNull(savedCategory);
         Assert.Equal(category.Name, savedCategory.Name);
     }
+
+    [Fact(DisplayName = "Given an existing category, should delete it successfully")]
+    public async Task GivenExistingCategory_ShouldDeleteSuccessfully()
+    {
+        var category = new Category { Name = "Category to Delete" };
+
+        await _repository.SaveAsync(category);
+        await _repository.DeleteAsync(category);
+
+        var deletedCategory = await DbContext.Categories.FindAsync(category.Id);
+
+        Assert.Null(deletedCategory);
+    }
 }
