@@ -1,6 +1,3 @@
-using AutoFixture;
-using Microsoft.EntityFrameworkCore;
-
 namespace Comanda.TestingSuite.Fixtures;
 
 /// <summary>

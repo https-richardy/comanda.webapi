@@ -1,6 +1,3 @@
-using AutoFixture;
-using Microsoft.EntityFrameworkCore;
-
 namespace Comanda.TestingSuite.Fixtures;
 
 public abstract class InMemoryDatabaseFixture<TDbContext> : IAsyncLifetime
