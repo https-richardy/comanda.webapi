@@ -63,4 +63,22 @@ public sealed class CustomerRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
             Assert.Contains(customer.Addresses, address => address.City == cityToSearch);
         }
     }
+
+    [Fact(DisplayName = "Given a valid predicate, should find a single customer")]
+    public async Task GivenValidPredicate_ShouldFindSingleCustomer()
+    {
+        var customer = Fixture.Create<Customer>();
+
+        await DbContext.Customers.AddAsync(customer);
+        await DbContext.SaveChangesAsync();
+
+        var foundCustomer = await _repository.FindSingleAsync(customer => customer.Id == customer.Id);
+
+        Assert.NotNull(foundCustomer);
+
+        Assert.Equal(customer.Id, foundCustomer.Id);
+        Assert.Equal(customer.FullName, foundCustomer.FullName);
+        Assert.Equal(customer.Account, foundCustomer.Account);
+        Assert.Equal(customer.Addresses, foundCustomer.Addresses);
+    }
 }
