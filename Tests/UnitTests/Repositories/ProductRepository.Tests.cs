@@ -119,7 +119,6 @@ public sealed class ProductRepositoryTests : InMemoryDatabaseFixture<ComandaDbCo
     [Fact(DisplayName = "Should fetch products in pages")]
     public async Task ShouldFetchProductsInPages()
     {
-        var category = Fixture.Create<Category>();
         var products = Fixture.CreateMany<Product>(10).ToList();
 
         await DbContext.Products.AddRangeAsync(products);
