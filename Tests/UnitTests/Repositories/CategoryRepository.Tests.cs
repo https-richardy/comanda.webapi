@@ -79,4 +79,16 @@ public sealed class CategoryRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
         Assert.Contains(categories[0], allCategories);
         Assert.Contains(categories[1], allCategories);
     }
+
+    [Fact(DisplayName = "Should find a single category by predicate")]
+    public async Task ShouldFindSingleCategoryByPredicate()
+    {
+        var category = new Category { Name = "Special Category" };
+        await _repository.SaveAsync(category);
+
+        var foundCategory = await _repository.FindSingleAsync(category => category.Name == "Special Category");
+
+        Assert.NotNull(foundCategory);
+        Assert.Equal(category.Name, foundCategory.Name);
+    }
 }
