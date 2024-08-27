@@ -131,4 +131,19 @@ public sealed class AddressRepositoryTests : InMemoryDatabaseFixture<ComandaDbCo
 
         Assert.Null(foundAddress);
     }
+
+    [Fact(DisplayName = "Should fetch addresses in pages")]
+    public async Task ShouldFetchAddressesInPages()
+    {
+        var addresses = Fixture.CreateMany<Address>(10).ToList();
+
+        await DbContext.Addresses.AddRangeAsync(addresses);
+        await DbContext.SaveChangesAsync();
+
+        const int pageNumber = 1;
+        const int pageSize = 5;
+
+        var pagedAddresses = await _repository.PagedAsync(pageNumber, pageSize);
+        Assert.Equal(pageSize, pagedAddresses.Count());
+    }
 }
