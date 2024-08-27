@@ -70,4 +70,44 @@ public sealed class AdditionalRepositoryTests : InMemoryDatabaseFixture<ComandaD
 
         Assert.Equal(additionals.Count, foundAdditionals.Count());
     }
+
+    [Fact(DisplayName = "Given an existing additional ID, should return true")]
+    public async Task GivenExistingAdditionalId_ShouldReturnTrue()
+    {
+        var additional = Fixture.Create<Additional>();
+
+        await DbContext.Additionals.AddAsync(additional);
+        await DbContext.SaveChangesAsync();
+
+        var exists = await _repository.ExistsAsync(additional.Id);
+        Assert.True(exists);
+    }
+
+    [Fact(DisplayName = "Should count all additionals")]
+    public async Task ShouldCountAllAdditionals()
+    {
+        var additionals = Fixture.CreateMany<Additional>(10).ToList();
+
+        await DbContext.Additionals.AddRangeAsync(additionals);
+        await DbContext.SaveChangesAsync();
+
+        var count = await _repository.CountAsync(_ => true);
+        Assert.Equal(additionals.Count, count);
+    }
+
+    [Fact(DisplayName = "Given a valid predicate, should count matching additionals")]
+    public async Task GivenPredicate_ShouldCountMatchingAdditionals()
+    {
+        var additionals = Fixture.CreateMany<Additional>(10).ToList();
+        var categoryToSearch = "Category B";
+
+        additionals[0].Name = categoryToSearch;
+        additionals[1].Name = categoryToSearch;
+
+        await DbContext.Additionals.AddRangeAsync(additionals);
+        await DbContext.SaveChangesAsync();
+
+        var count = await _repository.CountAsync(additional => additional.Name == categoryToSearch);
+        Assert.Equal(2, count);
+    }
 }
