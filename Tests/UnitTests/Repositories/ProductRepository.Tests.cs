@@ -69,4 +69,27 @@ public sealed class ProductRepositoryTests : InMemoryDatabaseFixture<ComandaDbCo
 
         Assert.Null(deletedProduct);
     }
+
+    [Fact(DisplayName = "Given a valid predicate, should find all matching products")]
+    public async Task GivenValidPredicate_ShouldFindAllMatchingProducts()
+    {
+        var products = Fixture.CreateMany<Product>(5).ToList();
+
+        products[0].Title = "Special Product";
+        products[1].Title = "Special Product";
+
+        await DbContext.Products.AddRangeAsync(products);
+        await DbContext.SaveChangesAsync();
+
+        const int pageNumber = 1;
+        const int pageSize = 10;
+
+        var foundProducts = await _repository.PagedAsync(
+            predicate: product => product.Title.Contains("Special"),
+            pageNumber: pageNumber,
+            pageSize: pageSize
+        );
+
+        Assert.Equal(2, foundProducts.Count());
+    }
 }
