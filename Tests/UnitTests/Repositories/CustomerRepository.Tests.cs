@@ -94,4 +94,22 @@ public sealed class CustomerRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
 
         Assert.Equal(customers.Count, foundCustomers.Count());
     }
+
+    [Fact(DisplayName = "Given a valid id, should fetch a customer by id")]
+    public async Task GivenValidId_ShouldFetchCustomerById()
+    {
+        var customer = Fixture.Create<Customer>();
+
+        await DbContext.Customers.AddAsync(customer);
+        await DbContext.SaveChangesAsync();
+
+        var foundCustomer = await _repository.RetrieveByIdAsync(customer.Id);
+
+        Assert.NotNull(foundCustomer);
+
+        Assert.Equal(customer.Id, foundCustomer.Id);
+        Assert.Equal(customer.FullName, foundCustomer.FullName);
+        Assert.Equal(customer.Account, foundCustomer.Account);
+        Assert.Equal(customer.Addresses, foundCustomer.Addresses);
+    }
 }
