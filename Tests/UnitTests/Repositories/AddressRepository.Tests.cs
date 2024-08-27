@@ -106,4 +106,29 @@ public sealed class AddressRepositoryTests : InMemoryDatabaseFixture<ComandaDbCo
 
         Assert.Equal(addresses.Count, foundAddresses.Count());
     }
+
+    [Fact(DisplayName = "Given a valid id, should fetch an address by id")]
+    public async Task GivenValidId_ShouldFetchAddressById()
+    {
+        var address = Fixture.Create<Address>();
+
+        await DbContext.Addresses.AddAsync(address);
+        await DbContext.SaveChangesAsync();
+
+        var foundAddress = await _repository.RetrieveByIdAsync(address.Id);
+
+        Assert.NotNull(foundAddress);
+        Assert.Equal(address.Id, foundAddress.Id);
+        Assert.Equal(address.Street, foundAddress.Street);
+        Assert.Equal(address.City, foundAddress.City);
+    }
+
+    [Fact(DisplayName = "Given an invalid id, should return null when fetching address by id")]
+    public async Task GivenInvalidId_ShouldReturnNullWhenFetchingAddressById()
+    {
+        var invalidId = Fixture.Create<int>();
+        var foundAddress = await _repository.RetrieveByIdAsync(invalidId);
+
+        Assert.Null(foundAddress);
+    }
 }
