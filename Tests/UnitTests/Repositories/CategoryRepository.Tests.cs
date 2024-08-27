@@ -59,4 +59,24 @@ public sealed class CategoryRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
         Assert.NotNull(retrievedCategory);
         Assert.Equal(category.Name, retrievedCategory.Name);
     }
+
+    [Fact(DisplayName = "Should retrieve all categories")]
+    public async Task ShouldRetrieveAllCategories()
+    {
+        var categories = new List<Category>
+        {
+            new Category { Name = "Food" },
+            new Category { Name = "Drinks" }
+        };
+
+        await DbContext.Categories.AddRangeAsync(categories);
+        await DbContext.SaveChangesAsync();
+
+        var allCategories = await _repository.RetrieveAllAsync();
+
+        Assert.Equal(2, allCategories.Count());
+
+        Assert.Contains(categories[0], allCategories);
+        Assert.Contains(categories[1], allCategories);
+    }
 }
