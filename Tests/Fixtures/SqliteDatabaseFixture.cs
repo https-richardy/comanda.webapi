@@ -14,7 +14,7 @@ public abstract class SqliteDatabaseFixture<TDbContext> : IAsyncLifetime
 
     protected SqliteDatabaseFixture()
     {
-        const string connectionString = "Data Source=:memory:";
+        const string connectionString = "Data Source=comanda.testing.sqlite3";
         var options = new DbContextOptionsBuilder<TDbContext>()
             .UseSqlite(connectionString)
             .Options;
