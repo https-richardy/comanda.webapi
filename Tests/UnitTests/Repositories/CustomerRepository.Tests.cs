@@ -81,4 +81,17 @@ public sealed class CustomerRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
         Assert.Equal(customer.Account, foundCustomer.Account);
         Assert.Equal(customer.Addresses, foundCustomer.Addresses);
     }
+
+    [Fact(DisplayName = "Should fetch all customers")]
+    public async Task ShouldFetchAllCustomers()
+    {
+        var customers = Fixture.CreateMany<Customer>(5).ToList();
+
+        await DbContext.Customers.AddRangeAsync(customers);
+        await DbContext.SaveChangesAsync();
+
+        var foundCustomers = await _repository.RetrieveAllAsync();
+
+        Assert.Equal(customers.Count, foundCustomers.Count());
+    }
 }
