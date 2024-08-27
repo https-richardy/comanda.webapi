@@ -165,4 +165,14 @@ public sealed class CategoryRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
         Assert.Contains(categories[0], pagedCategories);
         Assert.Contains(categories[1], pagedCategories);
     }
+
+    [Fact(DisplayName = "Should check if a category exists")]
+    public async Task ShouldCheckIfCategoryExists()
+    {
+        var category = new Category { Name = "Category Exists" };
+        await _repository.SaveAsync(category);
+
+        var exists = await _repository.ExistsAsync(category.Id);
+        Assert.True(exists);
+    }
 }
