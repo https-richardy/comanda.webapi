@@ -184,4 +184,33 @@ public sealed class ProductRepositoryTests : InMemoryDatabaseFixture<ComandaDbCo
 
         Assert.Equal(2, count);
     }
+
+    [Fact(DisplayName = "Given a valid predicate, should find a single matching product")]
+    public async Task GivenValidPredicate_ShouldFindSingleMatchingProduct()
+    {
+        var products = Fixture.CreateMany<Product>(5).ToList();
+
+        products[0].Title = "Special Product";
+
+        await DbContext.Products.AddRangeAsync(products);
+        await DbContext.SaveChangesAsync();
+
+        var foundProduct = await _repository.FindSingleAsync(product => product.Title.Contains("Special"));
+
+        Assert.NotNull(foundProduct);
+        Assert.Equal("Special Product", foundProduct.Title);
+    }
+
+    [Fact(DisplayName = "Given an invalid predicate, should return null if no product matches")]
+    public async Task GivenInvalidPredicate_ShouldReturnNullIfNoProductMatches()
+    {
+        var products = Fixture.CreateMany<Product>(5).ToList();
+
+        await DbContext.Products.AddRangeAsync(products);
+        await DbContext.SaveChangesAsync();
+
+        var foundProduct = await _repository.FindSingleAsync(product => product.Title.Contains("NonExisting"));
+
+        Assert.Null(foundProduct);
+    }
 }
