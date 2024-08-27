@@ -30,5 +30,7 @@ public static class ApplicationServicesExtension
         {
             return new SmtpEmailService(smtpSettings);
         });
+
+        services.AddScoped<SeedService>();
     }
 }
