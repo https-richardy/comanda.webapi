@@ -93,4 +93,17 @@ public sealed class AddressRepositoryTests : InMemoryDatabaseFixture<ComandaDbCo
         Assert.Equal(address.Street, foundAddress.Street);
         Assert.Equal(address.City, foundAddress.City);
     }
+
+    [Fact(DisplayName = "Should fetch all addresses")]
+    public async Task ShouldFetchAllAddresses()
+    {
+        var addresses = Fixture.CreateMany<Address>(5).ToList();
+
+        await DbContext.Addresses.AddRangeAsync(addresses);
+        await DbContext.SaveChangesAsync();
+
+        var foundAddresses = await _repository.RetrieveAllAsync();
+
+        Assert.Equal(addresses.Count, foundAddresses.Count());
+    }
 }
