@@ -41,4 +41,26 @@ public sealed class CustomerRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
 
         Assert.Null(deletedCustomer);
     }
+
+    [Fact(DisplayName = "Given a valid predicate, should find all matching customers")]
+    public async Task GivenValidPredicate_ShouldFindAllMatchingCustomers()
+    {
+        const string cityToSearch = "Rio de Janeiro";
+        var customers = Fixture.CreateMany<Customer>(5).ToList();
+
+        customers[0].Addresses.First().City = cityToSearch;
+        customers[1].Addresses.First().City = cityToSearch;
+
+        await DbContext.Customers.AddRangeAsync(customers);
+        await DbContext.SaveChangesAsync();
+
+        var foundCustomers = await _repository.FindAllAsync(customer => customer.Addresses.Any(address => address.City == cityToSearch));
+
+        Assert.Equal(2, foundCustomers.Count());
+
+        foreach (var customer in foundCustomers)
+        {
+            Assert.Contains(customer.Addresses, address => address.City == cityToSearch);
+        }
+    }
 }
