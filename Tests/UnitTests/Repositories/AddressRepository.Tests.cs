@@ -55,4 +55,26 @@ public sealed class AddressRepositoryTests : InMemoryDatabaseFixture<ComandaDbCo
 
         Assert.Null(deletedAddress);
     }
+
+    [Fact(DisplayName = "Given a valid predicate, should find all matching addresses")]
+    public async Task GivenValidPredicate_ShouldFindAllMatchingAddresses()
+    {
+        const string cityToSearch = "Rio de Janeiro";
+        var addresses = Fixture.CreateMany<Address>(5).ToList();
+
+        addresses[0].City = cityToSearch;
+        addresses[1].City = cityToSearch;
+
+        await DbContext.Addresses.AddRangeAsync(addresses);
+        await DbContext.SaveChangesAsync();
+
+        var foundAddresses = await _repository.FindAllAsync(address => address.City == cityToSearch);
+
+        Assert.Equal(2, foundAddresses.Count());
+
+        foreach (var address in foundAddresses)
+        {
+            Assert.Equal(cityToSearch, address.City);
+        }
+    }
 }
