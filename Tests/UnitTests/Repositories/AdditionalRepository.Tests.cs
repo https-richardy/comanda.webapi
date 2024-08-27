@@ -110,4 +110,55 @@ public sealed class AdditionalRepositoryTests : InMemoryDatabaseFixture<ComandaD
         var count = await _repository.CountAsync(additional => additional.Name == categoryToSearch);
         Assert.Equal(2, count);
     }
+
+    [Fact(DisplayName = "Should fetch additionals in pages")]
+    public async Task ShouldFetchAdditionalsInPages()
+    {
+        var additionals = Fixture.CreateMany<Additional>(10).ToList();
+
+        await DbContext.Additionals.AddRangeAsync(additionals);
+        await DbContext.SaveChangesAsync();
+
+        const int pageNumber = 1;
+        const int pageSize = 5;
+
+        var pagedAdditionals = await _repository.PagedAsync(pageNumber, pageSize);
+
+        Assert.Equal(pageSize, pagedAdditionals.Count());
+        Assert.Contains(additionals, additional => pagedAdditionals.Any(paged => paged.Id == additional.Id));
+    }
+
+    [Fact(DisplayName = "Given a valid predicate, should fetch additionals in pages")]
+    public async Task GivenPredicate_ShouldFetchAdditionalsInPages()
+    {
+        var drinkCategory = new Category { Name = "Drinks" };
+        var foodCategory = new Category { Name = "Food" };
+
+        var additional1 = new Additional { Name = "Soda", Price = 1.99m, Category = drinkCategory };
+        var additional2 = new Additional { Name = "Water", Price = 0.99m, Category = drinkCategory };
+        var additional3 = new Additional { Name = "Burger", Price = 5.99m, Category = foodCategory };
+        var additional4 = new Additional { Name = "Fries", Price = 2.99m, Category = foodCategory };
+        var additional5 = new Additional { Name = "Pizza", Price = 7.99m, Category = foodCategory };
+        var additional6 = new Additional { Name = "Pasta", Price = 6.99m, Category = foodCategory };
+
+        var additionals = new List<Additional> { additional1, additional2, additional3, additional4, additional5, additional6 };
+        var categories = new List<Category> { drinkCategory, foodCategory };
+
+        await DbContext.Categories.AddRangeAsync(categories);
+        await DbContext.Additionals.AddRangeAsync(additionals);
+        await DbContext.SaveChangesAsync();
+
+        const int pageNumber = 1;
+        const int pageSize = 5;
+
+        Expression<Func<Additional, bool>> predicate = additional => additional.Category.Name == "Food";
+
+        var pagedAdditionals = await _repository.PagedAsync(predicate, pageNumber, pageSize);
+
+        Assert.Equal(4, pagedAdditionals.Count());
+        Assert.Contains(additional3, pagedAdditionals);
+        Assert.Contains(additional4, pagedAdditionals);
+        Assert.Contains(additional5, pagedAdditionals);
+        Assert.Contains(additional6, pagedAdditionals);
+    }
 }
