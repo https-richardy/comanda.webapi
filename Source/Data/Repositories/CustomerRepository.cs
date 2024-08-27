@@ -8,6 +8,8 @@ public sealed class CustomerRepository(ComandaDbContext dbContext) :
     {
         return await _dbContext.Customers
             .AsNoTracking()
+            .Include(customer => customer.Account)
+            .Include(customer => customer.Orders)
             .Include(customer => customer.Addresses)
             .Where(customer => customer.Account.Id == userId)
             .FirstOrDefaultAsync();
