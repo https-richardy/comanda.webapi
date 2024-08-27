@@ -115,4 +115,20 @@ public sealed class ProductRepositoryTests : InMemoryDatabaseFixture<ComandaDbCo
         Assert.Equal(product.Category.Name, foundProduct.Category.Name);
         Assert.Equal(product.ImagePath, foundProduct.ImagePath);
     }
+
+    [Fact(DisplayName = "Should fetch products in pages")]
+    public async Task ShouldFetchProductsInPages()
+    {
+        var category = Fixture.Create<Category>();
+        var products = Fixture.CreateMany<Product>(10).ToList();
+
+        await DbContext.Products.AddRangeAsync(products);
+        await DbContext.SaveChangesAsync();
+
+        const int pageNumber = 1;
+        const int pageSize = 5;
+
+        var pagedProducts = await _repository.PagedAsync(pageNumber, pageSize);
+        Assert.Equal(pageSize, pagedProducts.Count());
+    }
 }
