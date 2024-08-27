@@ -155,4 +155,33 @@ public sealed class ProductRepositoryTests : InMemoryDatabaseFixture<ComandaDbCo
 
         Assert.False(exists);
     }
+
+    [Fact(DisplayName = "Should return the correct count of products")]
+    public async Task ShouldReturnCorrectCountOfProducts()
+    {
+        var products = Fixture.CreateMany<Product>(5).ToList();
+
+        await DbContext.Products.AddRangeAsync(products);
+        await DbContext.SaveChangesAsync();
+
+        var count = await _repository.CountAsync();
+
+        Assert.Equal(products.Count, count);
+    }
+
+    [Fact(DisplayName = "Given a valid predicate, should return the correct count of matching products")]
+    public async Task GivenValidPredicate_ShouldReturnCorrectCountOfMatchingProducts()
+    {
+        var products = Fixture.CreateMany<Product>(5).ToList();
+
+        products[0].Title = "Special Product";
+        products[1].Title = "Special Product";
+
+        await DbContext.Products.AddRangeAsync(products);
+        await DbContext.SaveChangesAsync();
+
+        var count = await _repository.CountAsync(product => product.Title.Contains("Special"));
+
+        Assert.Equal(2, count);
+    }
 }
