@@ -195,4 +195,20 @@ public sealed class CustomerRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
         var count = await _repository.CountAsync();
         Assert.Equal(customers.Count, count);
     }
+
+    [Fact(DisplayName = "Given a predicate, should count matching customers")]
+    public async Task GivenPredicate_ShouldCountMatchingCustomers()
+    {
+        var customers = Fixture.CreateMany<Customer>(10).ToList();
+        var cityToSearch = "Rio de Janeiro";
+
+        customers[0].Addresses.First().City = cityToSearch;
+        customers[1].Addresses.First().City = cityToSearch;
+
+        await DbContext.Customers.AddRangeAsync(customers);
+        await DbContext.SaveChangesAsync();
+
+        var count = await _repository.CountAsync(customer => customer.Addresses.Any(address => address.City == cityToSearch));
+        Assert.Equal(2, count);
+    }
 }
