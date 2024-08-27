@@ -183,4 +183,16 @@ public sealed class CustomerRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
             Assert.Equal(expectedOrder.Date, actualOrder.Date);
         }
     }
+
+    [Fact(DisplayName = "Should count total number of customers")]
+    public async Task ShouldCountTotalNumberOfCustomers()
+    {
+        var customers = Fixture.CreateMany<Customer>(10).ToList();
+
+        await DbContext.Customers.AddRangeAsync(customers);
+        await DbContext.SaveChangesAsync();
+
+        var count = await _repository.CountAsync();
+        Assert.Equal(customers.Count, count);
+    }
 }
