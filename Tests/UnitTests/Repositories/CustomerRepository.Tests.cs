@@ -128,4 +128,46 @@ public sealed class CustomerRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
         Assert.Equal(pageSize, pagedCustomers.Count());
     }
 
+    [Fact(DisplayName = "Given a valid userId, should find customer by userId")]
+    public async Task GivenValidUserId_ShouldFindCustomerByUserId()
+    {
+        var user = Fixture.Create<Account>();
+        var customer = Fixture.Build<Customer>()
+            .With(customer => customer.Account, user)
+            .With(customer => customer.FullName, user.UserName)
+            .Create();
+
+        await DbContext.Customers.AddAsync(customer);
+        await DbContext.SaveChangesAsync();
+
+        var foundCustomer = await _repository.FindCustomerByUserIdAsync(user.Id);
+
+        var expectedAddresses = customer.Addresses.ToList();
+        var actualAddresses = foundCustomer!.Addresses.ToList();
+
+        Assert.Equal(expectedAddresses.Count, actualAddresses.Count);
+        for (int index = 0; index < expectedAddresses.Count; index++)
+        {
+            var expectedAddress = expectedAddresses[index];
+            var actualAddress = actualAddresses[index];
+
+            Assert.Equal(expectedAddress.Street, actualAddress.Street);
+            Assert.Equal(expectedAddress.City, actualAddress.City);
+            Assert.Equal(expectedAddress.State, actualAddress.State);
+            Assert.Equal(expectedAddress.PostalCode, actualAddress.PostalCode);
+        }
+
+        var expectedOrders = customer.Orders.ToList();
+        var actualOrders = foundCustomer.Orders.ToList();
+
+        Assert.Equal(expectedOrders.Count, actualOrders.Count);
+        for (int index = 0; index < expectedOrders.Count; index++)
+        {
+            var expectedOrder = expectedOrders[index];
+            var actualOrder = actualOrders[index];
+
+            Assert.Equal(expectedOrder.Id, actualOrder.Id);
+            Assert.Equal(expectedOrder.Date, actualOrder.Date);
+        }
+    }
 }
