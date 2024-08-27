@@ -146,4 +146,25 @@ public sealed class AddressRepositoryTests : InMemoryDatabaseFixture<ComandaDbCo
         var pagedAddresses = await _repository.PagedAsync(pageNumber, pageSize);
         Assert.Equal(pageSize, pagedAddresses.Count());
     }
+
+    [Fact(DisplayName = "Given a valid customer ID, should fetch addresses by customer ID")]
+    public async Task GivenValidCustomerId_ShouldFetchAddressesByCustomerId()
+    {
+        var address1 = Fixture.Create<Address>();
+        var address2 = Fixture.Create<Address>();
+
+        var customer = Fixture.Build<Customer>()
+            .With(customer => customer.Addresses, [address1, address2])
+            .Create();
+
+        await DbContext.Customers.AddAsync(customer);
+        await DbContext.Addresses.AddRangeAsync(address1, address2);
+
+        await DbContext.SaveChangesAsync();
+        var foundAddresses = await _repository.GetAddressesByCustomerIdAsync(customer.Id);
+
+        Assert.Equal(2, foundAddresses.Count());
+        Assert.Contains(foundAddresses, address => address.Id == address1.Id);
+        Assert.Contains(foundAddresses, address => address.Id == address2.Id);
+    }
 }
