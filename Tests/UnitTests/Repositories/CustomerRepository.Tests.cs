@@ -9,6 +9,19 @@ public sealed class CustomerRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
         _repository = new CustomerRepository(dbContext: DbContext);
     }
 
+    [Fact(DisplayName = "Given a new customer, should save successfully in the database")]
+    public async Task GivenNewCustomer_ShouldSaveSuccessfullyInTheDatabase()
+    {
+        var customer = Fixture.Create<Customer>();
+
+        await _repository.SaveAsync(customer);
+        var savedCustomer = await DbContext.Customers.FindAsync(customer.Id);
+
+        Assert.NotNull(savedCustomer);
+        Assert.Equal(customer.Id, savedCustomer.Id);
+        Assert.Equal(customer.FullName, savedCustomer.FullName);
+    }
+
     [Fact(DisplayName = "Given a valid customer, should update successfully in the database")]
     public async Task GivenValidCustomer_ShouldUpdateSuccessfullyInTheDatabase()
     {
