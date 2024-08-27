@@ -77,4 +77,20 @@ public sealed class AddressRepositoryTests : InMemoryDatabaseFixture<ComandaDbCo
             Assert.Equal(cityToSearch, address.City);
         }
     }
+
+    [Fact(DisplayName = "Given a valid predicate, should find a single address")]
+    public async Task GivenValidPredicate_ShouldFindSingleAddress()
+    {
+        var address = Fixture.Create<Address>();
+
+        await DbContext.Addresses.AddAsync(address);
+        await DbContext.SaveChangesAsync();
+
+        var foundAddress = await _repository.FindSingleAsync(address => address.Id == address.Id);
+
+        Assert.NotNull(foundAddress);
+        Assert.Equal(address.Id, foundAddress.Id);
+        Assert.Equal(address.Street, foundAddress.Street);
+        Assert.Equal(address.City, foundAddress.City);
+    }
 }
