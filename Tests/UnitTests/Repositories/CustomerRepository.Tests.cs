@@ -223,4 +223,33 @@ public sealed class CustomerRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
         var exists = await _repository.ExistsAsync(customer.Id);
         Assert.True(exists);
     }
+
+    [Fact(DisplayName = "Given a predicate, should fetch customers in pages")]
+    public async Task GivenPredicate_ShouldFetchCustomersInPages()
+    {
+        var customer1 = new Customer { FullName = "John Doe" };
+        var customer2 = new Customer { FullName = "John Smith" };
+        var customer3 = new Customer { FullName = "Jane Doe" };
+        var customer4 = new Customer { FullName = "John Johnson" };
+        var customer5 = new Customer { FullName = "Johnny Depp" };
+        var customer6 = new Customer { FullName = "Alice Wonderland" };
+
+        var customers = new List<Customer>
+        {
+            customer1, customer2, customer3,
+            customer4, customer5, customer6
+        };
+
+
+        await DbContext.Customers.AddRangeAsync(customers);
+        await DbContext.SaveChangesAsync();
+
+        const int pageNumber = 1;
+        const int pageSize = 5;
+
+        Expression<Func<Customer, bool>> predicate = customer => customer.FullName!.Contains("John");
+
+        var pagedCustomers = await _repository.PagedAsync(predicate, pageNumber, pageSize);
+        Assert.Equal(4, pagedCustomers.Count());
+    }
 }
