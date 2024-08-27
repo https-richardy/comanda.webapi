@@ -175,4 +175,40 @@ public sealed class CategoryRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
         var exists = await _repository.ExistsAsync(category.Id);
         Assert.True(exists);
     }
+
+        [Fact(DisplayName = "Should count total categories")]
+        public async Task ShouldCountTotalCategories()
+        {
+            var categories = new List<Category>
+            {
+                new Category { Name = "Category 1" },
+                new Category { Name = "Category 2" }
+            };
+
+            await DbContext.Categories.AddRangeAsync(categories);
+            await DbContext.SaveChangesAsync();
+
+            var count = await _repository.CountAsync();
+
+            Assert.Equal(2, count);
+        }
+
+    [Fact(DisplayName = "Should count categories based on predicate")]
+    public async Task ShouldCountCategoriesByPredicate()
+    {
+        var categories = new List<Category>
+        {
+            new Category { Name = "Category A" },
+            new Category { Name = "Category B" },
+            new Category { Name = "Category C" }
+        };
+
+        await DbContext.Categories.AddRangeAsync(categories);
+        await DbContext.SaveChangesAsync();
+
+        Expression<Func<Category, bool>> predicate = category => category.Name.StartsWith('C');
+
+        var count = await _repository.CountAsync(predicate);
+        Assert.Equal(3, count);
+    }
 }
