@@ -86,4 +86,33 @@ public sealed class CartRepositoryTests : InMemoryDatabaseFixture<ComandaDbConte
 
         Assert.Empty(updatedCart.Items);
     }
+
+    [Fact(DisplayName = "Given a valid customer ID, should find cart with items successfully")]
+    public async Task GivenValidCustomerId_ShouldFindCartWithItemsSuccessfully()
+    {
+        var items = Fixture.CreateMany<CartItem>(3).ToList();
+        var cart = Fixture.Build<Cart>()
+            .With(cart => cart.Items, items)
+            .Create();
+
+        await DbContext.Carts.AddAsync(cart);
+        await DbContext.SaveChangesAsync();
+
+        var foundCart = await _repository.FindCartWithItemsAsync(cart.Customer.Id);
+
+        Assert.NotNull(foundCart);
+        Assert.Equal(cart.Id, foundCart.Id);
+        Assert.Equal(cart.Items.Count, foundCart.Items.Count);
+
+        var foundedCartItems = foundCart.Items.ToList();
+        for (int index = 0; index < cart.Items.Count; index++)
+        {
+            var expectedItem = items[index];
+            var actualItem = foundedCartItems[index];
+
+            Assert.Equal(expectedItem.Id, actualItem.Id);
+            Assert.Equal(expectedItem.Product.Id, actualItem.Product.Id);
+            Assert.Equal(expectedItem.Quantity, actualItem.Quantity);
+        }
+    }
 }
