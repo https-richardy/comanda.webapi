@@ -138,4 +138,31 @@ public sealed class CategoryRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
         Assert.Contains(categories[1], pagedCategories);
         Assert.Contains(categories[2], pagedCategories);
     }
+
+    [Fact(DisplayName = "Should retrieve paged categories by predicate")]
+    public async Task ShouldRetrievePagedCategoriesByPredicate()
+    {
+        var categories = new List<Category>
+        {
+            new Category { Name = "Category A" },
+            new Category { Name = "Category B" },
+            new Category { Name = "Category C" },
+            new Category { Name = "Category D" },
+            new Category { Name = "Category E" }
+        };
+
+        await DbContext.Categories.AddRangeAsync(categories);
+        await DbContext.SaveChangesAsync();
+
+        const int pageNumber = 1;
+        const int pageSize = 2;
+
+        Expression<Func<Category, bool>> predicate = category => category.Name.StartsWith('C');
+
+        var pagedCategories = await _repository.PagedAsync(predicate, pageNumber, pageSize);
+
+        Assert.Equal(2, pagedCategories.Count());
+        Assert.Contains(categories[0], pagedCategories);
+        Assert.Contains(categories[1], pagedCategories);
+    }
 }
