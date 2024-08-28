@@ -25,4 +25,24 @@ public sealed class SettingsRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
         Assert.Equal(settings.EstimatedDeliveryTimeInMinutes, savedSettings.EstimatedDeliveryTimeInMinutes);
         Assert.Equal(settings.DeliveryFee, savedSettings.DeliveryFee);
     }
+
+    [Fact(DisplayName = "Given valid settings, should update successfully in the database")]
+    public async Task GivenValidSettings_ShouldUpdateSuccessfullyInTheDatabase()
+    {
+        var settings = Fixture.Create<Settings>();
+
+        await DbContext.Settings.AddAsync(settings);
+        await DbContext.SaveChangesAsync();
+
+        settings.AcceptAutomatically = !settings.AcceptAutomatically;
+        settings.MaxConcurrentAutomaticOrders += 1;
+
+        await _repository.UpdateAsync(settings);
+        var updatedSettings = await DbContext.Settings.FindAsync(settings.Id);
+
+        Assert.NotNull(updatedSettings);
+        Assert.Equal(settings.Id, updatedSettings.Id);
+        Assert.Equal(settings.AcceptAutomatically, updatedSettings.AcceptAutomatically);
+        Assert.Equal(settings.MaxConcurrentAutomaticOrders, updatedSettings.MaxConcurrentAutomaticOrders);
+    }
 }
