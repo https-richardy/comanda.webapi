@@ -108,4 +108,107 @@ public sealed class SettingsRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
 
         Assert.True(exists);
     }
+
+    [Fact(DisplayName = "Given non-existing settings ID, should return false for existence check")]
+    public async Task GivenNonExistingSettingsId_ShouldReturnFalseForExistenceCheck()
+    {
+        var nonExistingId = 999;
+
+        var exists = await _repository.ExistsAsync(nonExistingId);
+
+        Assert.False(exists);
+    }
+
+    [Fact(DisplayName = "Given specific criteria, should find single settings matching the criteria")]
+    public async Task GivenSpecificCriteria_ShouldFindSingleSettings()
+    {
+        var settings = Fixture.Create<Settings>();
+
+        await DbContext.Settings.AddAsync(settings);
+        await DbContext.SaveChangesAsync();
+
+        var foundSettings = await _repository.FindSingleAsync(s => s.AcceptAutomatically == settings.AcceptAutomatically);
+
+        Assert.NotNull(foundSettings);
+        Assert.Equal(settings.AcceptAutomatically, foundSettings.AcceptAutomatically);
+    }
+
+    [Fact(DisplayName = "Given specific criteria, should find all settings matching the criteria")]
+    public async Task GivenSpecificCriteria_ShouldFindAllSettings()
+    {
+        var settingsList = Fixture.CreateMany<Settings>(3).ToList();
+
+        await DbContext.Settings.AddRangeAsync(settingsList);
+        await DbContext.SaveChangesAsync();
+
+        var foundSettings = await _repository.FindAllAsync(s => s.AcceptAutomatically == settingsList.First().AcceptAutomatically);
+
+        Assert.NotEmpty(foundSettings);
+        Assert.All(foundSettings, s => Assert.Equal(settingsList.First().AcceptAutomatically, s.AcceptAutomatically));
+    }
+
+    [Fact(DisplayName = "Should retrieve paged collection of settings")]
+    public async Task ShouldRetrievePagedSettings()
+    {
+        var settingsList = Fixture.CreateMany<Settings>(10).ToList();
+
+        await DbContext.Settings.AddRangeAsync(settingsList);
+        await DbContext.SaveChangesAsync();
+
+        var pagedSettings = await _repository.PagedAsync(1, 5);
+
+        Assert.Equal(5, pagedSettings.Count());
+    }
+
+    [Fact(DisplayName = "Given specific criteria, should retrieve paged collection of settings matching the criteria")]
+    public async Task GivenSpecificCriteria_ShouldRetrievePagedSettings()
+    {
+        var settingsList = Fixture.CreateMany<Settings>(10).ToList();
+
+        await DbContext.Settings.AddRangeAsync(settingsList);
+        await DbContext.SaveChangesAsync();
+
+        var pagedSettings = await _repository.PagedAsync(settings => settings.AcceptAutomatically == settingsList.First().AcceptAutomatically, 1, 5);
+
+        Assert.All(pagedSettings, settings => Assert.Equal(settingsList.First().AcceptAutomatically, settings.AcceptAutomatically));
+    }
+
+    [Fact(DisplayName = "Given a request to count all settings, should return correct count")]
+    public async Task GivenRequestToCountAllSettings_ShouldReturnCorrectCount()
+    {
+        var settingsList = Fixture.CreateMany<Settings>(3).ToList();
+
+        await DbContext.Settings.AddRangeAsync(settingsList);
+        await DbContext.SaveChangesAsync();
+
+        var count = await _repository.CountAsync();
+
+        // +1 due to the initial record configured in the Settings entity.
+        // This setting ensures that there is always at least one record in the database.
+        const int adjustment = 1;
+
+        Assert.Equal(settingsList.Count + adjustment, count);
+    }
+
+    [Fact(DisplayName = "Given specific criteria, should return correct count of matching settings")]
+    public async Task GivenSpecificCriteria_ShouldReturnCorrectCountOfMatchingSettings()
+    {
+        var settingsList = Fixture.CreateMany<Settings>(3).ToList();
+
+        await DbContext.Settings.AddRangeAsync(settingsList);
+        await DbContext.SaveChangesAsync();
+
+        var count = await _repository.CountAsync(settings => settings.AcceptAutomatically == settingsList.First().AcceptAutomatically);
+
+        Assert.Equal(settingsList.Count(settings => settings.AcceptAutomatically == settingsList.First().AcceptAutomatically), count);
+    }
+
+    [Fact(DisplayName = "GetSettingsAsync should retrieve the first settings entry")]
+    public async Task GetSettingsAsync_ShouldRetrieveFirstSettingsEntry()
+    {
+        var retrievedSettings = await _repository.GetSettingsAsync();
+
+        Assert.NotNull(retrievedSettings);
+        Assert.Equal(1, retrievedSettings.Id);
+    }
 }
