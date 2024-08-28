@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Comanda.WebApi.Data.Migrations
 {
     [DbContext(typeof(ComandaDbContext))]
+    [ExcludeFromCodeCoverage]
     partial class ComandaDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

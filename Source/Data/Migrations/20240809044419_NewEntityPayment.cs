@@ -5,6 +5,7 @@
 namespace Comanda.WebApi.Data.Migrations
 {
     /// <inheritdoc />
+    [ExcludeFromCodeCoverage]
     public partial class NewEntityPayment : Migration
     {
         /// <inheritdoc />

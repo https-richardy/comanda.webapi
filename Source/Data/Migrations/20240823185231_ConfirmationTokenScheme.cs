@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Comanda.WebApi.Data.Migrations
 {
     /// <inheritdoc />
+    [ExcludeFromCodeCoverage]
     public partial class ConfirmationTokenScheme : Migration
     {
         /// <inheritdoc />
