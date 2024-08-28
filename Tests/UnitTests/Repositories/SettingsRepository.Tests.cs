@@ -60,4 +60,18 @@ public sealed class SettingsRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
         Assert.Equal(settings.Id, retrievedSettings.Id);
         Assert.Equal(settings.AcceptAutomatically, retrievedSettings.AcceptAutomatically);
     }
+
+    [Fact(DisplayName = "Given valid settings, should delete successfully from the database")]
+    public async Task GivenValidSettings_ShouldDeleteSuccessfullyFromDatabase()
+    {
+        var settings = Fixture.Create<Settings>();
+
+        await DbContext.Settings.AddAsync(settings);
+        await DbContext.SaveChangesAsync();
+
+        await _repository.DeleteAsync(settings);
+        var deletedSettings = await DbContext.Settings.FindAsync(settings.Id);
+
+        Assert.Null(deletedSettings);
+    }
 }
