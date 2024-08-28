@@ -74,4 +74,25 @@ public sealed class SettingsRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
 
         Assert.Null(deletedSettings);
     }
+
+    [Fact(DisplayName = "Should retrieve all settings")]
+    public async Task ShouldRetrieveAllSettings()
+    {
+        var settingsList = Fixture.CreateMany<Settings>(3).ToList();
+
+        await DbContext.Settings.AddRangeAsync(settingsList);
+        await DbContext.SaveChangesAsync();
+
+        var retrievedSettings = await _repository.RetrieveAllAsync();
+
+        // +1 due to the initial record configured in the Settings entity.
+        // This setting ensures that there is always at least one record in the database.
+        const int adjustment = 1;
+
+        Assert.Equal(settingsList.Count + adjustment, retrievedSettings.Count());
+        foreach (var settings in settingsList)
+        {
+            Assert.Contains(retrievedSettings, settings => settings.Id == settings.Id);
+        }
+    }
 }
