@@ -1,6 +1,7 @@
 namespace Comanda.WebApi.Extensions;
 
-public static class MediatorExtension
+[ExcludeFromCodeCoverage]
+internal static class MediatorExtension
 {
     public static void AddMediator(this IServiceCollection services)
     {

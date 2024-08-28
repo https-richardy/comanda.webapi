@@ -1,6 +1,7 @@
 namespace Comanda.WebApi.Extensions;
 
-public static class SwaggerConfigurationExtension
+[ExcludeFromCodeCoverage]
+internal static class SwaggerConfigurationExtension
 {
     public static void ConfigureSwagger(this IServiceCollection services)
     {

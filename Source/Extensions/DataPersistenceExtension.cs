@@ -1,6 +1,7 @@
 namespace Comanda.WebApi.Extensions;
 
-public static class DataPersistenceExtension
+[ExcludeFromCodeCoverage]
+internal static class DataPersistenceExtension
 {
     public static void AddDataPersistence(this IServiceCollection services, IConfiguration configuration)
     {

@@ -1,7 +1,7 @@
 namespace Comanda.WebApi.Extensions;
 
-#pragma warning disable CS8604
-public static class ApplicationServicesExtension
+[ExcludeFromCodeCoverage]
+internal static class ApplicationServicesExtension
 {
     public static void AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
@@ -10,7 +10,7 @@ public static class ApplicationServicesExtension
         services.AddScoped<IAddressService, AddressService>();
         services.AddHttpClient<IAddressService, AddressService>(client =>
         {
-            client.BaseAddress = new Uri(configuration["ExternalApis:ViaCep"]);
+            client.BaseAddress = new Uri(configuration["ExternalApis:ViaCep"]!);
         });
 
         services.AddFileUploadService();

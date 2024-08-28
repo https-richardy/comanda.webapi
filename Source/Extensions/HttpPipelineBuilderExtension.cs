@@ -1,6 +1,7 @@
 namespace Comanda.WebApi.Extensions;
 
-public static class HttpPipelineBuilderExtension
+[ExcludeFromCodeCoverage]
+internal static class HttpPipelineBuilderExtension
 {
     public static void SetupPipeline(this IApplicationBuilder app, IWebHostEnvironment hostingEnvironment)
     {

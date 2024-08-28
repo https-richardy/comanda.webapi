@@ -1,6 +1,7 @@
 namespace Comanda.WebApi.Extensions;
 
-public static class ValidationExtension
+[ExcludeFromCodeCoverage]
+internal static class ValidationExtension
 {
     public static void AddValidation(this IServiceCollection services)
     {

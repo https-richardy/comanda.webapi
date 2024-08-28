@@ -1,6 +1,7 @@
 namespace Comanda.WebApi.Extensions;
 
-public static class IdentityExtension
+[ExcludeFromCodeCoverage]
+internal static class IdentityExtension
 {
     public static void ConfigureIdentity(this IServiceCollection services)
     {

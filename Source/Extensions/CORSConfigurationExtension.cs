@@ -1,6 +1,7 @@
 namespace Comanda.WebApi.Extensions;
 
-public static class CORSConfigurationExtension
+[ExcludeFromCodeCoverage]
+internal static class CORSConfigurationExtension
 {
     public static void ConfigureCORS(this IServiceCollection services)
     {

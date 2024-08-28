@@ -10,7 +10,8 @@ namespace Comanda.WebApi.Extensions;
    capabilities securely in place.
 */
 
-public static class BootstrapExtension
+[ExcludeFromCodeCoverage]
+internal static class BootstrapExtension
 {
     public static async void Bootstrap(this IApplicationBuilder builder)
     {
