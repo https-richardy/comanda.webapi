@@ -182,11 +182,10 @@ public sealed class OrderRepositoryTests : InMemoryDatabaseFixture<ComandaDbCont
     {
         var orders = Fixture.CreateMany<Order>(20).ToList();
 
-        orders[0].Status = EOrderStatus.Pending;
-        orders[1].Status = EOrderStatus.Pending;
-        orders[2].Status = EOrderStatus.Pending;
-        orders[3].Status = EOrderStatus.Pending;
-        orders[4].Status = EOrderStatus.Pending;
+        for (int index = 0; index < 5; index++)
+        {
+            orders[index].Status = EOrderStatus.Pending;
+        }
 
         await DbContext.Orders.AddRangeAsync(orders);
         await DbContext.SaveChangesAsync();
@@ -200,5 +199,34 @@ public sealed class OrderRepositoryTests : InMemoryDatabaseFixture<ComandaDbCont
 
         Assert.Equal(pageSize, pagedOrders.Count());
         Assert.All(pagedOrders, order => Assert.Equal(EOrderStatus.Pending, order.Status));
+
+        foreach (var order in pagedOrders)
+        {
+            var expectedOrder = orders.FirstOrDefault(o => o.Id == order.Id);
+
+            Assert.NotNull(expectedOrder);
+            Assert.Equal(EOrderStatus.Pending, order.Status);
+            Assert.Equal(expectedOrder.Customer.FullName, order.Customer.FullName);
+            Assert.Equal(expectedOrder.ShippingAddress.PostalCode, order.ShippingAddress.PostalCode);
+            Assert.Equal(expectedOrder.Total, order.Total);
+            Assert.Equal(expectedOrder.Date, order.Date);
+            Assert.Equal(expectedOrder.CancelledReason, order.CancelledReason);
+
+            for (int index = 0; index < order.Items.Count; index++)
+            {
+                var item = order.Items.ToList()[index];
+                var expectedItem = expectedOrder.Items.FirstOrDefault(i => i.Id == item.Id);
+
+                Assert.NotNull(expectedItem);
+
+                Assert.Equal(expectedItem.Product.Id, item.Product.Id);
+                Assert.Equal(expectedItem.Product.Title, item.Product.Title);
+                Assert.Equal(expectedItem.Product.Description, item.Product.Description);
+                Assert.Equal(expectedItem.Product.Price, item.Product.Price);
+
+                Assert.Equal(expectedItem.Quantity, item.Quantity);
+                Assert.Equal(expectedItem.Additionals.Count, item.Additionals.Count);
+            }
+        }
     }
 }
