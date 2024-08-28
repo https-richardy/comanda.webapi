@@ -1,6 +1,6 @@
 namespace Comanda.WebApi.Extensions;
 
-public static class MappingExtension
+internal static class MappingExtension
 {
     public static void AddMapping(this IServiceCollection services)
     {
