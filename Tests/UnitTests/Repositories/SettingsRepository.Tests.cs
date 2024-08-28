@@ -95,4 +95,17 @@ public sealed class SettingsRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
             Assert.Contains(retrievedSettings, settings => settings.Id == settings.Id);
         }
     }
+
+    [Fact(DisplayName = "Given settings ID, should check if it exists in the database")]
+    public async Task GivenSettingsId_ShouldCheckIfExistsInDatabase()
+    {
+        var settings = Fixture.Create<Settings>();
+
+        await DbContext.Settings.AddAsync(settings);
+        await DbContext.SaveChangesAsync();
+
+        var exists = await _repository.ExistsAsync(settings.Id);
+
+        Assert.True(exists);
+    }
 }
