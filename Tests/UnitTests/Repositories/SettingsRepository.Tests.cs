@@ -45,4 +45,19 @@ public sealed class SettingsRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
         Assert.Equal(settings.AcceptAutomatically, updatedSettings.AcceptAutomatically);
         Assert.Equal(settings.MaxConcurrentAutomaticOrders, updatedSettings.MaxConcurrentAutomaticOrders);
     }
+
+    [Fact(DisplayName = "Given settings ID, should retrieve correct settings")]
+    public async Task GivenSettingsId_ShouldRetrieveCorrectSettings()
+    {
+        var settings = Fixture.Create<Settings>();
+
+        await DbContext.Settings.AddAsync(settings);
+        await DbContext.SaveChangesAsync();
+
+        var retrievedSettings = await _repository.RetrieveByIdAsync(settings.Id);
+
+        Assert.NotNull(retrievedSettings);
+        Assert.Equal(settings.Id, retrievedSettings.Id);
+        Assert.Equal(settings.AcceptAutomatically, retrievedSettings.AcceptAutomatically);
+    }
 }
