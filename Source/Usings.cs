@@ -1,6 +1,7 @@
 /* add global usage directives for System namespaces here */
 
 global using System.Reflection;
+global using System.Diagnostics.CodeAnalysis;
 global using System.Linq.Expressions;
 global using System.Text;
 global using System.Text.Json;
