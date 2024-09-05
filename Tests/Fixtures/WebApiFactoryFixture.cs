@@ -15,12 +15,6 @@ public sealed class WebApiFactoryFixture<TStartup> : WebApplicationFactory<Progr
             {
                 options.UseInMemoryDatabase("Comanda.TestingSuite.Database");
             });
-
-            var serviceProvider = services.BuildServiceProvider();
-            using var scope = serviceProvider.CreateScope();
-
-            var dbContext = scope.ServiceProvider.GetRequiredService<ComandaDbContext>();
-            dbContext.Database.EnsureCreated();
         });
     }
 }
