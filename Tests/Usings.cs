@@ -5,6 +5,7 @@ global using System.Net;
 global using System.Text;
 global using System.Text.Json;
 global using System.Text.Json.Serialization;
+global using System.Net.Http.Json;
 global using System.Linq.Expressions;
 global using System.Security.Claims;
 
@@ -16,11 +17,13 @@ global using Microsoft.AspNetCore.Hosting;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Logging;
 global using Microsoft.AspNetCore.Http;
+global using Microsoft.AspNetCore.Mvc.Testing;
 global using Microsoft.AspNetCore.Identity;
 global using Microsoft.EntityFrameworkCore;
 
 /* add global usage directives for application namespaces here */
 
+global using Comanda.WebApi;
 global using Comanda.WebApi.Data;
 global using Comanda.WebApi.Data.Repositories;
 global using Comanda.WebApi.Extensions;
