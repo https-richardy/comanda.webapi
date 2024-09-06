@@ -349,4 +349,78 @@ public sealed class IdentityEndpoint(WebApiFactoryFixture<Program> factory) : We
 
         Assert.Equal(HttpStatusCode.BadRequest, passwordResetResponse.StatusCode);
     }
+
+    [Fact(DisplayName = "Should return a 400 Bad Request when using a weak password for password reset")]
+    public async Task ShouldReturnBadRequestWhenUsingWeakPasswordForPasswordReset()
+    {
+        // arrange: for reasons of DB being self-destructed at each test, we have to create a user for this scenario.
+        var scopedClient = Factory.CreateClient();
+
+        var registrationRequest = new AccountRegistrationRequest
+        {
+            Name = "John Doe",
+            Email = "john.doe@email.com",
+            Password = "JohnDoe123*"
+        };
+
+        var registrationResponse = await scopedClient.PostAsJsonAsync("api/identity/register", registrationRequest);
+        registrationResponse.EnsureSuccessStatusCode();
+
+        var emailServiceMock = new Mock<IEmailService>();
+        var confirmationTokenServiceMock = new Mock<IConfirmationTokenService>();
+
+        emailServiceMock
+            .Setup(service => service.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
+        confirmationTokenServiceMock
+            .Setup(service => service.GenerateToken())
+            .Returns(new ConfirmationToken { Token = "123456789", ExpirationDate = DateTime.UtcNow.AddHours(1) });
+
+        // removes the reak email service and confirmation token service and adds mocks to the service collection
+        var client = Factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                var emailServiceDescriptor = services.SingleOrDefault(descriptor => descriptor.ServiceType == typeof(IEmailService));
+                var confirmationTokenServiceDescriptor = services.SingleOrDefault(descriptor => descriptor.ServiceType == typeof(IConfirmationTokenService));
+
+                if (emailServiceDescriptor is not null && confirmationTokenServiceDescriptor is not null)
+                {
+                    services.Remove(emailServiceDescriptor);
+                    services.Remove(confirmationTokenServiceDescriptor);
+                }
+
+                services.AddSingleton<IEmailService>(emailServiceMock.Object);
+                services.AddSingleton<IConfirmationTokenService>(confirmationTokenServiceMock.Object);
+            });
+        }).CreateClient();
+
+        var resetRequest = new SendPasswordResetTokenRequest
+        {
+            Email = "john.doe@email.com"
+        };
+
+        // Act: request password reset token
+        var resetResponse = await client.PostAsJsonAsync("api/identity/request-password-reset", resetRequest);
+        resetResponse.EnsureSuccessStatusCode();
+
+        var resetToken = "123456789";
+
+        // Act: try to reset the password using a weak password
+        var weakPassword = "weak";
+        var resetPasswordRequest = new ResetPasswordRequest
+        {
+            Email = "john.doe@email.com",
+            Token = resetToken,
+            NewPassword = weakPassword
+        };
+
+        var passwordResetResponse = await client.PostAsJsonAsync("api/identity/reset-password", resetPasswordRequest);
+        var responseContent = await passwordResetResponse.Content.ReadFromJsonAsync<ValidationFailureResponse>();
+
+        Assert.Equal(HttpStatusCode.BadRequest, passwordResetResponse.StatusCode);
+        Assert.NotEmpty(responseContent!.Errors);
+        Assert.Contains(responseContent.Errors, error => error.PropertyName == "NewPassword");
+    }
 }
