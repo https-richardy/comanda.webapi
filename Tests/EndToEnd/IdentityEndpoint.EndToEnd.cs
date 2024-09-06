@@ -271,4 +271,82 @@ public sealed class IdentityEndpoint(WebApiFactoryFixture<Program> factory) : We
         Assert.Contains(claims, claim => claim.Type == "email" && claim.Value == "john.doe@email.com");
         Assert.Contains(claims, claim => claim.Type == "role" && claim.Value == "Customer");
     }
+
+    [Fact(DisplayName = "Should return a 404 Not Found when requesting password reset for a non-existent email")]
+    public async Task ShouldReturnNotFoundWhenRequestingPasswordResetForNonExistentEmail()
+    {
+        var payload = new SendPasswordResetTokenRequest
+        {
+            Email = "nonexistent.email@example.com"
+        };
+
+        var response = await HttpClient.PostAsJsonAsync("api/identity/request-password-reset", payload);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact(DisplayName = "Should return a 400 Bad Request when using an expired token for password reset")]
+    public async Task ShouldReturnBadRequestWhenUsingExpiredTokenForPasswordReset()
+    {
+        // Arrange: for reasons of DB being self-destructed at each test, we have to create a user for this scenario.
+        var registrationRequest = new AccountRegistrationRequest
+        {
+            Name = "John Doe",
+            Email = "john.doe@email.com",
+            Password = "JohnDoe123*"
+        };
+
+        var registrationResponse = await HttpClient.PostAsJsonAsync("api/identity/register", registrationRequest);
+        registrationResponse.EnsureSuccessStatusCode();
+
+        var emailServiceMock = new Mock<IEmailService>();
+        var confirmationTokenServiceMock = new Mock<IConfirmationTokenService>();
+
+        emailServiceMock
+            .Setup(service => service.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
+        confirmationTokenServiceMock
+            .Setup(service => service.GenerateToken())
+            .Returns(new ConfirmationToken { Token = "123456789", ExpirationDate = new DateTime(year: 2023, month: 09, day: 01) });
+
+        var clientWithMocks = Factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                var emailServiceDescriptor = services.SingleOrDefault(descriptor => descriptor.ServiceType == typeof(IEmailService));
+                var confirmationTokenServiceDescriptor = services.SingleOrDefault(descriptor => descriptor.ServiceType == typeof(IConfirmationTokenService));
+
+                if (emailServiceDescriptor is not null && confirmationTokenServiceDescriptor is not null)
+                {
+                    services.Remove(emailServiceDescriptor);
+                    services.Remove(confirmationTokenServiceDescriptor);
+                }
+
+                services.AddSingleton<IEmailService>(emailServiceMock.Object);
+                services.AddSingleton<IConfirmationTokenService>(confirmationTokenServiceMock.Object);
+            });
+        }).CreateClient();
+
+        var resetRequest = new SendPasswordResetTokenRequest
+        {
+            Email = "john.doe@email.com"
+        };
+
+        var resetResponse = await clientWithMocks.PostAsJsonAsync("api/identity/request-password-reset", resetRequest);
+        resetResponse.EnsureSuccessStatusCode();
+
+        var expiredToken = "123456789";
+
+        var newPassword = "NewPassword123*";
+        var resetPasswordRequest = new ResetPasswordRequest
+        {
+            Email = "john.doe@email.com",
+            Token = expiredToken,
+            NewPassword = newPassword
+        };
+
+        var passwordResetResponse = await clientWithMocks.PostAsJsonAsync("api/identity/reset-password", resetPasswordRequest);
+
+        Assert.Equal(HttpStatusCode.BadRequest, passwordResetResponse.StatusCode);
+    }
 }
