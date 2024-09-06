@@ -127,4 +127,51 @@ public sealed class IdentityEndpoint(WebApiFactoryFixture<Program> factory) : We
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.NotEmpty(responseContent!.Errors);
     }
+
+    [Fact(DisplayName = "Should handle password reset request and mock email sending")]
+    public async Task ShouldHandlePasswordResetRequestAndMockEmailSending()
+    {
+        // Arrange: for reasons of DB being self-destructed at each test, we have to create a user for this scenario.
+        var scopedClient = Factory.CreateClient();
+
+        var registrationRequest = new AccountRegistrationRequest
+        {
+            Name = "John Doe",
+            Email = "john.doe@email.com",
+            Password = "JohnDoe123*"
+        };
+
+        var registrationResponse = await scopedClient.PostAsJsonAsync("api/identity/register", registrationRequest);
+        registrationResponse.EnsureSuccessStatusCode();
+
+        var emailServiceMock = new Mock<IEmailService>();
+
+        var to = It.IsAny<string>();
+        var subject = It.IsAny<string>();
+        var body = It.IsAny<string>();
+
+        emailServiceMock
+            .Setup(service => service.SendEmailAsync(to, subject, body))
+            .Returns(Task.CompletedTask);
+
+        /* remove the real email service and add the mock */
+        var client = Factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                var descriptor = services.SingleOrDefault(descriptor => descriptor.ServiceType == typeof(IEmailService));
+                if (descriptor is not null)
+                {
+                    services.Remove(descriptor);
+                }
+
+                services.AddSingleton<IEmailService>(emailServiceMock.Object);
+            });
+        }).CreateClient();
+
+        var payload = new SendPasswordResetTokenRequest { Email = "john.doe@email.com" };
+        var response = await client.PostAsJsonAsync("api/identity/request-password-reset", payload);
+
+        Assert.True(response.IsSuccessStatusCode);
+    }
 }
