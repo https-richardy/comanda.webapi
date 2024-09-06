@@ -28,7 +28,7 @@ internal static class ApplicationServicesExtension
 
         services.AddScoped<IEmailService, SmtpEmailService>(provider =>
         {
-            return new SmtpEmailService(smtpSettings);
+            return new SmtpEmailService(smtpSettings!);
         });
 
         services.AddScoped<SeedService>();
