@@ -13,6 +13,13 @@ public sealed class AccountRegistrationHandler(
         if (!validationResult.IsValid)
             return new ValidationFailureResponse(errors: validationResult.Errors);
 
+        var existingAccount = await userManager.FindByEmailAsync(request.Email);
+        if (existingAccount is not null)
+            return new Response(
+                statusCode: StatusCodes.Status409Conflict,
+                message: "Account with this email already exists."
+            );
+
         await PerformAccountRegistration(request);
 
         return new Response(

@@ -26,6 +26,34 @@ public sealed class IdentityEndpoint(WebApiFactoryFixture<Program> factory) : We
         Assert.Equal("Account created successfully.", responseContent.Message);
     }
 
+    [Fact(DisplayName = "Should return a 409 Conflict when registering an account with an existing email")]
+    public async Task ShouldReturnBadRequestWhenRegisteringAccountWithExistingEmail()
+    {
+        var client = Factory.CreateClient();
+        var existingEmail = "john.doe@email.com";
+
+        var registrationRequest = new AccountRegistrationRequest
+        {
+            Name = "John Doe",
+            Email = existingEmail,
+            Password = "JohnDoe1234*"
+        };
+
+        var registrationResponse = await client.PostAsJsonAsync("api/identity/register", registrationRequest);
+        registrationResponse.EnsureSuccessStatusCode();
+
+
+        var payload = new AccountRegistrationRequest
+        {
+            Name = "John Doe",
+            Email = existingEmail,
+            Password = "JohnDoe123*"
+        };
+
+        var response = await client.PostAsJsonAsync("api/identity/register", payload);
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
+
     [Fact(DisplayName = "Should authenticate with valid credentials")]
     public async Task ShouldAuthenticateWithValidCredentials()
     {
