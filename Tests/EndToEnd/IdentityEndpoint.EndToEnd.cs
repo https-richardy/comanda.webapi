@@ -71,7 +71,7 @@ public sealed class IdentityEndpoint(WebApiFactoryFixture<Program> factory) : We
 
         var authenticationRequest = new AuthenticationCredentials { Email = "john.doe@email.com", Password = "JohnDoe123*" };
         var authenticationResponse = await client.PostAsJsonAsync("api/identity/authenticate", authenticationRequest);
- 
+
         var responseContent = await authenticationResponse.Content.ReadFromJsonAsync<Response<AuthenticationResponse>>();
 
         authenticationResponse.EnsureSuccessStatusCode();
@@ -173,5 +173,102 @@ public sealed class IdentityEndpoint(WebApiFactoryFixture<Program> factory) : We
         var response = await client.PostAsJsonAsync("api/identity/request-password-reset", payload);
 
         Assert.True(response.IsSuccessStatusCode);
+    }
+
+    [Fact(DisplayName = "Should handle password reset and authenticate with new password")]
+    public async Task ShouldHandlePasswordResetAndAuthenticateWithNewPassword()
+    {
+        // Arrange: create a user and request password reset
+        var scopedClient = Factory.CreateClient();
+
+        var registrationRequest = new AccountRegistrationRequest
+        {
+            Name = "John Doe",
+            Email = "john.doe@email.com",
+            Password = "JohnDoe123*"
+        };
+
+        var registrationResponse = await scopedClient.PostAsJsonAsync("api/identity/register", registrationRequest);
+        registrationResponse.EnsureSuccessStatusCode();
+
+        var emailServiceMock = new Mock<IEmailService>();
+        var confirmationTokenServiceMock = new Mock<IConfirmationTokenService>();
+
+        emailServiceMock
+            .Setup(service => service.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
+        confirmationTokenServiceMock
+            .Setup(service => service.GenerateToken())
+            .Returns(new ConfirmationToken { Token = "123456789", ExpirationDate = DateTime.UtcNow.AddHours(1) });
+
+        // Remove the real email service and add the mock
+        var client = Factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                var emailServiceDescriptor = services.SingleOrDefault(descriptor => descriptor.ServiceType == typeof(IEmailService));
+                var confirmationTokenServiceDescriptor = services.SingleOrDefault(descriptor => descriptor.ServiceType == typeof(IConfirmationTokenService));
+
+                if (emailServiceDescriptor is not null && confirmationTokenServiceDescriptor is not null)
+                {
+                    services.Remove(emailServiceDescriptor);
+                    services.Remove(confirmationTokenServiceDescriptor);
+                }
+
+                services.AddSingleton<IEmailService>(emailServiceMock.Object);
+                services.AddSingleton<IConfirmationTokenService>(confirmationTokenServiceMock.Object);
+            });
+        }).CreateClient();
+
+        var resetRequest = new SendPasswordResetTokenRequest
+        {
+            Email = "john.doe@email.com"
+        };
+
+        // Act: request password reset token
+        var resetResponse = await client.PostAsJsonAsync("api/identity/request-password-reset", resetRequest);
+        resetResponse.EnsureSuccessStatusCode();
+
+        var resetToken = "123456789";
+
+        var newPassword = "NewPassword123*";
+        var resetPasswordRequest = new ResetPasswordRequest
+        {
+            Email = "john.doe@email.com",
+            Token = resetToken,
+            NewPassword = newPassword
+        };
+
+        // Act: reset password
+        var passwordResetResponse = await client.PostAsJsonAsync("api/identity/reset-password", resetPasswordRequest);
+        passwordResetResponse.EnsureSuccessStatusCode();
+
+        // Act: authenticate with the new password
+        var authenticationRequest = new AuthenticationCredentials
+        {
+            Email = "john.doe@email.com",
+            Password = newPassword
+        };
+
+        var authenticationResponse = await client.PostAsJsonAsync("api/identity/authenticate", authenticationRequest);
+        var responseContent = await authenticationResponse.Content.ReadFromJsonAsync<Response<AuthenticationResponse>>();
+
+        // Assert: verify successful authentication with the new password
+        authenticationResponse.EnsureSuccessStatusCode();
+        Assert.NotNull(responseContent);
+        Assert.NotNull(responseContent.Message);
+        Assert.NotNull(responseContent.Data);
+        Assert.True(responseContent.IsSuccess);
+        Assert.False(string.IsNullOrEmpty(responseContent.Data.Token));
+
+        var token = responseContent.Data.Token;
+
+        Assert.NotEqual(string.Empty, token);
+
+        var claims = new JwtSecurityTokenHandler().ReadJwtToken(token).Claims;
+
+        Assert.Contains(claims, claim => claim.Type == "email" && claim.Value == "john.doe@email.com");
+        Assert.Contains(claims, claim => claim.Type == "role" && claim.Value == "Customer");
     }
 }
