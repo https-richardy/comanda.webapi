@@ -377,7 +377,7 @@ public sealed class IdentityEndpoint(WebApiFactoryFixture<Program> factory) : We
             .Setup(service => service.GenerateToken())
             .Returns(new ConfirmationToken { Token = "123456789", ExpirationDate = DateTime.UtcNow.AddHours(1) });
 
-        // removes the reak email service and confirmation token service and adds mocks to the service collection
+        // removes the real email service and confirmation token service and adds mocks to the service collection
         var client = Factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
