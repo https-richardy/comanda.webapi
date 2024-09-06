@@ -89,4 +89,42 @@ public sealed class IdentityEndpoint(WebApiFactoryFixture<Program> factory) : We
         Assert.Contains(claims, claim => claim.Type == "email" && claim.Value == "john.doe@email.com");
         Assert.Contains(claims, claim => claim.Type == "role" && claim.Value == "Customer");
     }
+
+    [Fact(DisplayName = "Should return a 401 Unauthorized when authenticating with invalid credentials")]
+    public async Task ShouldReturnUnauthorizedWhenAuthenticatingWithInvalidCredentials()
+    {
+        const string password = "JohnDoe123*";
+        var registrationRequest = new AccountRegistrationRequest
+        {
+            Name = "John Doe",
+            Email = "john.doe@email.com",
+            Password = password
+        };
+
+        var registrationRespose = await HttpClient.PostAsJsonAsync("api/identity/register", registrationRequest);
+        registrationRespose.EnsureSuccessStatusCode();
+
+        var authenticationRequest = new AuthenticationCredentials { Email = "john.doe@email.com", Password = "InvalidPassword" };
+        var authenticationResponse = await HttpClient.PostAsJsonAsync("api/identity/authenticate", authenticationRequest);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, authenticationResponse.StatusCode);
+    }
+
+    [Fact(DisplayName = "Should return a 400 Bad Request when registering an account with a weak password")]
+    public async Task ShouldReturnBadRequestWhenRegisteringAccountWithWeakPassword()
+    {
+        const string password = "weakpassword";
+        var payload = new AccountRegistrationRequest
+        {
+            Name = "John Doe",
+            Email = "john.doe@email.com",
+            Password = password
+        };
+
+        var response = await HttpClient.PostAsJsonAsync("api/identity/register", payload);
+        var responseContent = await response.Content.ReadFromJsonAsync<ValidationFailureResponse>();
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.NotEmpty(responseContent!.Errors);
+    }
 }
