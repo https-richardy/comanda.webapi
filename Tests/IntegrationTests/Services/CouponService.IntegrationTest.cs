@@ -91,8 +91,13 @@ public sealed class CouponServiceIntegrationTest : IntegrationFixture<ComandaDbC
         Assert.Equal($"Coupon with code {coupon.Code} already used.", exception.Message);
     }
 
-    [Fact(DisplayName = "ApplyDiscountAsync should apply coupon discount successfully")]
-    public async Task ApplyDiscountAsyncShouldApplyCouponSuccessfully()
+    [Theory(DisplayName = "ApplyDiscountAsync should apply percentage coupon discount successfully")]
+    [InlineData(10, 100, 90)]  /* 10% discount on 100 = 90 */
+    [InlineData(20, 100, 80)]  /* 20% discount on 100 = 80 */
+    [InlineData(50, 200, 100)] /* 50% discount on 200 = 100 */
+    [InlineData(30, 300, 210)] /* 30% discount on 300 = 210 */
+    [InlineData(5, 100, 95)]   /* 5% discount on 100 = 95 */
+    public async Task ApplyDiscountAsyncShouldApplyCouponSuccessfully(decimal discount, decimal amount, decimal expected)
     {
         var customer = _fixture.Create<Customer>();
         var coupon = _fixture
@@ -101,19 +106,24 @@ public sealed class CouponServiceIntegrationTest : IntegrationFixture<ComandaDbC
             .With(coupon => coupon.ExpirationDate, DateTime.UtcNow.AddDays(2))
             .With(coupon => coupon.Type, ECouponType.Percentage)
             .With(coupon => coupon.IsActive, true)
-            .With(coupon => coupon.Discount, 10m)
+            .With(coupon => coupon.Discount, discount)
             .Create();
 
         await DbContext.Coupons.AddAsync(coupon);
         await DbContext.SaveChangesAsync();
 
-        var result = await _couponService.ApplyDiscountAsync(customer, coupon.Code, 100);
+        var result = await _couponService.ApplyDiscountAsync(customer, coupon.Code, amount);
 
-        Assert.Equal(90m, result);
+        Assert.Equal(expected, result);
     }
 
-    [Fact(DisplayName = "ApplyDiscountAsync should apply fixed coupon discount successfully")]
-    public async Task ApplyDiscountAsyncShouldApplyFixedCouponSuccessfully()
+    [Theory(DisplayName = "ApplyDiscountAsync should apply fixed coupon discount successfully")]
+    [InlineData(25, 100, 75)]  /* 25 discount on 100 = 75 */
+    [InlineData(50, 100, 50)]  /* 50 discount on 100 = 50 */
+    [InlineData(20, 200, 180)] /* 20 discount on 200 = 180 */
+    [InlineData(10, 50, 40)]   /* 10 discount on 50 = 40 */
+    [InlineData(5, 100, 95)]   /* 5 discount on 100 = 95 */
+    public async Task ApplyDiscountAsyncShouldApplyFixedCouponSuccessfully(decimal discount, decimal amount, decimal expected)
     {
         var customer = _fixture.Create<Customer>();
         var coupon = _fixture
@@ -122,15 +132,15 @@ public sealed class CouponServiceIntegrationTest : IntegrationFixture<ComandaDbC
             .With(coupon => coupon.ExpirationDate, DateTime.UtcNow.AddDays(2))
             .With(coupon => coupon.Type, ECouponType.Fixed)
             .With(coupon => coupon.IsActive, true)
-            .With(coupon => coupon.Discount, 25m)
+            .With(coupon => coupon.Discount, discount)
             .Create();
 
         await DbContext.Coupons.AddAsync(coupon);
         await DbContext.SaveChangesAsync();
 
-        var result = await _couponService.ApplyDiscountAsync(customer, coupon.Code, 100);
+        var result = await _couponService.ApplyDiscountAsync(customer, coupon.Code, amount);
 
-        Assert.Equal(75m, result);
+        Assert.Equal(expected, result);
     }
 
     [Fact(DisplayName = "UpdateCouponAsync should update coupon in the database")]
