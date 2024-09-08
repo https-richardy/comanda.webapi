@@ -16,6 +16,7 @@ internal static class DataPersistenceExtension
         services.AddScoped<ICartRepository, CartRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
+        services.AddScoped<ICouponRepository, CouponRepository>();
         services.AddScoped<IIngredientRepository, IngredientRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IPaymentRepository, PaymentRepository>();
