@@ -4,7 +4,7 @@ public sealed class Coupon : Entity
 {
     public string Code { get; set; }
     public decimal Discount { get; set; }
-    public bool IsActive => ExpirationDate > DateTime.Now;
+    public bool IsActive { get; set; }
 
     public DateTime ExpirationDate { get; set; }
     public ECouponType Type { get; set; }

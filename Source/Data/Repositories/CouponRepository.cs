@@ -14,7 +14,7 @@ public sealed class CouponRepository(ComandaDbContext dbContext) :
     public async Task<Coupon> GetValidCouponAsync(string couponCode)
     {
         return await _dbContext.Coupons
-            .Where(coupon => coupon.Code == couponCode && coupon.IsActive == true)
+            .Where(coupon => coupon.Code == couponCode && coupon.IsActive == true && coupon.ExpirationDate > DateTime.UtcNow)
             .FirstOrDefaultAsync();
     }
 
