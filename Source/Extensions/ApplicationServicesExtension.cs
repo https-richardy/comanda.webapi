@@ -21,6 +21,7 @@ internal static class ApplicationServicesExtension
         services.AddScoped<ICheckoutManager, CheckoutManager>();
         services.AddScoped<IRefundManager, RefundManager>();
         services.AddScoped<IConfirmationTokenService, ConfirmationTokenService>();
+        services.AddScoped<ICouponService, CouponService>();
         services.AddScoped<IOrderHistoryFormatter, OrderHistoryFormatter>();
         services.AddScoped<IMenuFormatter, MenuFormatterService>();
         services.AddScoped<IGeminiService, GeminiService>();
