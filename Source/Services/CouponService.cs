@@ -32,14 +32,14 @@ public sealed class CouponService(ICouponRepository couponRepository, ILogger<Co
         if (coupon is null)
         {
             logger.LogWarning("Coupon with code {code} not found", couponCode);
-            throw new InvalidOperationException($"Invalid or expired coupon."); // TODO: throw custom expcetion.
+            throw new CouponInvalidException(couponCode);
         }
 
         var hasUsed = await couponRepository.HasUserUsedCouponAsync(couponCode, customer.Id);
         if (hasUsed)
         {
             logger.LogWarning("Coupon with code {code} already used", couponCode);
-            throw new InvalidOperationException($"Coupon with code {couponCode} already used."); // TODO: throw custom expcetion.
+            throw new CouponAlreadyUsedException(couponCode);
         }
 
         await couponRepository.AddCouponUsageAsync(coupon, customer);
