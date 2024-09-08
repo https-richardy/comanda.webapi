@@ -10,6 +10,9 @@ public sealed class CouponCreationValidator :
             .NotEmpty().WithMessage("Coupon code is required.")
             .Length(5, 20).WithMessage("Coupon code must be between 5 and 20 characters.");
 
+        RuleFor(coupon => coupon.ExpirationDate)
+            .GreaterThan(DateTime.UtcNow).WithMessage("Expiration date must be in the future.");
+
         RuleFor(coupon => coupon.Discount)
             .GreaterThan(0).WithMessage("Discount must be greater than 0.");
 
