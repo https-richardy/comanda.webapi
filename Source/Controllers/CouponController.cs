@@ -2,6 +2,7 @@ namespace Comanda.WebApi.Controllers;
 
 [ApiController]
 [Route("api/coupons")]
+[Authorize(Roles = "Administrator")]
 public sealed class CouponController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
