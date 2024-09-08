@@ -61,5 +61,11 @@ internal static class ValidationExtension
         services.AddTransient<IValidator<SettingsEditingRequest>, SettingsEditingValidator>();
 
         #endregion
+
+        #region validators for coupon requests
+
+        services.AddTransient<IValidator<CouponCreationRequest>, CouponCreationValidator>();
+
+        #endregion
     }
 }
