@@ -1,6 +1,6 @@
 namespace Comanda.WebApi.Services;
 
-public sealed class CouponService(ICouponRepository couponRepository, ILogger<CouponService> logger)
+public sealed class CouponService(ICouponRepository couponRepository, ILogger<CouponService> logger) : ICouponService
 {
     public async Task<Coupon?> GetCouponByCodeAsync(string couponCode)
     {
