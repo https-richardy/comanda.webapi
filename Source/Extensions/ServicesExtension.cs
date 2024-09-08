@@ -1,7 +1,7 @@
 namespace Comanda.WebApi.Extensions;
 
 [ExcludeFromCodeCoverage]
-internal static class ServicesExtension
+public static class ServicesExtension
 {
     public static void ConfigureServices(this IServiceCollection services, IConfiguration configuration)
     {
