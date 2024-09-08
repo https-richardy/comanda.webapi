@@ -12,7 +12,7 @@ public sealed record CouponCreationRequest : IRequest<Response>
     {
         return new Coupon
         {
-            Code = request.Code,
+            Code = request.Code.ToUpper(),
             Discount = request.Discount,
             ExpirationDate = request.ExpirationDate,
             Type = request.Type,
