@@ -120,5 +120,11 @@ internal static class MediatorExtension
         services.AddScoped<IRequestHandler<RecommendationRequest, Response<RecommendationResponse>>, RecommendationHandler>();
 
         #endregion
+
+        #region handlers for coupons requests
+
+        services.AddScoped<IRequestHandler<CouponCreationRequest, Response>, CouponCreationHandler>();
+
+        #endregion
     }
 }
