@@ -158,6 +158,90 @@ public sealed class CouponEndpointTests : WebApiFixture
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    [Fact(DisplayName = "Given a valid request, it must successfully update the coupon")]
+    public async Task GivenAValidRequestItMustSuccessfullyUpdateTheCoupon()
+    {
+        var client = GetAuthenticatedClient();
+
+        var creationPayload = new CouponCreationRequest
+        {
+            Code = "UPDATABLECOUPON",
+            ExpirationDate = DateTime.UtcNow.AddDays(2),
+            Type = ECouponType.Percentage,
+            Discount = 10m
+        };
+        var creationResponse = await client.PostAsJsonAsync("api/coupons", creationPayload);
+        creationResponse.EnsureSuccessStatusCode();
+
+        var updatePayload = new CouponEditingRequest
+        {
+            Code = "UPDATEDCOUPON",
+            ExpirationDate = DateTime.UtcNow.AddDays(5),
+            Type = ECouponType.Fixed,
+            Discount = 20m
+        };
+
+        var updateResponse = await client.PutAsJsonAsync("api/coupons/1", updatePayload);
+        updateResponse.EnsureSuccessStatusCode();
+
+        var responseContent = await updateResponse.Content.ReadFromJsonAsync<Response>();
+        Assert.NotNull(responseContent);
+        Assert.True(responseContent!.IsSuccess);
+    }
+
+    [Fact(DisplayName = "Given a non-existent coupon ID, it must return a 404 Not Found")]
+    public async Task GivenANonExistentCouponIDItMustReturnNotFound()
+    {
+        var client = GetAuthenticatedClient();
+
+        var updatePayload = new CouponEditingRequest
+        {
+            Code = "NONEXISTENTCOUPON",
+            ExpirationDate = DateTime.UtcNow.AddDays(5),
+            Type = ECouponType.Fixed,
+            Discount = 20m
+        };
+
+        var updateResponse = await client.PutAsJsonAsync("api/coupons/999", updatePayload);
+
+        Assert.Equal(HttpStatusCode.NotFound, updateResponse.StatusCode);
+    }
+
+    [Fact(DisplayName = "Given an invalid request, it must return a 400 Bad Request")]
+    public async Task GivenAnInvalidRequestItMustReturnBadRequest()
+    {
+        var client = GetAuthenticatedClient();
+        var creationPayload = new CouponCreationRequest
+        {
+            Code = "UPDATABLECOUPON",
+            ExpirationDate = DateTime.UtcNow.AddDays(2),
+            Type = ECouponType.Percentage,
+            Discount = 10m
+        };
+
+        var creationResponse = await client.PostAsJsonAsync("api/coupons", creationPayload);
+        creationResponse.EnsureSuccessStatusCode();
+
+        var invalidUpdatePayload = new CouponEditingRequest
+        {
+            Code = "INVALIDCOUPON",
+            ExpirationDate = DateTime.UtcNow,
+            Type = ECouponType.Fixed,
+            Discount = 0m 
+        };
+
+        var updateResponse = await client.PutAsJsonAsync("api/coupons/1", invalidUpdatePayload);
+
+        Assert.Equal(HttpStatusCode.BadRequest, updateResponse.StatusCode);
+
+        var responseContent = await updateResponse.Content.ReadFromJsonAsync<ValidationFailureResponse>();
+
+        Assert.NotNull(responseContent);
+        Assert.NotEmpty(responseContent.Errors);
+        Assert.Contains(responseContent.Errors, error => error.PropertyName == "ExpirationDate");
+        Assert.Contains(responseContent.Errors, error => error.PropertyName == "Discount");
+    }
+
     private async Task AuthenticateAdminUserAsync()
     {
         var payload = new AuthenticationCredentials
