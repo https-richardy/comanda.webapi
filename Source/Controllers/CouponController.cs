@@ -5,6 +5,13 @@ namespace Comanda.WebApi.Controllers;
 [Authorize(Roles = "Administrator")]
 public sealed class CouponController(IMediator mediator) : ControllerBase
 {
+    [HttpGet]
+    public async Task<IActionResult> GetCouponsAsync()
+    {
+        var response = await mediator.Send((CouponListingRequest) new());
+        return StatusCode(response.StatusCode, response);
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateCouponAsync(CouponCreationRequest request)
     {
