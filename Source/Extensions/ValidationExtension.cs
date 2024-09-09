@@ -65,6 +65,7 @@ internal static class ValidationExtension
         #region validators for coupon requests
 
         services.AddTransient<IValidator<CouponCreationRequest>, CouponCreationValidator>();
+        services.AddScoped<IValidator<CouponEditingRequest>, CouponEditingValidator>();
 
         #endregion
     }
