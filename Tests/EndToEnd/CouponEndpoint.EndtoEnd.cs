@@ -83,6 +83,47 @@ public sealed class CouponEndpointTests : WebApiFixture
         Assert.Equal(2, response.Data.Count());
     }
 
+    [Fact(DisplayName = "Given an invalid identifier, it must return a 404 Not Found")]
+    public async Task GivenAnInvalidIdentifierItMustReturnANotFoundError()
+    {
+        var client = GetAuthenticatedClient();
+        var response = await client.GetAsync("api/coupons/1");
+
+        Assert.NotNull(response);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact(DisplayName = "Given a valid identifier, it must return the corresponding coupon")]
+    public async Task GivenAValidIdentifierItMustReturnTheCoupon()
+    {
+        var client = GetAuthenticatedClient();
+        var payloads = new List<CouponCreationRequest>
+        {
+            new CouponCreationRequest { Code = "TESTCOUPONCODE1", ExpirationDate = DateTime.UtcNow.AddDays(2), Type = ECouponType.Percentage, Discount = 10m },
+            new CouponCreationRequest { Code = "TESTCOUPONCODE2", ExpirationDate = DateTime.UtcNow.AddDays(2), Type = ECouponType.Percentage, Discount = 20m },
+        };
+
+        foreach (var payload in payloads)
+        {
+            var creationResponse = await client.PostAsJsonAsync("api/coupons", payload);
+            creationResponse.EnsureSuccessStatusCode();
+        }
+
+        var response = await client.GetAsync("api/coupons/1");
+        response.EnsureSuccessStatusCode();
+
+        Assert.NotNull(response);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var coupon = await response.Content.ReadFromJsonAsync<Response<Coupon>>();
+
+        Assert.NotNull(coupon);
+        Assert.NotNull(coupon.Data);
+
+        Assert.True(coupon.IsSuccess);
+        Assert.Equal("TESTCOUPONCODE1", coupon.Data.Code);
+    }
+
     private async Task AuthenticateAdminUserAsync()
     {
         var payload = new AuthenticationCredentials
