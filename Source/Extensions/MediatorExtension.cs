@@ -125,6 +125,7 @@ internal static class MediatorExtension
 
         services.AddScoped<IRequestHandler<CouponCreationRequest, Response>, CouponCreationHandler>();
         services.AddScoped<IRequestHandler<CouponListingRequest, Response<IEnumerable<Coupon>>>, CouponListingHandler>();
+        services.AddScoped<IRequestHandler<FetchCouponByIdentifier, Response<Coupon>>, FetchCouponByIdentifierHandler>();
 
         #endregion
     }
