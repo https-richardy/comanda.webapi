@@ -163,7 +163,9 @@ public sealed class SettingsRepositoryTests : InMemoryDatabaseFixture<ComandaDbC
     [Fact(DisplayName = "Given specific criteria, should retrieve paged collection of settings matching the criteria")]
     public async Task GivenSpecificCriteria_ShouldRetrievePagedSettings()
     {
-        var settingsList = Fixture.CreateMany<Settings>(10).ToList();
+        var settingsList = Fixture
+            .CreateMany<Settings>(5)
+            .ToList();
 
         await DbContext.Settings.AddRangeAsync(settingsList);
         await DbContext.SaveChangesAsync();
