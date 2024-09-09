@@ -13,7 +13,7 @@ public sealed class WebApiFactoryFixture<TStartup> : WebApplicationFactory<Progr
 
             services.AddDbContext<ComandaDbContext>(options =>
             {
-                options.UseInMemoryDatabase("Comanda.TestingSuite.Database");
+                options.UseInMemoryDatabase(Guid.NewGuid().ToString());
             });
         });
     }
