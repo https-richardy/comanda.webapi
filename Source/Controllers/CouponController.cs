@@ -12,6 +12,15 @@ public sealed class CouponController(IMediator mediator) : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
 
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetCouponByIdAsync(int id)
+    {
+        var request = new FetchCouponByIdentifier { Id = id };
+        var response = await mediator.Send(request);
+
+        return StatusCode(response.StatusCode, response);
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateCouponAsync(CouponCreationRequest request)
     {
