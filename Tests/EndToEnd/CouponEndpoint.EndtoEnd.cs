@@ -124,6 +124,40 @@ public sealed class CouponEndpointTests : WebApiFixture
         Assert.Equal("TESTCOUPONCODE1", coupon.Data.Code);
     }
 
+    [Fact(DisplayName = "Given a valid coupon code, it must return the corresponding coupon")]
+    public async Task GivenAValidCouponCodeItMustReturnTheCoupon()
+    {
+        var client = GetAuthenticatedClient();
+        var payload = new CouponCreationRequest
+        {
+            Code = "VALIDCOUPON",
+            ExpirationDate = DateTime.UtcNow.AddDays(2),
+            Type = ECouponType.Percentage,
+            Discount = 10m
+        };
+
+        var creationResponse = await client.PostAsJsonAsync("api/coupons", payload);
+        creationResponse.EnsureSuccessStatusCode();
+
+        var response = await client.GetAsync($"api/coupons/find-by-code/{payload.Code}");
+        response.EnsureSuccessStatusCode();
+
+        var couponResponse = await response.Content.ReadFromJsonAsync<Response<Coupon>>();
+
+        Assert.NotNull(couponResponse);
+        Assert.NotNull(couponResponse!.Data);
+        Assert.Equal("VALIDCOUPON", couponResponse.Data.Code);
+    }
+
+    [Fact(DisplayName = "Given an invalid coupon code, it must return a 404 Not Found")]
+    public async Task GivenAnInvalidCouponCodeItMustReturnNotFoundError()
+    {
+        var client = GetAuthenticatedClient();
+        var response = await client.GetAsync("api/coupons/find-by-code/INVALIDCOUPON");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     private async Task AuthenticateAdminUserAsync()
     {
         var payload = new AuthenticationCredentials
