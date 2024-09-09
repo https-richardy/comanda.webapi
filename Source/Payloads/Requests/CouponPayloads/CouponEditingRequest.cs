@@ -3,7 +3,7 @@ namespace Comanda.WebApi.Payloads;
 public sealed record CouponEditingRequest : IRequest<Response>
 {
     [JsonIgnore] /* this property will be set from the route. */
-    public int Id { get; init; }
+    public int Id { get; set; }
 
     public string Code { get; init; }
     public decimal Discount { get; init; }
