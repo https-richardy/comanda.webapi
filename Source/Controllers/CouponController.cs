@@ -45,4 +45,13 @@ public sealed class CouponController(IMediator mediator) : ControllerBase
         var response = await mediator.Send(request);
         return StatusCode(response.StatusCode, response);
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteCouponAsync(int id)
+    {
+        var request = new CouponDeletionRequest { Id = id };
+        var response = await mediator.Send(request);
+
+        return StatusCode(response.StatusCode, response);
+    }
 }
