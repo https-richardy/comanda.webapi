@@ -242,6 +242,47 @@ public sealed class CouponEndpointTests : WebApiFixture
         Assert.Contains(responseContent.Errors, error => error.PropertyName == "Discount");
     }
 
+    [Fact(DisplayName = "Given a valid coupon ID, it must successfully delete the coupon")]
+    public async Task GivenAValidCouponIDItMustSuccessfullyDeleteTheCoupon()
+    {
+        var client = GetAuthenticatedClient();
+        var creationPayload = new CouponCreationRequest
+        {
+            Code = "DELETABLECOUPON",
+            ExpirationDate = DateTime.UtcNow.AddDays(2),
+            Type = ECouponType.Percentage,
+            Discount = 10m
+        };
+
+        var creationResponse = await client.PostAsJsonAsync("api/coupons", creationPayload);
+        creationResponse.EnsureSuccessStatusCode();
+
+        var deleteResponse = await client.DeleteAsync("api/coupons/1");
+        deleteResponse.EnsureSuccessStatusCode();
+
+        var responseContent = await deleteResponse.Content.ReadFromJsonAsync<Response>();
+
+        Assert.NotNull(responseContent);
+        Assert.True(responseContent.IsSuccess);
+    }
+
+    [Fact(DisplayName = "Given a deletion request for a non-existent coupon, it must return a 404 Not Found")]
+    public async Task GivenADeletionRequestForANonExistentCouponItMustReturnNotFound()
+    {
+        var client = GetAuthenticatedClient();
+        var deleteResponse = await client.DeleteAsync("api/coupons/999");
+
+        Assert.Equal(HttpStatusCode.NotFound, deleteResponse.StatusCode);
+    }
+
+    [Fact(DisplayName = "Given an unauthenticated request, it must return a 401 Unauthorized")]
+    public async Task GivenAnUnauthenticatedRequestItMustReturnUnauthorized()
+    {
+        var deleteResponse = await HttpClient.DeleteAsync("api/coupons/1");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, deleteResponse.StatusCode);
+    }
+
     private async Task AuthenticateAdminUserAsync()
     {
         var payload = new AuthenticationCredentials
