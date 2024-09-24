@@ -16,6 +16,7 @@ internal static class MediatorExtension
         services.AddScoped<IRequestHandler<AuthenticationCredentials, Response<AuthenticationResponse>>, AuthenticationHandler>();
         services.AddScoped<IRequestHandler<SendPasswordResetTokenRequest, Response>, SendPasswordResetTokenHandler>();
         services.AddScoped<IRequestHandler<ResetPasswordRequest, Response>, ResetPasswordHandler>();
+        services.AddScoped<IRequestHandler<ProfileInformationRequest, Response<ProfileInformation>>, ProfileInformationHandler>();
 
         #endregion
 
