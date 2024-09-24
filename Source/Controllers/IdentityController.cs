@@ -5,6 +5,7 @@ namespace Comanda.WebApi.Controllers;
 public sealed class IdentityController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> GetProfileInformationAsync()
     {
         var response = await mediator.Send(new ProfileInformationRequest());
