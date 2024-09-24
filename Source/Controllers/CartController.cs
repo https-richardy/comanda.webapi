@@ -48,6 +48,7 @@ public sealed class CartController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("items/{itemId}/increment")]
+    [Authorize(Roles = "Customer")]
     public async Task<IActionResult> IncrementCartItemQuantityAsync(int itemId)
     {
         var request = new IncrementCartItemQuantityRequest
@@ -60,6 +61,7 @@ public sealed class CartController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("items/{itemId}/decrement")]
+    [Authorize(Roles = "Customer")]
     public async Task<IActionResult> DecrementCartItemQuantityAsync(int itemId)
     {
         var request = new DecrementCartItemQuantityRequest
