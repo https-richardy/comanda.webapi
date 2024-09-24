@@ -26,6 +26,7 @@ internal static class ApplicationServicesExtension
         services.AddScoped<IMenuFormatter, MenuFormatterService>();
         services.AddScoped<IGeminiService, GeminiService>();
         services.AddScoped<IRecommendationService, RecommendationService>();
+        services.AddScoped<IProfileDataExportService, ProfileDataExportService>();
 
         services.AddScoped<IEmailService, SmtpEmailService>(provider =>
         {
