@@ -4,6 +4,13 @@ namespace Comanda.WebApi.Controllers;
 [ApiController]
 public sealed class IdentityController(IMediator mediator) : ControllerBase
 {
+    [HttpGet]
+    public async Task<IActionResult> GetProfileInformationAsync()
+    {
+        var response = await mediator.Send(new ProfileInformationRequest());
+        return StatusCode(response.StatusCode, response);
+    }
+
     [HttpPost("register")]
     public async Task<IActionResult> RegisterAccountAsync(AccountRegistrationRequest request)
     {
