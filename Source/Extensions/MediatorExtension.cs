@@ -106,6 +106,7 @@ internal static class MediatorExtension
         services.AddScoped<IRequestHandler<CustomerOrderHistoryRequest, Response<PaginationHelper<FormattedOrder>>>, CustomerOrdersHistoryHandler>();
         services.AddScoped<IRequestHandler<CustomerCurrentOrdersRequest, Response<IEnumerable<FormattedOrder>>>, CustomerCurrentOrdersHandler>();
         services.AddScoped<IRequestHandler<CustomerOrderDetailsRequest, Response<FormattedOrderDetails>>, CustomerOrderDetailsHandler>();
+        services.AddScoped<IRequestHandler<ProfileDataExportRequest, Response<ProfileExportData>>, ProfileExportDataHandler>();
 
         #endregion
 
