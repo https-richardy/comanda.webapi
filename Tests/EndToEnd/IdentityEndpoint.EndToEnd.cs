@@ -468,4 +468,108 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
         Assert.Equal("Jane Doe", profileContent.Data.Name);
         Assert.Equal("jane.doe@email.com", profileContent.Data.Email);
     }
+
+    [Fact(DisplayName = "[RF005] - Should update account successfully when authenticated")]
+    public async Task ShouldUpdateAccountSuccessfullyWhenAuthenticated()
+    {
+        var client = Factory.CreateClient();
+        var registrationPayload = new AccountRegistrationRequest
+        {
+            Name = "John Doe",
+            Email = "john.doe@email.com",
+            Password = "JohnDoe123*"
+        };
+        
+        var registrationResponse = await client.PostAsJsonAsync("api/identity/register", registrationPayload);
+        registrationResponse.EnsureSuccessStatusCode();
+
+        var authenticationRequest = new AuthenticationCredentials
+        {
+            Email = registrationPayload.Email,
+            Password = registrationPayload.Password
+        };
+
+        var authenticationResponse = await client.PostAsJsonAsync("api/identity/authenticate", authenticationRequest);
+        var authContent = await authenticationResponse.Content.ReadFromJsonAsync<Response<AuthenticationResponse>>();
+
+        authenticationResponse.EnsureSuccessStatusCode();
+
+        var token = authContent!.Data!.Token;
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var updatePayload = new AccountEditingRequest
+        {
+            Name = "Jane Doe",
+            Email = "jane.doe@email.com"
+        };
+
+        var updateResponse = await client.PutAsJsonAsync("api/identity/", updatePayload);
+        updateResponse.EnsureSuccessStatusCode();
+
+        var responseContent = await updateResponse.Content.ReadFromJsonAsync<Response>();
+
+        Assert.NotNull(responseContent);
+        Assert.True(responseContent!.IsSuccess);
+
+        Assert.Equal(StatusCodes.Status200OK, responseContent.StatusCode);
+        Assert.Equal("Account updated successfully.", responseContent.Message);
+    }
+
+    [Fact(DisplayName = "[RF005] - Should return 401 Unauthorized when updating without authentication")]
+    public async Task ShouldReturnUnauthorizedWhenUpdatingWithoutAuthentication()
+    {
+        var client = Factory.CreateClient();
+        var updatePayload = new AccountEditingRequest
+        {
+            Name = "Jane Doe",
+            Email = "jane.doe@email.com"
+        };
+
+        var updateResponse = await client.PutAsJsonAsync("api/identity/", updatePayload);
+        Assert.Equal(HttpStatusCode.Unauthorized, updateResponse.StatusCode);
+    }
+
+    [Fact(DisplayName = "[RF005] - Should return 400 Bad Request when updating with invalid data")]
+    public async Task ShouldReturnBadRequestWhenUpdatingWithInvalidData()
+    {
+        var client = Factory.CreateClient();
+        var registrationPayload = new AccountRegistrationRequest
+        {
+            Name = "John Doe",
+            Email = "john.doe@email.com",
+            Password = "JohnDoe123*"
+        };
+        
+        var registrationResponse = await client.PostAsJsonAsync("api/identity/register", registrationPayload);
+        registrationResponse.EnsureSuccessStatusCode();
+
+        var authenticationRequest = new AuthenticationCredentials
+        {
+            Email = registrationPayload.Email,
+            Password = registrationPayload.Password
+        };
+
+        var authenticationResponse = await client.PostAsJsonAsync("api/identity/authenticate", authenticationRequest);
+        var authContent = await authenticationResponse.Content.ReadFromJsonAsync<Response<AuthenticationResponse>>();
+
+        authenticationResponse.EnsureSuccessStatusCode();
+
+        var token = authContent!.Data!.Token;
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var updatePayload = new AccountEditingRequest
+        {
+            Name = string.Empty,
+            Email = string.Empty
+        };
+
+        var updateResponse = await client.PutAsJsonAsync("api/identity/", updatePayload);
+        var responseContent = await updateResponse.Content.ReadFromJsonAsync<ValidationFailureResponse>();
+
+        Assert.Equal(HttpStatusCode.BadRequest, updateResponse.StatusCode);
+
+        Assert.NotNull(responseContent);
+        Assert.NotEmpty(responseContent!.Errors);
+    }
 }
