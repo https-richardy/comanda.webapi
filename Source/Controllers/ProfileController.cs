@@ -59,4 +59,11 @@ public sealed class ProfileController(IMediator mediator) : ControllerBase
         var response = await mediator.Send(request);
         return StatusCode(response.StatusCode, response);
     }
+
+    [HttpGet("export-data")]
+    public async Task<IActionResult> ExportDataAsync()
+    {
+        var response = await mediator.Send((ProfileDataExportRequest) new());
+        return StatusCode(response.StatusCode, response);
+    }
 }
