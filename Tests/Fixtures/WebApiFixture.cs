@@ -1,8 +1,11 @@
 namespace Comanda.TestingSuite.Fixtures;
 
-public abstract class WebApiFixture : IClassFixture<WebApiFactoryFixture<Program>>, IAsyncLifetime
+public abstract class WebApiFixture<TDbContext> :
+    IClassFixture<WebApiFactoryFixture<Program>>, IAsyncLifetime
+    where TDbContext : DbContext
 {
     protected readonly HttpClient HttpClient;
+    protected readonly TDbContext DbContext;
     protected readonly WebApiFactoryFixture<Program> Factory;
     protected readonly IFixture Fixture;
 
@@ -13,6 +16,11 @@ public abstract class WebApiFixture : IClassFixture<WebApiFactoryFixture<Program
 
         Fixture = new Fixture();
         Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            DbContext = scope.ServiceProvider.GetRequiredService<TDbContext>();
+        }
     }
 
     public virtual async Task DisposeAsync()
