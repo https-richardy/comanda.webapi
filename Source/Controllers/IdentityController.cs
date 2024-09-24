@@ -25,6 +25,14 @@ public sealed class IdentityController(IMediator mediator) : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
 
+    [HttpPut]
+    [Authorize(Roles = "Customer, Administrator")]
+    public async Task<IActionResult> UpdateProfileAsync(AccountEditingRequest request)
+    {
+        var response = await mediator.Send(request);
+        return StatusCode(response.StatusCode, response);
+    }
+
     [HttpPost("request-password-reset")]
     public async Task<IActionResult> RequestPasswordResetAsync(SendPasswordResetTokenRequest request)
     {
