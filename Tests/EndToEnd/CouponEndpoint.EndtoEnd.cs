@@ -1,6 +1,6 @@
 namespace Comanda.TestingSuite.EndToEnd;
 
-public sealed class CouponEndpointTests : WebApiFixture
+public sealed class CouponEndpointTests : WebApiFixture<ComandaDbContext>
 {
     private string _bearerToken = string.Empty;
     private HttpClient _authenticatedClient = null!;

@@ -2,7 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace Comanda.TestingSuite.EndToEnd;
 
-public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory) : WebApiFixture(factory)
+public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory) : WebApiFixture<ComandaDbContext>(factory)
 {
     [Fact(DisplayName = "Should register a new account")]
     public async Task ShouldRegisterANewAccount()
