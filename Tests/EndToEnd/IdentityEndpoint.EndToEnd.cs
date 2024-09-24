@@ -423,4 +423,49 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
         Assert.NotEmpty(responseContent!.Errors);
         Assert.Contains(responseContent.Errors, error => error.PropertyName == "NewPassword");
     }
+
+    [Fact(DisplayName = "Should retrieve profile information for authenticated user")]
+    public async Task ShouldRetrieveProfileInformationForAuthenticatedUser()
+    {
+        var client = Factory.CreateClient();
+
+        var registrationRequest = new AccountRegistrationRequest
+        {
+            Name = "Jane Doe",
+            Email = "jane.doe@email.com",
+            Password = "JaneDoe123*"
+        };
+
+        var registrationResponse = await client.PostAsJsonAsync("api/identity/register", registrationRequest);
+        registrationResponse.EnsureSuccessStatusCode();
+
+        var authenticationRequest = new AuthenticationCredentials
+        {
+            Email = "jane.doe@email.com",
+            Password = "JaneDoe123*"
+        };
+
+        var authenticationResponse = await client.PostAsJsonAsync("api/identity/authenticate", authenticationRequest);
+        authenticationResponse.EnsureSuccessStatusCode();
+
+        var authenticationContent = await authenticationResponse.Content.ReadFromJsonAsync<Response<AuthenticationResponse>>();
+        var token = authenticationContent!.Data!.Token;
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var profileResponse = await client.GetAsync("api/identity/");
+        profileResponse.EnsureSuccessStatusCode();
+
+        var profileContent = await profileResponse.Content.ReadFromJsonAsync<Response<ProfileInformation>>();
+
+        Assert.NotNull(profileContent);
+        Assert.NotNull(profileContent.Data);
+
+        Assert.True(profileContent.IsSuccess);
+        Assert.Equal(StatusCodes.Status200OK, profileContent.StatusCode);
+        Assert.Equal("Profile information retrieved successfully.", profileContent.Message);
+
+        Assert.Equal("Jane Doe", profileContent.Data.Name);
+        Assert.Equal("jane.doe@email.com", profileContent.Data.Email);
+    }
 }
