@@ -11,6 +11,7 @@ internal static class ValidationExtension
         services.AddTransient<IValidator<AuthenticationCredentials>, AuthenticationCredentialsValidator>();
         services.AddTransient<IValidator<SendPasswordResetTokenRequest>, SendPasswordResetTokenValidator>();
         services.AddTransient<IValidator<ResetPasswordRequest>, ResetPasswordValidator>();
+        services.AddTransient<IValidator<AccountEditingRequest>, AccountEditingValidator>();
 
         #endregion
 
@@ -24,21 +25,21 @@ internal static class ValidationExtension
 
         #region validators for ingredient requests
 
-        services.AddScoped<IValidator<IngredientCreationRequest>, IngredientCreationValidator>();
-        services.AddScoped<IValidator<IngredientEditingRequest>, IngredientEditingValidator>();
+        services.AddTransient<IValidator<IngredientCreationRequest>, IngredientCreationValidator>();
+        services.AddTransient<IValidator<IngredientEditingRequest>, IngredientEditingValidator>();
 
         #endregion
 
         #region validators for additional requests
 
-        services.AddScoped<IValidator<AdditionalCreationRequest>, AdditionalCreationValidator>();
-        services.AddScoped<IValidator<AdditionalEditingRequest>, AdditionalEditingValidator>();
+        services.AddTransient<IValidator<AdditionalCreationRequest>, AdditionalCreationValidator>();
+        services.AddTransient<IValidator<AdditionalEditingRequest>, AdditionalEditingValidator>();
 
         #endregion
 
         #region validators for cart requests
 
-        services.AddScoped<IValidator<UpdateItemQuantityInCartRequest>, UpdateItemQuantityValidator>();
+        services.AddTransient<IValidator<UpdateItemQuantityInCartRequest>, UpdateItemQuantityValidator>();
 
         #endregion
 
@@ -65,7 +66,7 @@ internal static class ValidationExtension
         #region validators for coupon requests
 
         services.AddTransient<IValidator<CouponCreationRequest>, CouponCreationValidator>();
-        services.AddScoped<IValidator<CouponEditingRequest>, CouponEditingValidator>();
+        services.AddTransient<IValidator<CouponEditingRequest>, CouponEditingValidator>();
 
         #endregion
     }
