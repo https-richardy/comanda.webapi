@@ -17,10 +17,8 @@ public abstract class WebApiFixture<TDbContext> :
         Fixture = new Fixture();
         Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
 
-        using (var scope = factory.Services.CreateScope())
-        {
-            DbContext = scope.ServiceProvider.GetRequiredService<TDbContext>();
-        }
+        var scope = factory.Services.CreateScope();
+        DbContext = scope.ServiceProvider.GetRequiredService<TDbContext>();
     }
 
     public virtual async Task DisposeAsync()
