@@ -27,7 +27,6 @@ public sealed class NewAddressRegistrationHandler(
 
         if (customer is not null)
         {
-
             customer.Addresses.Add(address);
 
             await addressRepository.SaveAsync(address);
