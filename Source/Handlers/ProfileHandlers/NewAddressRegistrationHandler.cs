@@ -25,8 +25,14 @@ public sealed class NewAddressRegistrationHandler(
 
         address.Number = !string.IsNullOrEmpty(request.Number) ? request.Number : address.Number;
 
-        customer?.Addresses.Add(address);
-        await addressRepository.SaveAsync(address);
+        if (customer is not null)
+        {
+
+            customer.Addresses.Add(address);
+
+            await addressRepository.SaveAsync(address);
+            await customerRepository.UpdateAsync(customer);
+        }
 
         return new Response(
             statusCode: StatusCodes.Status201Created,
