@@ -2,25 +2,15 @@ namespace Comanda.TestingSuite.Integration.Services;
 
 public sealed class CouponServiceIntegrationTest : IntegrationFixture<ComandaDbContext>
 {
-    private readonly IFixture _fixture;
-    private readonly ICouponService _couponService;
-
-    public CouponServiceIntegrationTest()
-    {
-        _fixture = new Fixture();
-        _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-
-        _couponService = ServiceProvider.GetRequiredService<ICouponService>();
-    }
-
     [Fact(DisplayName = "AddCouponAsync should add coupon to database")]
     public async Task AddCouponAsyncShouldAddCouponToDatabase()
     {
-        var coupon = _fixture
+        var couponService = ServiceProvider.GetRequiredService<ICouponService>();
+        var coupon = Fixture
             .Build<Coupon>()
             .Create();
 
-        await _couponService.AddCouponAsync(coupon);
+        await couponService.AddCouponAsync(coupon);
         var result = await DbContext.Coupons.FirstOrDefaultAsync(coupon => coupon.Code == coupon.Code);
 
         Assert.NotNull(result);
@@ -35,7 +25,8 @@ public sealed class CouponServiceIntegrationTest : IntegrationFixture<ComandaDbC
     [Fact(DisplayName = "GetCouponByCodeAsync should return null when code does not exist")]
     public async Task GetCouponByCodeAsyncShouldReturnNullWhenCodeDoesNotExist()
     {
-        var result = await _couponService.GetCouponByCodeAsync("TESTCOUPONCODE");
+        var couponService = ServiceProvider.GetRequiredService<ICouponService>();
+        var result = await couponService.GetCouponByCodeAsync("TESTCOUPONCODE");
 
         Assert.Null(result);
     }
@@ -43,12 +34,13 @@ public sealed class CouponServiceIntegrationTest : IntegrationFixture<ComandaDbC
     [Fact(DisplayName = "GetCouponByCodeAsync should return coupon when code exists")]
     public async Task GetCouponByCodeAsyncShouldReturnCouponWhenCodeExists()
     {
-        var coupon = _fixture.Create<Coupon>();
+        var couponService = ServiceProvider.GetRequiredService<ICouponService>();
+        var coupon = Fixture.Create<Coupon>();
 
         await DbContext.Coupons.AddAsync(coupon);
         await DbContext.SaveChangesAsync();
 
-        var result = await _couponService.GetCouponByCodeAsync(coupon.Code);
+        var result = await couponService.GetCouponByCodeAsync(coupon.Code);
 
         Assert.NotNull(result);
 
@@ -62,15 +54,19 @@ public sealed class CouponServiceIntegrationTest : IntegrationFixture<ComandaDbC
     [Fact(DisplayName = "ApplyDiscountAsync should throw CouponInvalidException when coupon does not exist")]
     public async Task ApplyDiscountAsyncShouldThrowCouponInvalidExceptionWhenCouponDoesNotExists()
     {
-        var customer = _fixture.Create<Customer>();
-        var exception = await Assert.ThrowsAsync<CouponInvalidException>(() => _couponService.ApplyDiscountAsync(customer, "INVALIDCODE", 100m));
+        var couponService = ServiceProvider.GetRequiredService<ICouponService>();
+
+        var customer = Fixture.Create<Customer>();
+        var exception = await Assert.ThrowsAsync<CouponInvalidException>(() => couponService.ApplyDiscountAsync(customer, "INVALIDCODE", 100m));
     }
 
     [Fact(DisplayName = "ApplyDiscountAsync should throw CouponAlreadyUsedException when coupon is already used")]
     public async Task ApplyDiscountAsyncShouldThrowCouponAlreadyUsedExceptionWhenCouponIsAlreadyUsed()
     {
-        var customer = _fixture.Create<Customer>();
-        var coupon = _fixture
+        var couponService = ServiceProvider.GetRequiredService<ICouponService>();
+
+        var customer = Fixture.Create<Customer>();
+        var coupon = Fixture
             .Build<Coupon>()
             .With(coupon => coupon.Code, "TESTCOUPONCODE")
             .With(coupon => coupon.ExpirationDate, DateTime.UtcNow.AddDays(2))
@@ -86,7 +82,7 @@ public sealed class CouponServiceIntegrationTest : IntegrationFixture<ComandaDbC
         await DbContext.CouponUsages.AddAsync(usedCoupon);
         await DbContext.SaveChangesAsync();
 
-        var exception = await Assert.ThrowsAsync<CouponAlreadyUsedException>(() => _couponService.ApplyDiscountAsync(customer, coupon.Code, 100m));
+        var exception = await Assert.ThrowsAsync<CouponAlreadyUsedException>(() => couponService.ApplyDiscountAsync(customer, coupon.Code, 100m));
 
         Assert.Equal($"Coupon with code {coupon.Code} already used.", exception.Message);
     }
@@ -99,8 +95,10 @@ public sealed class CouponServiceIntegrationTest : IntegrationFixture<ComandaDbC
     [InlineData(5, 100, 95)]   /* 5% discount on 100 = 95 */
     public async Task ApplyDiscountAsyncShouldApplyCouponSuccessfully(decimal discount, decimal amount, decimal expected)
     {
-        var customer = _fixture.Create<Customer>();
-        var coupon = _fixture
+        var couponService = ServiceProvider.GetRequiredService<ICouponService>();
+
+        var customer = Fixture.Create<Customer>();
+        var coupon = Fixture
             .Build<Coupon>()
             .With(coupon => coupon.Code, "TESTCOUPONCODE")
             .With(coupon => coupon.ExpirationDate, DateTime.UtcNow.AddDays(2))
@@ -112,7 +110,7 @@ public sealed class CouponServiceIntegrationTest : IntegrationFixture<ComandaDbC
         await DbContext.Coupons.AddAsync(coupon);
         await DbContext.SaveChangesAsync();
 
-        var result = await _couponService.ApplyDiscountAsync(customer, coupon.Code, amount);
+        var result = await couponService.ApplyDiscountAsync(customer, coupon.Code, amount);
 
         Assert.Equal(expected, result);
     }
@@ -125,8 +123,10 @@ public sealed class CouponServiceIntegrationTest : IntegrationFixture<ComandaDbC
     [InlineData(5, 100, 95)]   /* 5 discount on 100 = 95 */
     public async Task ApplyDiscountAsyncShouldApplyFixedCouponSuccessfully(decimal discount, decimal amount, decimal expected)
     {
-        var customer = _fixture.Create<Customer>();
-        var coupon = _fixture
+        var couponService = ServiceProvider.GetRequiredService<ICouponService>();
+
+        var customer = Fixture.Create<Customer>();
+        var coupon = Fixture
             .Build<Coupon>()
             .With(coupon => coupon.Code, "FIXEDCOUPONCODE")
             .With(coupon => coupon.ExpirationDate, DateTime.UtcNow.AddDays(2))
@@ -138,7 +138,7 @@ public sealed class CouponServiceIntegrationTest : IntegrationFixture<ComandaDbC
         await DbContext.Coupons.AddAsync(coupon);
         await DbContext.SaveChangesAsync();
 
-        var result = await _couponService.ApplyDiscountAsync(customer, coupon.Code, amount);
+        var result = await couponService.ApplyDiscountAsync(customer, coupon.Code, amount);
 
         Assert.Equal(expected, result);
     }
@@ -146,13 +146,14 @@ public sealed class CouponServiceIntegrationTest : IntegrationFixture<ComandaDbC
     [Fact(DisplayName = "UpdateCouponAsync should update coupon in the database")]
     public async Task UpdateCouponAsyncShouldUpdateCouponInDatabase()
     {
-        var coupon = _fixture.Create<Coupon>();
+        var couponService = ServiceProvider.GetRequiredService<ICouponService>();
+        var coupon = Fixture.Create<Coupon>();
 
         await DbContext.Coupons.AddAsync(coupon);
         await DbContext.SaveChangesAsync();
 
         coupon.Discount = 50;
-        await _couponService.UpdateCouponAsync(coupon);
+        await couponService.UpdateCouponAsync(coupon);
 
         var updatedCoupon = await DbContext.Coupons.FirstOrDefaultAsync(coupon => coupon.Id == coupon.Id);
 
@@ -163,12 +164,13 @@ public sealed class CouponServiceIntegrationTest : IntegrationFixture<ComandaDbC
     [Fact(DisplayName = "DeleteCouponAsync should remove coupon from the database")]
     public async Task DeleteCouponAsyncShouldRemoveCouponFromDatabase()
     {
-        var coupon = _fixture.Create<Coupon>();
+        var couponService = ServiceProvider.GetRequiredService<ICouponService>();
+        var coupon = Fixture.Create<Coupon>();
 
         await DbContext.Coupons.AddAsync(coupon);
         await DbContext.SaveChangesAsync();
 
-        await _couponService.DeleteCouponAsync(coupon);
+        await couponService.DeleteCouponAsync(coupon);
 
         var deletedCoupon = await DbContext.Coupons.FirstOrDefaultAsync(coupon => coupon.Id == coupon.Id);
 
