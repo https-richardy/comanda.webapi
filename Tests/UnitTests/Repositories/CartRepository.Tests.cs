@@ -1,6 +1,6 @@
 namespace Comanda.TestingSuite.UnitTests.Repositories;
 
-public sealed class CartRepositoryTests : InMemoryDatabaseFixture<ComandaDbContext>
+public sealed class CartRepositoryTests : SqliteDatabaseFixture<ComandaDbContext>
 {
     private readonly ICartRepository _repository;
 

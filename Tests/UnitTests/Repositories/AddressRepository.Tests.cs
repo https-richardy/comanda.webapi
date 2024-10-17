@@ -1,6 +1,6 @@
 namespace Comanda.TestingSuite.UnitTests.Repositories;
 
-public sealed class AddressRepositoryTests : InMemoryDatabaseFixture<ComandaDbContext>
+public sealed class AddressRepositoryTests : SqliteDatabaseFixture<ComandaDbContext>
 {
     private readonly IAddressRepository _repository;
 

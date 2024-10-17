@@ -1,6 +1,6 @@
 namespace Comanda.TestingSuite.UnitTests.Repositories;
 
-public sealed class PaymentRepositoryTests : InMemoryDatabaseFixture<ComandaDbContext>
+public sealed class PaymentRepositoryTests : SqliteDatabaseFixture<ComandaDbContext>
 {
     private readonly IPaymentRepository _repository;
 

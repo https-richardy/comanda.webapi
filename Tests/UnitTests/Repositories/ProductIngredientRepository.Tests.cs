@@ -1,6 +1,6 @@
 namespace Comanda.TestingSuite.UnitTests.Repositories;
 
-public sealed class ProductIngredientRepositoryTests : InMemoryDatabaseFixture<ComandaDbContext>
+public sealed class ProductIngredientRepositoryTests : SqliteDatabaseFixture<ComandaDbContext>
 {
     private readonly IProductIngredientRepository _repository;
 

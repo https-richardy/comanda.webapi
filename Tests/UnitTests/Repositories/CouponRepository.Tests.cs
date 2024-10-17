@@ -1,6 +1,6 @@
 namespace Comanda.TestingSuite.UnitTests.Repositories;
 
-public sealed class CouponRepositoryTests : InMemoryDatabaseFixture<ComandaDbContext>
+public sealed class CouponRepositoryTests : SqliteDatabaseFixture<ComandaDbContext>
 {
     private readonly ICouponRepository _repository;
     private readonly IFixture _fixture;
