@@ -4,15 +4,10 @@ namespace Comanda.TestingSuite.EndToEnd;
 
 public sealed class ProfileEndpointTests : WebApiFixture<ComandaDbContext>
 {
-    private HttpClient _authenticatedClient = null!;
-
-    private string _bearerToken = string.Empty;
     private readonly IFixture _fixture;
 
     public ProfileEndpointTests(WebApiFactoryFixture<Program> factory) : base(factory)
     {
-        AuthenticateCustomerUserAsync().GetAwaiter().GetResult();
-
         _fixture = new Fixture();
         _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
     }
@@ -36,7 +31,9 @@ public sealed class ProfileEndpointTests : WebApiFixture<ComandaDbContext>
         DbContext.Customers.Update(customer);
         await DbContext.SaveChangesAsync();
 
+        await AuthenticateCustomerUserAsync();
         var authenticatedClient = GetAuthenticatedClient();
+
         var response = await authenticatedClient.GetAsync("api/profile/export-data");
 
         response.EnsureSuccessStatusCode();
@@ -77,7 +74,9 @@ public sealed class ProfileEndpointTests : WebApiFixture<ComandaDbContext>
             });
         }).CreateClient();
 
+        await AuthenticateCustomerUserAsync();
         var authenticatedClient = GetAuthenticatedClient();
+
         var newAddressRequest = new NewAddressRegistrationRequest
         {
             PostalCode = "12345678",
@@ -149,13 +148,5 @@ public sealed class ProfileEndpointTests : WebApiFixture<ComandaDbContext>
 
         _authenticatedClient = Factory.CreateClient();
         _authenticatedClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
-    }
-
-    private HttpClient GetAuthenticatedClient()
-    {
-        if (_authenticatedClient is null)
-            throw new Exception("Authenticated client not initialized.");
-
-        return _authenticatedClient;
     }
 }

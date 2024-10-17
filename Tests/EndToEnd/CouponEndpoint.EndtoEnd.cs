@@ -2,14 +2,10 @@ namespace Comanda.TestingSuite.EndToEnd;
 
 public sealed class CouponEndpointTests : WebApiFixture<ComandaDbContext>
 {
-    private string _bearerToken = string.Empty;
-    private HttpClient _authenticatedClient = null!;
     private readonly IFixture _fixture;
 
     public CouponEndpointTests(WebApiFactoryFixture<Program> factory) : base(factory)
     {
-        AuthenticateAdminUserAsync().GetAwaiter().GetResult();
-
         _fixture = new Fixture();
         _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
     }
@@ -17,7 +13,9 @@ public sealed class CouponEndpointTests : WebApiFixture<ComandaDbContext>
     [Fact(DisplayName = "Given a valid request, it must then create a new coupon")]
     public async Task GivenAValidRequestItMustThenCreateANewCoupon()
     {
+        await AuthenticateAdminUserAsync();
         var client = GetAuthenticatedClient();
+
         var payload = new CouponCreationRequest
         {
             Code = "TESTCOUPONCODE",
@@ -39,7 +37,9 @@ public sealed class CouponEndpointTests : WebApiFixture<ComandaDbContext>
     [Fact(DisplayName = "Given an invalid request, it must then return a 400 bad request")]
     public async Task GivenAnInvalidRequestItMustThenReturnABadRequest()
     {
+        await AuthenticateAdminUserAsync();
         var client = GetAuthenticatedClient();
+
         var payload = new CouponCreationRequest
         {
             Code = "TESTCOUPONCODE",
@@ -61,7 +61,9 @@ public sealed class CouponEndpointTests : WebApiFixture<ComandaDbContext>
     [Fact(DisplayName = "Should return available coupons when requesting the coupon list")]
     public async Task ShouldReturnAvailableCouponsWhenRequestingTheCouponList()
     {
+        await AuthenticateAdminUserAsync();
         var client = GetAuthenticatedClient();
+
         var payloads = new List<CouponCreationRequest>
         {
             new CouponCreationRequest { Code = "TESTCOUPONCODE1", ExpirationDate = DateTime.UtcNow.AddDays(2), Type = ECouponType.Percentage, Discount = 10m },
@@ -86,7 +88,9 @@ public sealed class CouponEndpointTests : WebApiFixture<ComandaDbContext>
     [Fact(DisplayName = "Given an invalid identifier, it must return a 404 Not Found")]
     public async Task GivenAnInvalidIdentifierItMustReturnANotFoundError()
     {
+        await AuthenticateAdminUserAsync();
         var client = GetAuthenticatedClient();
+
         var response = await client.GetAsync("api/coupons/1");
 
         Assert.NotNull(response);
@@ -96,7 +100,9 @@ public sealed class CouponEndpointTests : WebApiFixture<ComandaDbContext>
     [Fact(DisplayName = "Given a valid identifier, it must return the corresponding coupon")]
     public async Task GivenAValidIdentifierItMustReturnTheCoupon()
     {
+        await AuthenticateAdminUserAsync();
         var client = GetAuthenticatedClient();
+
         var payloads = new List<CouponCreationRequest>
         {
             new CouponCreationRequest { Code = "TESTCOUPONCODE1", ExpirationDate = DateTime.UtcNow.AddDays(2), Type = ECouponType.Percentage, Discount = 10m },
@@ -127,7 +133,9 @@ public sealed class CouponEndpointTests : WebApiFixture<ComandaDbContext>
     [Fact(DisplayName = "Given a valid coupon code, it must return the corresponding coupon")]
     public async Task GivenAValidCouponCodeItMustReturnTheCoupon()
     {
+        await AuthenticateAdminUserAsync();
         var client = GetAuthenticatedClient();
+
         var payload = new CouponCreationRequest
         {
             Code = "VALIDCOUPON",
@@ -152,7 +160,9 @@ public sealed class CouponEndpointTests : WebApiFixture<ComandaDbContext>
     [Fact(DisplayName = "Given an invalid coupon code, it must return a 404 Not Found")]
     public async Task GivenAnInvalidCouponCodeItMustReturnNotFoundError()
     {
+        await AuthenticateAdminUserAsync();
         var client = GetAuthenticatedClient();
+
         var response = await client.GetAsync("api/coupons/find-by-code/INVALIDCOUPON");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -161,6 +171,7 @@ public sealed class CouponEndpointTests : WebApiFixture<ComandaDbContext>
     [Fact(DisplayName = "Given a valid request, it must successfully update the coupon")]
     public async Task GivenAValidRequestItMustSuccessfullyUpdateTheCoupon()
     {
+        await AuthenticateAdminUserAsync();
         var client = GetAuthenticatedClient();
 
         var creationPayload = new CouponCreationRequest
@@ -192,6 +203,7 @@ public sealed class CouponEndpointTests : WebApiFixture<ComandaDbContext>
     [Fact(DisplayName = "Given a non-existent coupon ID, it must return a 404 Not Found")]
     public async Task GivenANonExistentCouponIDItMustReturnNotFound()
     {
+        await AuthenticateAdminUserAsync();
         var client = GetAuthenticatedClient();
 
         var updatePayload = new CouponEditingRequest
@@ -210,7 +222,9 @@ public sealed class CouponEndpointTests : WebApiFixture<ComandaDbContext>
     [Fact(DisplayName = "Given an invalid request, it must return a 400 Bad Request")]
     public async Task GivenAnInvalidRequestItMustReturnBadRequest()
     {
+        await AuthenticateAdminUserAsync();
         var client = GetAuthenticatedClient();
+
         var creationPayload = new CouponCreationRequest
         {
             Code = "UPDATABLECOUPON",
@@ -245,7 +259,9 @@ public sealed class CouponEndpointTests : WebApiFixture<ComandaDbContext>
     [Fact(DisplayName = "Given a valid coupon ID, it must successfully delete the coupon")]
     public async Task GivenAValidCouponIDItMustSuccessfullyDeleteTheCoupon()
     {
+        await AuthenticateAdminUserAsync();
         var client = GetAuthenticatedClient();
+
         var creationPayload = new CouponCreationRequest
         {
             Code = "DELETABLECOUPON",
@@ -269,7 +285,9 @@ public sealed class CouponEndpointTests : WebApiFixture<ComandaDbContext>
     [Fact(DisplayName = "Given a deletion request for a non-existent coupon, it must return a 404 Not Found")]
     public async Task GivenADeletionRequestForANonExistentCouponItMustReturnNotFound()
     {
+        await AuthenticateAdminUserAsync();
         var client = GetAuthenticatedClient();
+
         var deleteResponse = await client.DeleteAsync("api/coupons/999");
 
         Assert.Equal(HttpStatusCode.NotFound, deleteResponse.StatusCode);
@@ -281,31 +299,5 @@ public sealed class CouponEndpointTests : WebApiFixture<ComandaDbContext>
         var deleteResponse = await HttpClient.DeleteAsync("api/coupons/1");
 
         Assert.Equal(HttpStatusCode.Unauthorized, deleteResponse.StatusCode);
-    }
-
-    private async Task AuthenticateAdminUserAsync()
-    {
-        var payload = new AuthenticationCredentials
-        {
-            Email = "comanda@admin.com",
-            Password = "Ri34067294*"
-        };
-
-        var response = await HttpClient.PostAsJsonAsync("api/identity/authenticate", payload);
-        var responseContent = await response.Content.ReadFromJsonAsync<Response<AuthenticationResponse>>();
-
-        response.EnsureSuccessStatusCode();
-        _bearerToken = responseContent!.Data!.Token ?? throw new Exception("authentication failed");
-
-        _authenticatedClient = Factory.CreateClient();
-        _authenticatedClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
-    }
-
-    private HttpClient GetAuthenticatedClient()
-    {
-        if (_authenticatedClient is null)
-            throw new Exception("Authenticated client not initialized.");
-
-        return _authenticatedClient;
     }
 }
