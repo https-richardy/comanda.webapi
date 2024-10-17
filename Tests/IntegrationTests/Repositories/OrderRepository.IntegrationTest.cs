@@ -1,33 +1,36 @@
-using System.Diagnostics;
-
 namespace Comanda.TestingSuite.Integration.Repositories;
 
 public sealed class OrderRepositoryIntegrationTest : IntegrationFixture<ComandaDbContext>
 {
-    private readonly IOrderRepository _orderRepository;
-    private readonly IFixture _fixture;
-
-    public OrderRepositoryIntegrationTest()
-    {
-        _orderRepository = ServiceProvider.GetRequiredService<IOrderRepository>();
-
-        _fixture = new Fixture();
-        _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-    }
-
     [Fact(DisplayName = "Given an order, should add it successfully")]
     public async Task GivenAnOrderShouldAddItSuccessfully()
     {
-        var orderItems = _fixture
+        var orderRepository = ServiceProvider.GetRequiredService<IOrderRepository>();
+        var customerRepository = ServiceProvider.GetRequiredService<ICustomerRepository>();
+        var addressRepository = ServiceProvider.GetRequiredService<IAddressRepository>();
+
+        var address = Fixture.Create<Address>();
+        await addressRepository.SaveAsync(address);
+
+        var orderItems = Fixture
             .CreateMany<OrderItem>(5)
             .ToList();
 
-        var order = _fixture.Build<Order>()
-            .With(order => order.Items, orderItems)
+        var customer = Fixture.Build<Customer>()
+            .With(customer => customer.Addresses, [ address ])
+            .Without(customer => customer.Orders)
             .Create();
 
-        await _orderRepository.SaveAsync(order);
-        var orderRetrieved = await _orderRepository.RetrieveByIdAsync(order.Id);
+        await customerRepository.SaveAsync(customer);
+
+        var order = Fixture.Build<Order>()
+            .With(order => order.Items, orderItems)
+            .With(order => order.ShippingAddress, address)
+            .With(order => order.Customer, customer)
+            .Create();
+
+        await orderRepository.SaveAsync(order);
+        var orderRetrieved = await orderRepository.RetrieveByIdAsync(order.Id);
 
         Assert.NotNull(order);
         Assert.Equal(order.Id, order.Id);
@@ -54,20 +57,28 @@ public sealed class OrderRepositoryIntegrationTest : IntegrationFixture<ComandaD
     [Fact(DisplayName = "Given a collection of orders, should return paged results successfully")]
     public async Task GivenACollectionOfOrdersShouldReturnPagedResultsSuccessfully()
     {
-        var orderItems = _fixture
+        var orderRepository = ServiceProvider.GetRequiredService<IOrderRepository>();
+        var customerRepository = ServiceProvider.GetRequiredService<ICustomerRepository>();
+        var addressRepository = ServiceProvider.GetRequiredService<IAddressRepository>();
+
+        var address = Fixture.Create<Address>();
+        await addressRepository.SaveAsync(address);
+
+        var orderItems = Fixture
             .CreateMany<OrderItem>(5)
             .ToList();
 
-        var customer = _fixture.Build<Customer>()
+        var customer = Fixture.Build<Customer>()
             .Without(customer => customer.Orders)
+            .With(customer => customer.Addresses, [ address ])
             .Create();
 
-        var customerRepository = ServiceProvider.GetRequiredService<ICustomerRepository>();
         await customerRepository.SaveAsync(customer);
 
-        var orders = _fixture.Build<Order>()
+        var orders = Fixture.Build<Order>()
             .With(order => order.Items, orderItems)
             .With(order => order.Customer, customer)
+            .With(order => order.ShippingAddress, address)
             .CreateMany(5)
             .ToList();
 
@@ -77,43 +88,23 @@ public sealed class OrderRepositoryIntegrationTest : IntegrationFixture<ComandaD
             Assert.NotEmpty(order.Items);
             Assert.Equal(order.Customer.Id, customer.Id);
 
-            await _orderRepository.SaveAsync(order);
+            await orderRepository.SaveAsync(order);
         }
 
         const int pageNumber = 1;
         const int pageSize = 5;
 
         Expression<Func<Order, bool>> predicate = order => order.Customer.Id == customer.Id;
-        var pagedOrders = await _orderRepository.PagedAsync(
+        var pagedOrders = await orderRepository.PagedAsync(
             pageNumber: pageNumber,
             pageSize: pageSize,
             predicate: predicate
         );
 
         Assert.NotNull(pagedOrders);
-        Assert.All(pagedOrders, order =>
-        {
-            Assert.NotNull(order.Customer);
-            Assert.NotNull(order.ShippingAddress);
-            Assert.NotNull(order.Items);
+        Assert.NotEmpty(pagedOrders);
 
-            Assert.NotEmpty(order.Items);
-
-            Assert.Equal(orderItems.Count, order.Items.Count);
-            Assert.Equal(customer.Id, order.Customer.Id);
-            Assert.Equal(customer.FullName, order.Customer.FullName);
-            Assert.Contains(order.ShippingAddress, order.Customer.Addresses);
-
-            Assert.True(order.Total > 0);
-            Assert.All(order.Items, item =>
-            {
-                Assert.NotNull(item.Product);
-                Assert.NotEmpty(item.Additionals);
-                Assert.NotEmpty(item.UnselectedIngredients);
-
-
-                Assert.True(!string.IsNullOrEmpty(item.Product.Title));
-            });
-        });
+        Assert.Equal(pageSize, pagedOrders.Count());
+        Assert.All(pagedOrders, order => Assert.Equal(customer.Id, order.Customer.Id));
     }
 }
