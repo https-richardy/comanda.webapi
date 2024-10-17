@@ -2,38 +2,29 @@ namespace Comanda.TestingSuite.Integration.Services;
 
 public sealed class ProfileDataExportServiceIntegrationTest : IntegrationFixture<ComandaDbContext>
 {
-    private readonly IFixture _fixture;
-    private readonly IProfileDataExportService _profileDataExportService;
-
-    public ProfileDataExportServiceIntegrationTest()
-    {
-        _fixture = new Fixture();
-        _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-
-        _profileDataExportService = ServiceProvider.GetRequiredService<IProfileDataExportService>();
-    }
-
     [Fact(DisplayName = "ExportProfileDataAsync should export profile data correctly")]
     public async Task ExportProfileDataAsyncShouldExportProfileDataCorrectly()
     {
-        var addresses = _fixture
+        var profileDataExportService = ServiceProvider.GetRequiredService<IProfileDataExportService>();
+
+        var addresses = Fixture
             .Build<Address>()
             .CreateMany(2)
             .ToList();
 
-        var user = _fixture.Build<Account>()
+        var user = Fixture.Build<Account>()
             .With(user => user.Id, Guid.NewGuid().ToString())
             .With(user => user.UserName, "John Doe")
             .With(user => user.Email, "john@doe.com")
             .Create();
 
-        var customer = _fixture.Build<Customer>()
+        var customer = Fixture.Build<Customer>()
             .With(customer => customer.Account, user)
             .With(customer => customer.Addresses, addresses)
             .Without(customer => customer.Orders)
             .Create();
 
-        var orders = _fixture.Build<Order>()
+        var orders = Fixture.Build<Order>()
             .With(order => order.Customer, customer)
             .CreateMany(4)
             .ToList();
@@ -44,7 +35,7 @@ public sealed class ProfileDataExportServiceIntegrationTest : IntegrationFixture
         await DbContext.Customers.AddAsync(customer);
         await DbContext.SaveChangesAsync();
 
-        var result = await _profileDataExportService.ExportDataAsync(user.Id);
+        var result = await profileDataExportService.ExportDataAsync(user.Id);
 
         Assert.NotNull(result);
         Assert.Equal(user.UserName, result.Name);
