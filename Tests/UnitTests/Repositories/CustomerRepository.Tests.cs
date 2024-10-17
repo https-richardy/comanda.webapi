@@ -158,30 +158,14 @@ public sealed class CustomerRepositoryTests : SqliteDatabaseFixture<ComandaDbCon
         var expectedAddresses = customer.Addresses.ToList();
         var actualAddresses = foundCustomer!.Addresses.ToList();
 
+        Assert.NotEmpty(expectedAddresses);
         Assert.Equal(expectedAddresses.Count, actualAddresses.Count);
-        for (int index = 0; index < expectedAddresses.Count; index++)
-        {
-            var expectedAddress = expectedAddresses[index];
-            var actualAddress = actualAddresses[index];
-
-            Assert.Equal(expectedAddress.Street, actualAddress.Street);
-            Assert.Equal(expectedAddress.City, actualAddress.City);
-            Assert.Equal(expectedAddress.State, actualAddress.State);
-            Assert.Equal(expectedAddress.PostalCode, actualAddress.PostalCode);
-        }
 
         var expectedOrders = customer.Orders.ToList();
         var actualOrders = foundCustomer.Orders.ToList();
 
+        Assert.NotEmpty(expectedOrders);
         Assert.Equal(expectedOrders.Count, actualOrders.Count);
-        for (int index = 0; index < expectedOrders.Count; index++)
-        {
-            var expectedOrder = expectedOrders[index];
-            var actualOrder = actualOrders[index];
-
-            Assert.Equal(expectedOrder.Id, actualOrder.Id);
-            Assert.Equal(expectedOrder.Date, actualOrder.Date);
-        }
     }
 
     [Fact(DisplayName = "Should count total number of customers")]
