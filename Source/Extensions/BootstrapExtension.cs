@@ -13,7 +13,7 @@ namespace Comanda.WebApi.Extensions;
 [ExcludeFromCodeCoverage]
 internal static class BootstrapExtension
 {
-    public static async void Bootstrap(this IApplicationBuilder builder)
+    public static async Task Bootstrap(this IApplicationBuilder builder)
     {
         var serviceProvider = builder.ApplicationServices;
 
@@ -76,7 +76,8 @@ internal static class BootstrapExtension
 
     private static async Task EnsureAdministratorRoleAsync(RoleManager<IdentityRole> roleManager)
     {
-        if (!await roleManager.RoleExistsAsync("Administrator"))
+        var roleExists = await roleManager.RoleExistsAsync("Administrator");
+        if (!roleExists)
         {
             var adminRole = new IdentityRole("Administrator");
             await roleManager.CreateAsync(adminRole);

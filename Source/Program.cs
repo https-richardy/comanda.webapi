@@ -2,7 +2,7 @@ namespace Comanda.WebApi;
 
 public partial class Program
 {
-    private static void Main(string[] args)
+    private static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
         var configuration = builder.Configuration;
@@ -11,9 +11,7 @@ public partial class Program
 
         var app = builder.Build();
 
-        app.SetupPipeline(app.Environment);
-        app.MapControllers();
-
+        await app.SetupPipeline(app.Environment);
         app.Run();
     }
 }

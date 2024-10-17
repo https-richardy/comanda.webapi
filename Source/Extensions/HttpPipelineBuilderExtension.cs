@@ -3,7 +3,7 @@ namespace Comanda.WebApi.Extensions;
 [ExcludeFromCodeCoverage]
 internal static class HttpPipelineBuilderExtension
 {
-    public static void SetupPipeline(this IApplicationBuilder app, IWebHostEnvironment hostingEnvironment)
+    public static async Task SetupPipeline(this IApplicationBuilder app, IWebHostEnvironment hostingEnvironment)
     {
         app.UseHttpsRedirection();
 
@@ -12,7 +12,7 @@ internal static class HttpPipelineBuilderExtension
             app.UseSwagger();
             app.UseSwaggerUI();
 
-            app.Bootstrap();
+            await app.Bootstrap();
         }
 
         app.UseRouting();
