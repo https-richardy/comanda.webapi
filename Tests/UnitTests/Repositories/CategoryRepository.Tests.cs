@@ -105,7 +105,8 @@ public sealed class CategoryRepositoryTests : SqliteDatabaseFixture<ComandaDbCon
         await DbContext.Categories.AddRangeAsync(categories);
         await DbContext.SaveChangesAsync();
 
-        var foundCategories = await _repository.FindAllAsync(category => category.Name.StartsWith('C'));
+        Expression<Func<Category, bool>> predicate = category => category.Name.StartsWith("C");
+        var foundCategories = await _repository.FindAllAsync(predicate);
 
         Assert.Equal(2, foundCategories.Count());
         Assert.Contains(categories[0], foundCategories);
@@ -157,7 +158,7 @@ public sealed class CategoryRepositoryTests : SqliteDatabaseFixture<ComandaDbCon
         const int pageNumber = 1;
         const int pageSize = 2;
 
-        Expression<Func<Category, bool>> predicate = category => category.Name.StartsWith('C');
+        Expression<Func<Category, bool>> predicate = category => category.Name.StartsWith("C");
 
         var pagedCategories = await _repository.PagedAsync(predicate, pageNumber, pageSize);
 
@@ -206,7 +207,7 @@ public sealed class CategoryRepositoryTests : SqliteDatabaseFixture<ComandaDbCon
         await DbContext.Categories.AddRangeAsync(categories);
         await DbContext.SaveChangesAsync();
 
-        Expression<Func<Category, bool>> predicate = category => category.Name.StartsWith('C');
+        Expression<Func<Category, bool>> predicate = category => category.Name.StartsWith("C");
 
         var count = await _repository.CountAsync(predicate);
         Assert.Equal(3, count);
