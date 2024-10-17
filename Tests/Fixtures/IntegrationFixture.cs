@@ -18,22 +18,26 @@ namespace Comanda.TestingSuite.Fixtures;
 public abstract class IntegrationFixture<TDbContext> : IAsyncLifetime
     where TDbContext : DbContext
 {
-    protected IServiceCollection Services { get; set; }
-    protected IServiceProvider ServiceProvider { get; private set; }
-    protected TDbContext DbContext { get; set; }
+    protected IFixture Fixture { get; private set; }
+    protected IServiceCollection Services { get; private set; }
+    protected IServiceProvider ServiceProvider { get; private set; } = default!;
+    protected TDbContext DbContext { get; private set; } = default!;
 
     public IntegrationFixture()
     {
+        Fixture = new Fixture();
+        Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+
         Services = new ServiceCollection();
 
-        var dbContextOptionsDescriptor = Services.SingleOrDefault(descriptor => descriptor.ServiceType == typeof(DbContextOptions<ComandaDbContext>));
+        var dbContextOptionsDescriptor = Services.SingleOrDefault(descriptor => descriptor.ServiceType == typeof(DbContextOptions<TDbContext>));
         if (dbContextOptionsDescriptor is not null)
             Services.Remove(dbContextOptionsDescriptor);
 
-        Services.AddDbContext<ComandaDbContext>(options =>
+        Services.AddDbContext<TDbContext>(options =>
         {
-            var databaseIdentifier = Guid.NewGuid().ToString();
-            options.UseInMemoryDatabase(databaseIdentifier);
+            var connectionString = $"Data Source={Path.GetTempFileName()};";
+            options.UseSqlite(connectionString);
         });
 
         var inMemorySettings = new Dictionary<string, string>
@@ -44,7 +48,7 @@ public abstract class IntegrationFixture<TDbContext> : IAsyncLifetime
             { "SmtpSettings:Host", "mocked.smtp.host" },
             { "SmtpSettings:UserName", "mocked.smtp.user" },
             { "SmtpSettings:Password", "mocked.smtp.password" },
-            { "SmtpSettings:Port",  "587" },
+            { "SmtpSettings:Port", "587" },
             { "SmtpSettings:UseSsl", "true" }
         };
 
@@ -52,11 +56,10 @@ public abstract class IntegrationFixture<TDbContext> : IAsyncLifetime
             .AddInMemoryCollection(inMemorySettings!)
             .Build();
 
+        Services.AddLogging();
+
         Services.AddSingleton<IConfiguration>(configuration);
         Services.ConfigureServices(configuration);
-
-        ServiceProvider = Services.BuildServiceProvider();
-        DbContext = ServiceProvider.GetRequiredService<TDbContext>();
     }
 
     public async Task DisposeAsync()
@@ -67,6 +70,9 @@ public abstract class IntegrationFixture<TDbContext> : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
+        ServiceProvider = Services.BuildServiceProvider();
+        DbContext = ServiceProvider.GetRequiredService<TDbContext>();
+
         await DbContext.Database.EnsureCreatedAsync();
     }
 }
