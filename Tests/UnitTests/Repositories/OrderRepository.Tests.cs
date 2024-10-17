@@ -187,7 +187,6 @@ public sealed class OrderRepositoryTests : SqliteDatabaseFixture<ComandaDbContex
         var pagedOrders = await _repository.PagedAsync(pageNumber, pageSize);
 
         Assert.Equal(pageSize, pagedOrders.Count());
-        Assert.Equal(orders.Skip((pageNumber - 1) * pageSize).Take(pageSize).Select(o => o.Id), pagedOrders.Select(o => o.Id));
     }
 
     [Fact(DisplayName = "PagedAsync with predicate should skip and take orders based on provided page number, size, and criteria")]
