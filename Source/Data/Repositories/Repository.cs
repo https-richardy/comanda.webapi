@@ -69,8 +69,9 @@ public abstract class Repository<TEntity, TDbContext> : MinimalRepository<TEntit
     public virtual async Task<IEnumerable<TEntity>> FindAllAsync(Expression<Func<TEntity, bool>> predicate)
     {
         return await _dbContext.Set<TEntity>()
-                        .Where(predicate)
-                        .ToListAsync();
+            .AsNoTracking()
+            .Where(predicate)
+            .ToListAsync();
     }
 
     /// <summary>
