@@ -2,37 +2,62 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Comanda.TestingSuite.EndToEnd;
 
-public sealed class ProfileEndpointTests : WebApiFixture<ComandaDbContext>
+public sealed class ProfileEndpointTests :
+    IClassFixture<ApiIntegrationBase<Program, ComandaDbContext>>,
+    IAsyncLifetime
 {
+    private readonly HttpClient _httpClient;
     private readonly IFixture _fixture;
+    private readonly ApiIntegrationBase<Program, ComandaDbContext> _factory;
 
-    public ProfileEndpointTests(WebApiFactoryFixture<Program> factory) : base(factory)
+    public ProfileEndpointTests(ApiIntegrationBase<Program, ComandaDbContext> factory)
     {
+        _factory = factory;
+
         _fixture = new Fixture();
         _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+
+        _httpClient = _factory.CreateClient();
     }
 
     [Fact(DisplayName = "ExportProfileDataAsync should export profile data correctly")]
     public async Task ExportProfileDataAsyncShouldExportProfileDataCorrectly()
     {
-        var addresses = Fixture
+        // Arrange: obtaining the necessary services
+        var services = _factory.GetServiceProvider();
+        var dbContext = services.GetRequiredService<ComandaDbContext>();
+
+        // Arrange: creating the customer first.
+        var signupCredentials = _fixture.Build<AccountRegistrationRequest>()
+            .With(credential => credential.Name, "John Doe")
+            .With(credential => credential.Email, "john@doe.com")
+            .With(credential => credential.Password, "JohnDoe123*")
+            .Create();
+
+        var signupResult = await _httpClient.PostAsJsonAsync("api/identity/register", signupCredentials);
+        signupResult.EnsureSuccessStatusCode();
+
+        var addresses = _fixture
             .CreateMany<Address>(3)
             .ToList();
 
-        await DbContext.Addresses.AddRangeAsync(addresses);
-        await DbContext.SaveChangesAsync();
+        await dbContext.Addresses.AddRangeAsync(addresses);
+        await dbContext.SaveChangesAsync();
 
-        var customer = await DbContext.Customers
+        var customer = await dbContext.Customers
             .Where(customer => customer.Account.Email == "john@doe.com")
             .FirstOrDefaultAsync();
 
         customer!.Addresses = addresses;
 
-        DbContext.Customers.Update(customer);
-        await DbContext.SaveChangesAsync();
+        dbContext.Customers.Update(customer);
+        await dbContext.SaveChangesAsync();
 
-        await AuthenticateCustomerUserAsync();
-        var authenticatedClient = GetAuthenticatedClient();
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "john@doe.com",
+            Password = "JohnDoe123*"
+        });
 
         var response = await authenticatedClient.GetAsync("api/profile/export-data");
 
@@ -53,14 +78,13 @@ public sealed class ProfileEndpointTests : WebApiFixture<ComandaDbContext>
     public async Task ShouldRegisterNewAddressAndAssociateWithCustomer()
     {
         var addressServiceMock = new Mock<IAddressService>();
-        var address = Fixture.Create<Address>();
+        var address = _fixture.Create<Address>();
 
         addressServiceMock
             .Setup(service => service.GetByZipCodeAsync(It.IsAny<string>()))
             .ReturnsAsync(address);
 
-        // remove the real address service and add the mock one
-        var client = Factory.WithWebHostBuilder(builder =>
+        var client = _factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
             {
@@ -72,10 +96,24 @@ public sealed class ProfileEndpointTests : WebApiFixture<ComandaDbContext>
 
                 services.AddSingleton(addressServiceMock.Object);
             });
-        }).CreateClient();
+        })
+        .CreateClient();
 
-        await AuthenticateCustomerUserAsync();
-        var authenticatedClient = GetAuthenticatedClient();
+        // Arrange: creating the customer first.
+        var signupCredentials = _fixture.Build<AccountRegistrationRequest>()
+            .With(credential => credential.Name, "John Doe")
+            .With(credential => credential.Email, "john@doe.com")
+            .With(credential => credential.Password, "JohnDoe123*")
+            .Create();
+
+        var signupResult = await _httpClient.PostAsJsonAsync("api/identity/register", signupCredentials);
+        signupResult.EnsureSuccessStatusCode();
+
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "john@doe.com",
+            Password = "JohnDoe123*"
+        });
 
         var newAddressRequest = new NewAddressRegistrationRequest
         {
@@ -83,32 +121,33 @@ public sealed class ProfileEndpointTests : WebApiFixture<ComandaDbContext>
             Number = "10"
         };
 
-    /*
-        This workaround was implemented to get around the impossibility of removing the actual implementation of the
-        IAddressService, which is registered as an HTTP service (HttpClient) in the application.
+        /*
+            This workaround was implemented to get around the impossibility of removing the actual implementation of the
+            IAddressService, which is registered as an HTTP service (HttpClient) in the application.
 
-        The addition of the IAddressService mock was not being effective, resulting in test failures when
-        trying to use the real service. Therefore, to ensure that the address registration functionality
-        functionality still worked during the tests, this logic simulates the operation of adding the address
-        directly into the database if the request fails.
+            The addition of the IAddressService mock was not being effective, resulting in test failures when
+            trying to use the real service. Therefore, to ensure that the address registration functionality
+            functionality still worked during the tests, this logic simulates the operation of adding the address
+            directly into the database if the request fails.
 
-        This approach is temporary and should be reviewed in future iterations.
-    */
+            This approach is temporary and should be reviewed in future iterations.
+        */
 
         var response = await authenticatedClient.PostAsJsonAsync("api/profile/addresses", newAddressRequest);
         if (!response.IsSuccessStatusCode)
         {
-            var customer = await DbContext.Customers
+            var dbContext = _factory.GetDbContext();
+            var customer = await dbContext.Customers
                 .Where(customer => customer.Account.Email == "john@doe.com")
                 .FirstOrDefaultAsync();
 
             if (customer is not null)
             {
                 customer.Addresses.Add(address);
-                DbContext.Addresses.Add(address);
-                DbContext.Customers.Update(customer);
+                dbContext.Addresses.Add(address);
+                dbContext.Customers.Update(customer);
 
-                await DbContext.SaveChangesAsync();
+                await dbContext.SaveChangesAsync();
             }
         }
 
@@ -122,31 +161,14 @@ public sealed class ProfileEndpointTests : WebApiFixture<ComandaDbContext>
         Assert.Single(customerData.Data);
     }
 
-    private async Task AuthenticateCustomerUserAsync()
+    public async Task DisposeAsync()
     {
-        var registrationPayload = new AccountRegistrationRequest
-        {
-            Name = "John Doe",
-            Password = "JohnDoe123*",
-            Email = "john@doe.com",
-        };
+        await Task.CompletedTask;
+    }
 
-        var registrationResponse = await HttpClient.PostAsJsonAsync("api/identity/register", registrationPayload);
-        registrationResponse.EnsureSuccessStatusCode();
-
-        var payload = new AuthenticationCredentials
-        {
-            Email = "john@doe.com",
-            Password = "JohnDoe123*"
-        };
-
-        var response = await HttpClient.PostAsJsonAsync("api/identity/authenticate", payload);
-        var responseContent = await response.Content.ReadFromJsonAsync<Response<AuthenticationResponse>>();
-
-        response.EnsureSuccessStatusCode();
-        _bearerToken = responseContent!.Data!.Token ?? throw new Exception("authentication failed");
-
-        _authenticatedClient = Factory.CreateClient();
-        _authenticatedClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
+    public async Task InitializeAsync()
+    {
+        _factory.CleanUp();
+        await Task.CompletedTask;
     }
 }
