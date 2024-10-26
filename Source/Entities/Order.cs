@@ -3,6 +3,8 @@ namespace Comanda.WebApi.Entities;
 public sealed class Order : Entity
 {
     public decimal Total => Items.Sum(item => item.Total);
+    public string CustomerName { get; set; }
+
     public Customer Customer { get; set; }
     public Address ShippingAddress { get; set; }
 

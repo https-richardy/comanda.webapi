@@ -32,6 +32,10 @@ public sealed class OrderProcessingHandler(
         {
             Items = items,
             Customer = request.Cart.Customer,
+
+            // Normalization reducing dependence on the Customer object
+            CustomerName = request.Cart.Customer.FullName!,
+
             ShippingAddress = request.Address,
             Status = orderStatus,
             Date = DateTime.Now
