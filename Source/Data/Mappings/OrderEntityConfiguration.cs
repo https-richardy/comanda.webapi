@@ -18,5 +18,11 @@ public sealed class OrderEntityConfiguration : IEntityTypeConfiguration<Order>
 
         builder.HasOne(order => order.Customer);
         builder.HasOne(order => order.ShippingAddress);
+
+        builder.Navigation(order => order.ShippingAddress)
+            .AutoInclude(true);
+
+        builder.Navigation(order => order.Items)
+            .AutoInclude(true);
     }
 }
