@@ -10,6 +10,12 @@ public sealed class OrderRepository(ComandaDbContext dbContext) :
         // when saving a new Order entity without explicitly setting the ID.
 
         _dbContext.Entry(entity).State = EntityState.Added;
+
+        foreach (var item in entity.Items)
+        {
+            _dbContext.Entry(item).State = EntityState.Added;
+        }
+
         await _dbContext.SaveChangesAsync();
     }
 
