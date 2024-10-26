@@ -83,6 +83,8 @@ public sealed class InsertProductToCartHandler(
         }
 
         cart.AddItem(cartItem);
+
+        await cartRepository.AddItemAsync(cart, cartItem);
         await cartRepository.UpdateAsync(cart);
 
         return new Response(

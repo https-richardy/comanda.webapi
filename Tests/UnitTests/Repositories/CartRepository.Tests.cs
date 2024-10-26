@@ -159,4 +159,25 @@ public sealed class CartRepositoryTests : SqliteDatabaseFixture<ComandaDbContext
         Assert.Equal(cart.Customer.Id, foundCart.Customer.Id);
         Assert.Equal(cart.Items.Count, foundCart.Items.Count);
     }
+
+    [Fact(DisplayName = "Given a valid item and empty cart, should add item successfully")]
+    public async Task GivenAValidItemAndEmptyCart_ShouldAddItemSuccessfully()
+    {
+        var item = Fixture.Create<CartItem>();
+        var cart = Fixture.Build<Cart>()
+            .Without(cart => cart.Items)
+            .Create();
+
+        await DbContext.Carts.AddAsync(cart);
+        await DbContext.SaveChangesAsync();
+
+        await _repository.AddItemAsync(cart, item);
+
+        var updatedCart = await DbContext.Carts
+            .Include(cart => cart.Items)
+            .FirstAsync(cart => cart.Id == cart.Id);
+
+        Assert.Single(updatedCart.Items);
+        Assert.Equal(item.Id, updatedCart.Items.First().Id);
+    }
 }
