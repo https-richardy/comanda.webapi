@@ -17,7 +17,7 @@ public sealed record FormattedOrderDetails
         var formattedOrderDetails = new FormattedOrderDetails
         {
             Id = order.Id,
-            Customer = order.Customer.FullName ?? string.Empty,
+            Customer = order.CustomerName ?? string.Empty,
             ShippingAddress = AddressFormatter.FormatComplete(order.ShippingAddress),
             Total = order.Total,
             Status = order.Status,
