@@ -13,5 +13,8 @@ public sealed class OrderItemEntityConfiguration : IEntityTypeConfiguration<Orde
             .IsRequired();
 
         builder.HasOne(orderItem => orderItem.Product);
+
+        builder.Navigation(orderItem => orderItem.Product)
+            .AutoInclude(true);
     }
 }
