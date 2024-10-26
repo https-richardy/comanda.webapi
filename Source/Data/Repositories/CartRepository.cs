@@ -35,7 +35,11 @@ public sealed class CartRepository(ComandaDbContext dbContext) :
 
     public async Task ClearCartAsync(Cart cart)
     {
+        _dbContext.ChangeTracker.Clear();
+        _dbContext.CartItems.RemoveRange(cart.Items);
+
         cart.Items.Clear();
+
         await _dbContext.SaveChangesAsync();
     }
 
