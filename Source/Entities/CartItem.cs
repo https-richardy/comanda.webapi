@@ -53,12 +53,20 @@ public sealed class CartItem : Entity
         {
             Quantity = cartItem.Quantity,
             Product = cartItem.Product,
-            Additionals = cartItem.Additionals.Select(additional => (OrderItemAdditional)additional).ToList(),
-            UnselectedIngredients = cartItem.UnselectedIngredients.Select(ingredient => new UnselectedIngredient
+
+            Additionals = cartItem.Additionals?
+                .Select(additional => (OrderItemAdditional)additional)
+                .ToList()
+                ?? new List<OrderItemAdditional>(),
+
+            UnselectedIngredients = cartItem.UnselectedIngredients?
+            .Select(ingredient => new UnselectedIngredient
             {
                 Ingredient = ingredient.Ingredient,
                 CartItem = cartItem
-            }).ToList()
+            })
+            .ToList()
+            ?? new List<UnselectedIngredient>()
         };
     }
 }
