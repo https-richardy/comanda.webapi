@@ -83,14 +83,23 @@ public sealed class CartRepositoryTests : SqliteDatabaseFixture<ComandaDbContext
             .With(cart => cart.Items, items)
             .Create();
 
-        DbContext.Carts.Add(cart);
+        await DbContext.Carts.AddAsync(cart);
         await DbContext.SaveChangesAsync();
 
-        await _repository.ClearCartAsync(cart);
+        var retrievedCart = await _repository.FindCartWithItemsAsync(cart.Customer.Id);
+
+        Assert.NotNull(retrievedCart);
+        Assert.Equal(cart.Id, retrievedCart.Id);
+        Assert.Equal(cart.Items.Count, retrievedCart.Items.Count);
+
+        await _repository.ClearCartAsync(retrievedCart);
+
         var updatedCart = await DbContext.Carts
             .Include(cart => cart.Items)
             .FirstAsync(cart => cart.Id == cart.Id);
 
+        Assert.NotNull(updatedCart);
+        Assert.Equal(retrievedCart.Id, updatedCart.Id);
         Assert.Empty(updatedCart.Items);
     }
 
