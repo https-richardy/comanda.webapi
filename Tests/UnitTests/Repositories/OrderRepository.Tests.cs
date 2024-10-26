@@ -38,6 +38,8 @@ public sealed class OrderRepositoryTests : SqliteDatabaseFixture<ComandaDbContex
         Assert.Equal(order.Date, savedOrder.Date);
         Assert.Equal(order.CancelledReason, savedOrder.CancelledReason);
         Assert.Equal(order.Total, savedOrder.Total);
+        Assert.Equal(order.Items.Count, savedOrder.Items.Count);
+        Assert.True(savedOrder.Items.Count > 0);
     }
 
     [Fact(DisplayName = "Given valid order, should update successfully in the database")]
@@ -166,7 +168,7 @@ public sealed class OrderRepositoryTests : SqliteDatabaseFixture<ComandaDbContex
         Assert.NotNull(retrievedOrder.ShippingAddress);
         Assert.NotEmpty(retrievedOrder.Items);
 
-        Assert.All(retrievedOrder.Items, item => 
+        Assert.All(retrievedOrder.Items, item =>
         {
             Assert.NotNull(item.Product);
             Assert.NotEmpty(item.Additionals);
@@ -239,6 +241,77 @@ public sealed class OrderRepositoryTests : SqliteDatabaseFixture<ComandaDbContex
                 Assert.Equal(expectedItem.Quantity, item.Quantity);
                 Assert.Equal(expectedItem.Additionals.Count, item.Additionals.Count);
             }
+        }
+    }
+
+    [Fact(DisplayName = "Should retrieve orders by customer and status")]
+    public async Task ShouldRetrieveOrdersByCustomerAndStatus()
+    {
+        var customer = Fixture.Build<Customer>()
+            .Without(customer => customer.Orders)
+            .Create();
+
+        var pendingOrders = Fixture.Build<Order>()
+            .With(order => order.Customer, customer)
+            .With(order => order.Status, EOrderStatus.Pending)
+            .CreateMany(2)
+            .ToList();
+
+        var confirmedOrders = Fixture.Build<Order>()
+            .With(order => order.Customer, customer)
+            .With(order => order.Status, EOrderStatus.Confirmed)
+            .CreateMany(2)
+            .ToList();
+
+        var inPreparationOrders = Fixture.Build<Order>()
+            .With(order => order.Customer, customer)
+            .With(order => order.Status, EOrderStatus.InPreparation)
+            .CreateMany(1)
+            .ToList();
+
+        var otherCustomerOrders = Fixture.Build<Order>()
+            .With(order => order.Status, EOrderStatus.Pending)
+            .CreateMany(3)
+            .ToList();
+
+        var allOrders = pendingOrders
+            .Concat(confirmedOrders)
+            .Concat(inPreparationOrders)
+            .Concat(otherCustomerOrders)
+            .ToList();
+
+        await DbContext.Customers.AddAsync(customer);
+        await DbContext.Orders.AddRangeAsync(allOrders);
+        await DbContext.SaveChangesAsync();
+
+        Expression<Func<Order, bool>> predicate = order =>
+            order.Customer.Id == customer.Id &&
+            (order.Status == EOrderStatus.Pending ||
+            order.Status == EOrderStatus.Confirmed ||
+            order.Status == EOrderStatus.InPreparation);
+
+        var retrievedOrders = await _repository.FindAllAsync(predicate);
+
+        Assert.NotNull(retrievedOrders);
+        Assert.Equal(5, retrievedOrders.Count());
+
+        Assert.All(retrievedOrders, order =>
+        {
+            Assert.Equal(customer.Id, order.Customer.Id);
+            Assert.True(order.Status == EOrderStatus.Pending ||
+                        order.Status == EOrderStatus.Confirmed ||
+                        order.Status == EOrderStatus.InPreparation);
+        });
+
+        foreach (var retrievedOrder in retrievedOrders)
+        {
+            var expectedOrder = allOrders.First(order => order.Id == retrievedOrder.Id);
+
+            Assert.NotNull(expectedOrder);
+            Assert.Equal(expectedOrder.ShippingAddress.PostalCode, retrievedOrder.ShippingAddress.PostalCode);
+            Assert.Equal(expectedOrder.Total, retrievedOrder.Total);
+            Assert.Equal(expectedOrder.Date, retrievedOrder.Date);
+            Assert.Equal(expectedOrder.Items.Count, retrievedOrder.Items.Count);
         }
     }
 }
