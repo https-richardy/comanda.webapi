@@ -5,7 +5,7 @@ public abstract class WebApiFixture<TDbContext> :
     where TDbContext : DbContext
 {
     protected readonly HttpClient HttpClient;
-    protected TDbContext DbContext;
+    protected TDbContext DbContext = default!;
     protected readonly WebApiFactoryFixture<Program> Factory;
     protected readonly IFixture Fixture;
 
