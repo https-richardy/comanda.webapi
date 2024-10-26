@@ -46,7 +46,7 @@ public sealed class PaginationHelper<T>
     private string CalculateNextUrl(PathString path, int pageNumber, int totalPages)
     {
         return pageNumber < totalPages
-            ? $"{path}?={pageNumber + 1}"
+            ? $"{path}?page={pageNumber + 1}"
             : null;
     }
 
