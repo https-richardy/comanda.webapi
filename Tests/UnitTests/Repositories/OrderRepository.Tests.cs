@@ -12,6 +12,7 @@ public sealed class OrderRepositoryTests : SqliteDatabaseFixture<ComandaDbContex
     [Fact(DisplayName = "Given new order, should save successfully in the database")]
     public async Task GivenNewOrder_ShouldSaveSuccessfullyInTheDatabase()
     {
+        var product = Fixture.Create<Product>();
         var address = Fixture.Create<Address>();
         var customer = Fixture.Build<Customer>()
             .Without(customer => customer.Orders)
@@ -19,12 +20,27 @@ public sealed class OrderRepositoryTests : SqliteDatabaseFixture<ComandaDbContex
 
         await DbContext.Addresses.AddAsync(address);
         await DbContext.Customers.AddAsync(customer);
+        await DbContext.Products.AddAsync(product);
 
         await DbContext.SaveChangesAsync();
 
+        var items = Fixture.Build<OrderItem>()
+            .With(item => item.Product, product)
+            .CreateMany(2)
+            .ToList();
+
+        var createdAddress = await DbContext.Addresses
+            .Where(address => address.Id == address.Id)
+            .FirstAsync();
+
+        var createdCustomer = await DbContext.Customers
+            .Where(customer => customer.Id == customer.Id)
+            .FirstAsync();
+
         var order = Fixture.Build<Order>()
-            .With(order => order.ShippingAddress, address)
-            .With(order => order.Customer, customer)
+            .With(order => order.ShippingAddress, createdAddress)
+            .With(order => order.Customer, createdCustomer)
+            .With(order => order.Items, items)
             .Create();
 
         await _repository.SaveAsync(order);
