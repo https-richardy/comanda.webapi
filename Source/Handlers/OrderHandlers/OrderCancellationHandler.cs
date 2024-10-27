@@ -2,6 +2,7 @@ namespace Comanda.WebApi.Handlers;
 
 public sealed class OrderCancellationHandler(
     IOrderRepository orderRepository,
+    ICustomerRepository customerRepository,
     IRefundManager refundManager,
     UserManager<Account> userManager,
     IUserContextService userContextService,
@@ -15,7 +16,10 @@ public sealed class OrderCancellationHandler(
     )
     {
         var userIdentifier = userContextService.GetCurrentUserIdentifier();
+
         var user = await userManager.FindByIdAsync(userIdentifier);
+        var customer = await customerRepository.FindCustomerByUserIdAsync(userIdentifier);
+
 
         var order = await orderRepository.RetrieveByIdAsync(request.OrderId);
         if (order is null)
@@ -34,7 +38,7 @@ public sealed class OrderCancellationHandler(
 
         if (!await userManager.IsInRoleAsync(user, "Administrator"))
         {
-            if (order.Customer.Account.Id != user.Id)
+            if (customer!.Account.Id != user.Id)
             {
                 return new Response(
                     statusCode: StatusCodes.Status403Forbidden,
