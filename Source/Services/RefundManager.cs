@@ -11,7 +11,14 @@ public sealed class RefundManager(IPaymentRepository paymentRepository, ILogger<
             var paymentIntentService = new PaymentIntentService();
             var paymentIntent = await paymentIntentService.GetAsync(paymentIntentId);
 
-            var availableForRefund = (decimal)paymentIntent.AmountReceived / 100 - (decimal)paymentIntent.AmountReceived / 100;
+            var refundService = new RefundService();
+            var refundList = refundService.List(new RefundListOptions
+            {
+                PaymentIntent = paymentIntentId
+            });
+
+            var totalRefunded = refundList.Sum(refund => (decimal)refund.Amount / 100);
+            var availableForRefund = (decimal)paymentIntent.AmountReceived / 100 - totalRefunded;
 
             if (amount > availableForRefund)
             {
@@ -35,7 +42,6 @@ public sealed class RefundManager(IPaymentRepository paymentRepository, ILogger<
 
             return refund;
         }
-        /* TODO: implement customized exceptions. */
         catch (StripeException exception) when (exception.StripeError?.Code == "balance_insufficient")
         {
             logger.LogError($"Error: Insufficient balance to process the refund.");
@@ -68,6 +74,20 @@ public sealed class RefundManager(IPaymentRepository paymentRepository, ILogger<
             throw new InvalidOperationException($"Payment not found for Order ID {order.Id}.");
         }
 
-        return await RefundAsync(payment.PaymentIntentId, order.Total);
+        var refundService = new RefundService();
+        var refundList = refundService.List(new RefundListOptions
+        {
+            PaymentIntent = payment.PaymentIntentId
+        });
+
+        var totalRefunded = refundList.Sum(refund => (decimal)refund.Amount / 100);
+
+        var paymentIntentService = new PaymentIntentService();
+        var paymentIntent = await paymentIntentService.GetAsync(payment.PaymentIntentId);
+        var availableForRefund = (decimal)paymentIntent.AmountReceived / 100 - totalRefunded;
+
+        var refundAmount = Math.Min(order.Total, availableForRefund);
+
+        return await RefundAsync(payment.PaymentIntentId, refundAmount);
     }
 }
