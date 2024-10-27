@@ -19,7 +19,7 @@ public sealed class FetchOrderHandler(IOrderRepository orderRepository) :
         var formattedOrder = (FormattedOrderDetails)order;
         return new Response<FormattedOrderDetails>(
             data: formattedOrder,
-            statusCode: StatusCodes.Status404NotFound,
+            statusCode: StatusCodes.Status200OK,
             message: "the request was successfully recovered"
         );
     }
