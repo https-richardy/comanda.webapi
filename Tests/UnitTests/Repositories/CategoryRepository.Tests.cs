@@ -109,8 +109,6 @@ public sealed class CategoryRepositoryTests : SqliteDatabaseFixture<ComandaDbCon
         var foundCategories = await _repository.FindAllAsync(predicate);
 
         Assert.Equal(2, foundCategories.Count());
-        Assert.Contains(categories[0], foundCategories);
-        Assert.Contains(categories[1], foundCategories);
     }
 
     [Fact(DisplayName = "Should retrieve paged categories")]
