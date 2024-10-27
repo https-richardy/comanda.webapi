@@ -23,6 +23,7 @@ public sealed class SettingsEntityConfiguration : IEntityTypeConfiguration<Setti
 
         builder.Property(settings => settings.DeliveryFee)
             .IsRequired()
+            .HasPrecision(9, 2)
             .HasDefaultValue(0.0m);
 
         builder.HasData(new Settings
