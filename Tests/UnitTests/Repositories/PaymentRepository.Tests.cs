@@ -13,6 +13,10 @@ public sealed class PaymentRepositoryTests : SqliteDatabaseFixture<ComandaDbCont
     public async Task GivenNewPayment_ShouldSaveSuccessfullyInTheDatabase()
     {
         var order = Fixture.Create<Order>();
+
+        await DbContext.Orders.AddAsync(order);
+        await DbContext.SaveChangesAsync();
+
         var payment = Fixture.Build<Payment>()
             .With(payment => payment.Order, order)
             .Create();
@@ -31,6 +35,10 @@ public sealed class PaymentRepositoryTests : SqliteDatabaseFixture<ComandaDbCont
     public async Task GivenExistingPayment_ShouldDeleteSuccessfully()
     {
         var order = Fixture.Create<Order>();
+
+        await DbContext.Orders.AddAsync(order);
+        await DbContext.SaveChangesAsync();
+
         var payment = Fixture.Build<Payment>()
             .With(payment => payment.Order, order)
             .Create();
@@ -47,6 +55,10 @@ public sealed class PaymentRepositoryTests : SqliteDatabaseFixture<ComandaDbCont
     public async Task GivenUpdatedPayment_ShouldUpdateSuccessfully()
     {
         var order = Fixture.Create<Order>();
+
+        await DbContext.Orders.AddAsync(order);
+        await DbContext.SaveChangesAsync();
+
         var payment = Fixture.Build<Payment>()
             .With(payment => payment.Order, order)
             .Create();
@@ -65,6 +77,10 @@ public sealed class PaymentRepositoryTests : SqliteDatabaseFixture<ComandaDbCont
     public async Task ShouldRetrievePaymentByIdSuccessfully()
     {
         var order = Fixture.Create<Order>();
+
+        await DbContext.Orders.AddAsync(order);
+        await DbContext.SaveChangesAsync();
+
         var payment = Fixture.Build<Payment>()
             .With(payment => payment.Order, order)
             .Create();
@@ -82,6 +98,10 @@ public sealed class PaymentRepositoryTests : SqliteDatabaseFixture<ComandaDbCont
     public async Task ShouldFindPaymentByOrderIdSuccessfully()
     {
         var order = Fixture.Create<Order>();
+
+        await DbContext.Orders.AddAsync(order);
+        await DbContext.SaveChangesAsync();
+
         var payment = Fixture.Build<Payment>()
             .With(payment => payment.Order, order)
             .Create();
