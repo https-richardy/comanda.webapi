@@ -2,12 +2,27 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace Comanda.TestingSuite.EndToEnd;
 
-public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory) : WebApiFixture<ComandaDbContext>(factory)
+public sealed class IdentityEndpointTests :
+    IClassFixture<ApiIntegrationBase<Program, ComandaDbContext>>,
+    IAsyncLifetime
 {
+    private readonly HttpClient _httpClient;
+    private readonly IFixture _fixture;
+    private readonly ApiIntegrationBase<Program, ComandaDbContext> _factory;
+
+    public IdentityEndpointTests(ApiIntegrationBase<Program, ComandaDbContext> factory)
+    {
+        _factory = factory;
+
+        _fixture = new Fixture();
+        _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+
+        _httpClient = _factory.CreateClient();
+    }
+
     [Fact(DisplayName = "Should register a new account")]
     public async Task ShouldRegisterANewAccount()
     {
-        var client = Factory.CreateClient();
         var payload = new AccountRegistrationRequest
         {
             Name = "John Doe",
@@ -15,10 +30,10 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             Password = "JohnDoe123*"
         };
 
-        var response = await client.PostAsJsonAsync("api/identity/register", payload);
-        response.EnsureSuccessStatusCode();
-
+        var response = await _httpClient.PostAsJsonAsync("api/identity/register", payload);
         var responseContent = await response.Content.ReadFromJsonAsync<Response>();
+
+        response.EnsureSuccessStatusCode();
 
         Assert.NotNull(responseContent);
         Assert.True(responseContent.IsSuccess);
@@ -29,7 +44,6 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
     [Fact(DisplayName = "Should return a 409 Conflict when registering an account with an existing email")]
     public async Task ShouldReturnBadRequestWhenRegisteringAccountWithExistingEmail()
     {
-        var client = Factory.CreateClient();
         var existingEmail = "john.doe@email.com";
 
         var registrationRequest = new AccountRegistrationRequest
@@ -39,9 +53,8 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             Password = "JohnDoe1234*"
         };
 
-        var registrationResponse = await client.PostAsJsonAsync("api/identity/register", registrationRequest);
+        var registrationResponse = await _httpClient.PostAsJsonAsync("api/identity/register", registrationRequest);
         registrationResponse.EnsureSuccessStatusCode();
-
 
         var payload = new AccountRegistrationRequest
         {
@@ -50,15 +63,13 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             Password = "JohnDoe123*"
         };
 
-        var response = await client.PostAsJsonAsync("api/identity/register", payload);
+        var response = await _httpClient.PostAsJsonAsync("api/identity/register", payload);
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
     [Fact(DisplayName = "Should authenticate with valid credentials")]
     public async Task ShouldAuthenticateWithValidCredentials()
     {
-        var client = Factory.CreateClient();
-
         var registrationRequest = new AccountRegistrationRequest
         {
             Name = "John Doe",
@@ -66,11 +77,11 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             Password = "JohnDoe123*"
         };
 
-        var registrationResponse = await client.PostAsJsonAsync("api/identity/register", registrationRequest);
+        var registrationResponse = await _httpClient.PostAsJsonAsync("api/identity/register", registrationRequest);
         registrationResponse.EnsureSuccessStatusCode();
 
         var authenticationRequest = new AuthenticationCredentials { Email = "john.doe@email.com", Password = "JohnDoe123*" };
-        var authenticationResponse = await client.PostAsJsonAsync("api/identity/authenticate", authenticationRequest);
+        var authenticationResponse = await _httpClient.PostAsJsonAsync("api/identity/authenticate", authenticationRequest);
 
         var responseContent = await authenticationResponse.Content.ReadFromJsonAsync<Response<AuthenticationResponse>>();
 
@@ -101,11 +112,11 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             Password = password
         };
 
-        var registrationRespose = await HttpClient.PostAsJsonAsync("api/identity/register", registrationRequest);
+        var registrationRespose = await _httpClient.PostAsJsonAsync("api/identity/register", registrationRequest);
         registrationRespose.EnsureSuccessStatusCode();
 
         var authenticationRequest = new AuthenticationCredentials { Email = "john.doe@email.com", Password = "InvalidPassword" };
-        var authenticationResponse = await HttpClient.PostAsJsonAsync("api/identity/authenticate", authenticationRequest);
+        var authenticationResponse = await _httpClient.PostAsJsonAsync("api/identity/authenticate", authenticationRequest);
 
         Assert.Equal(HttpStatusCode.Unauthorized, authenticationResponse.StatusCode);
     }
@@ -121,19 +132,18 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             Password = password
         };
 
-        var response = await HttpClient.PostAsJsonAsync("api/identity/register", payload);
+        var response = await _httpClient.PostAsJsonAsync("api/identity/register", payload);
         var responseContent = await response.Content.ReadFromJsonAsync<ValidationFailureResponse>();
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.NotEmpty(responseContent!.Errors);
+
+        Assert.NotNull(responseContent);
+        Assert.NotEmpty(responseContent.Errors);
     }
 
     [Fact(DisplayName = "Should handle password reset request and mock email sending")]
     public async Task ShouldHandlePasswordResetRequestAndMockEmailSending()
     {
-        // Arrange: for reasons of DB being self-destructed at each test, we have to create a user for this scenario.
-        var scopedClient = Factory.CreateClient();
-
         var registrationRequest = new AccountRegistrationRequest
         {
             Name = "John Doe",
@@ -141,7 +151,7 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             Password = "JohnDoe123*"
         };
 
-        var registrationResponse = await scopedClient.PostAsJsonAsync("api/identity/register", registrationRequest);
+        var registrationResponse = await _httpClient.PostAsJsonAsync("api/identity/register", registrationRequest);
         registrationResponse.EnsureSuccessStatusCode();
 
         var emailServiceMock = new Mock<IEmailService>();
@@ -155,22 +165,22 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             .Returns(Task.CompletedTask);
 
         /* remove the real email service and add the mock */
-        var client = Factory.WithWebHostBuilder(builder =>
+        var scopedClient = _factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
             {
-                var descriptor = services.SingleOrDefault(descriptor => descriptor.ServiceType == typeof(IEmailService));
+                var descriptor = services.SingleOrDefault(
+                    descriptor => descriptor.ServiceType == typeof(IEmailService));
+
                 if (descriptor is not null)
-                {
                     services.Remove(descriptor);
-                }
 
                 services.AddSingleton<IEmailService>(emailServiceMock.Object);
             });
         }).CreateClient();
 
         var payload = new SendPasswordResetTokenRequest { Email = "john.doe@email.com" };
-        var response = await client.PostAsJsonAsync("api/identity/request-password-reset", payload);
+        var response = await scopedClient.PostAsJsonAsync("api/identity/request-password-reset", payload);
 
         Assert.True(response.IsSuccessStatusCode);
     }
@@ -178,9 +188,6 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
     [Fact(DisplayName = "Should handle password reset and authenticate with new password")]
     public async Task ShouldHandlePasswordResetAndAuthenticateWithNewPassword()
     {
-        // Arrange: create a user and request password reset
-        var scopedClient = Factory.CreateClient();
-
         var registrationRequest = new AccountRegistrationRequest
         {
             Name = "John Doe",
@@ -188,7 +195,7 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             Password = "JohnDoe123*"
         };
 
-        var registrationResponse = await scopedClient.PostAsJsonAsync("api/identity/register", registrationRequest);
+        var registrationResponse = await _httpClient.PostAsJsonAsync("api/identity/register", registrationRequest);
         registrationResponse.EnsureSuccessStatusCode();
 
         var emailServiceMock = new Mock<IEmailService>();
@@ -203,14 +210,18 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             .Returns(new ConfirmationToken { Token = "123456789", ExpirationDate = DateTime.UtcNow.AddHours(1) });
 
         // Remove the real email service and add the mock
-        var client = Factory.WithWebHostBuilder(builder =>
+        var scopedClient = _factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
             {
-                var emailServiceDescriptor = services.SingleOrDefault(descriptor => descriptor.ServiceType == typeof(IEmailService));
-                var confirmationTokenServiceDescriptor = services.SingleOrDefault(descriptor => descriptor.ServiceType == typeof(IConfirmationTokenService));
+                var emailServiceDescriptor = services.SingleOrDefault(
+                    descriptor => descriptor.ServiceType == typeof(IEmailService));
 
-                if (emailServiceDescriptor is not null && confirmationTokenServiceDescriptor is not null)
+                var confirmationTokenServiceDescriptor = services.SingleOrDefault(
+                    descriptor => descriptor.ServiceType == typeof(IConfirmationTokenService));
+
+                if (emailServiceDescriptor is not null &&
+                    confirmationTokenServiceDescriptor is not null)
                 {
                     services.Remove(emailServiceDescriptor);
                     services.Remove(confirmationTokenServiceDescriptor);
@@ -227,7 +238,7 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
         };
 
         // Act: request password reset token
-        var resetResponse = await client.PostAsJsonAsync("api/identity/request-password-reset", resetRequest);
+        var resetResponse = await scopedClient.PostAsJsonAsync("api/identity/request-password-reset", resetRequest);
         resetResponse.EnsureSuccessStatusCode();
 
         var resetToken = "123456789";
@@ -241,7 +252,7 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
         };
 
         // Act: reset password
-        var passwordResetResponse = await client.PostAsJsonAsync("api/identity/reset-password", resetPasswordRequest);
+        var passwordResetResponse = await scopedClient.PostAsJsonAsync("api/identity/reset-password", resetPasswordRequest);
         passwordResetResponse.EnsureSuccessStatusCode();
 
         // Act: authenticate with the new password
@@ -251,11 +262,12 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             Password = newPassword
         };
 
-        var authenticationResponse = await client.PostAsJsonAsync("api/identity/authenticate", authenticationRequest);
+        var authenticationResponse = await scopedClient.PostAsJsonAsync("api/identity/authenticate", authenticationRequest);
         var responseContent = await authenticationResponse.Content.ReadFromJsonAsync<Response<AuthenticationResponse>>();
 
         // Assert: verify successful authentication with the new password
         authenticationResponse.EnsureSuccessStatusCode();
+
         Assert.NotNull(responseContent);
         Assert.NotNull(responseContent.Message);
         Assert.NotNull(responseContent.Data);
@@ -280,7 +292,7 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             Email = "nonexistent.email@example.com"
         };
 
-        var response = await HttpClient.PostAsJsonAsync("api/identity/request-password-reset", payload);
+        var response = await _httpClient.PostAsJsonAsync("api/identity/request-password-reset", payload);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
@@ -295,7 +307,7 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             Password = "JohnDoe123*"
         };
 
-        var registrationResponse = await HttpClient.PostAsJsonAsync("api/identity/register", registrationRequest);
+        var registrationResponse = await _httpClient.PostAsJsonAsync("api/identity/register", registrationRequest);
         registrationResponse.EnsureSuccessStatusCode();
 
         var emailServiceMock = new Mock<IEmailService>();
@@ -309,14 +321,18 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             .Setup(service => service.GenerateToken())
             .Returns(new ConfirmationToken { Token = "123456789", ExpirationDate = new DateTime(year: 2023, month: 09, day: 01) });
 
-        var clientWithMocks = Factory.WithWebHostBuilder(builder =>
+        var clientWithMocks = _factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
             {
-                var emailServiceDescriptor = services.SingleOrDefault(descriptor => descriptor.ServiceType == typeof(IEmailService));
-                var confirmationTokenServiceDescriptor = services.SingleOrDefault(descriptor => descriptor.ServiceType == typeof(IConfirmationTokenService));
+                var emailServiceDescriptor = services.SingleOrDefault(descriptor =>
+                    descriptor.ServiceType == typeof(IEmailService));
 
-                if (emailServiceDescriptor is not null && confirmationTokenServiceDescriptor is not null)
+                var confirmationTokenServiceDescriptor = services.SingleOrDefault(descriptor =>
+                    descriptor.ServiceType == typeof(IConfirmationTokenService));
+
+                if (emailServiceDescriptor is not null &&
+                    confirmationTokenServiceDescriptor is not null)
                 {
                     services.Remove(emailServiceDescriptor);
                     services.Remove(confirmationTokenServiceDescriptor);
@@ -353,9 +369,6 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
     [Fact(DisplayName = "Should return a 400 Bad Request when using a weak password for password reset")]
     public async Task ShouldReturnBadRequestWhenUsingWeakPasswordForPasswordReset()
     {
-        // arrange: for reasons of DB being self-destructed at each test, we have to create a user for this scenario.
-        var scopedClient = Factory.CreateClient();
-
         var registrationRequest = new AccountRegistrationRequest
         {
             Name = "John Doe",
@@ -363,7 +376,7 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             Password = "JohnDoe123*"
         };
 
-        var registrationResponse = await scopedClient.PostAsJsonAsync("api/identity/register", registrationRequest);
+        var registrationResponse = await _httpClient.PostAsJsonAsync("api/identity/register", registrationRequest);
         registrationResponse.EnsureSuccessStatusCode();
 
         var emailServiceMock = new Mock<IEmailService>();
@@ -378,14 +391,18 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             .Returns(new ConfirmationToken { Token = "123456789", ExpirationDate = DateTime.UtcNow.AddHours(1) });
 
         // removes the real email service and confirmation token service and adds mocks to the service collection
-        var client = Factory.WithWebHostBuilder(builder =>
+        var scopedClient = _factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
             {
-                var emailServiceDescriptor = services.SingleOrDefault(descriptor => descriptor.ServiceType == typeof(IEmailService));
-                var confirmationTokenServiceDescriptor = services.SingleOrDefault(descriptor => descriptor.ServiceType == typeof(IConfirmationTokenService));
+                var emailServiceDescriptor = services.SingleOrDefault(descriptor =>
+                    descriptor.ServiceType == typeof(IEmailService));
 
-                if (emailServiceDescriptor is not null && confirmationTokenServiceDescriptor is not null)
+                var confirmationTokenServiceDescriptor = services.SingleOrDefault(descriptor =>
+                    descriptor.ServiceType == typeof(IConfirmationTokenService));
+
+                if (emailServiceDescriptor is not null &&
+                    confirmationTokenServiceDescriptor is not null)
                 {
                     services.Remove(emailServiceDescriptor);
                     services.Remove(confirmationTokenServiceDescriptor);
@@ -402,7 +419,7 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
         };
 
         // Act: request password reset token
-        var resetResponse = await client.PostAsJsonAsync("api/identity/request-password-reset", resetRequest);
+        var resetResponse = await scopedClient.PostAsJsonAsync("api/identity/request-password-reset", resetRequest);
         resetResponse.EnsureSuccessStatusCode();
 
         var resetToken = "123456789";
@@ -416,19 +433,19 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             NewPassword = weakPassword
         };
 
-        var passwordResetResponse = await client.PostAsJsonAsync("api/identity/reset-password", resetPasswordRequest);
+        var passwordResetResponse = await scopedClient.PostAsJsonAsync("api/identity/reset-password", resetPasswordRequest);
         var responseContent = await passwordResetResponse.Content.ReadFromJsonAsync<ValidationFailureResponse>();
 
         Assert.Equal(HttpStatusCode.BadRequest, passwordResetResponse.StatusCode);
-        Assert.NotEmpty(responseContent!.Errors);
+
+        Assert.NotNull(responseContent);
+        Assert.NotEmpty(responseContent.Errors);
         Assert.Contains(responseContent.Errors, error => error.PropertyName == "NewPassword");
     }
 
     [Fact(DisplayName = "Should retrieve profile information for authenticated user")]
     public async Task ShouldRetrieveProfileInformationForAuthenticatedUser()
     {
-        var client = Factory.CreateClient();
-
         var registrationRequest = new AccountRegistrationRequest
         {
             Name = "Jane Doe",
@@ -436,7 +453,7 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             Password = "JaneDoe123*"
         };
 
-        var registrationResponse = await client.PostAsJsonAsync("api/identity/register", registrationRequest);
+        var registrationResponse = await _httpClient.PostAsJsonAsync("api/identity/register", registrationRequest);
         registrationResponse.EnsureSuccessStatusCode();
 
         var authenticationRequest = new AuthenticationCredentials
@@ -445,15 +462,19 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             Password = "JaneDoe123*"
         };
 
-        var authenticationResponse = await client.PostAsJsonAsync("api/identity/authenticate", authenticationRequest);
+        var authenticationResponse = await _httpClient.PostAsJsonAsync("api/identity/authenticate", authenticationRequest);
         authenticationResponse.EnsureSuccessStatusCode();
 
         var authenticationContent = await authenticationResponse.Content.ReadFromJsonAsync<Response<AuthenticationResponse>>();
+
+        Assert.NotNull(authenticationContent);
+        Assert.NotNull(authenticationContent.Data);
+        Assert.NotNull(authenticationContent.Data.Token);
+
         var token = authenticationContent!.Data!.Token;
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var profileResponse = await client.GetAsync("api/identity/");
+        var profileResponse = await _httpClient.GetAsync("api/identity/");
         profileResponse.EnsureSuccessStatusCode();
 
         var profileContent = await profileResponse.Content.ReadFromJsonAsync<Response<ProfileInformation>>();
@@ -472,15 +493,14 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
     [Fact(DisplayName = "[RF005] - Should update account successfully when authenticated")]
     public async Task ShouldUpdateAccountSuccessfullyWhenAuthenticated()
     {
-        var client = Factory.CreateClient();
         var registrationPayload = new AccountRegistrationRequest
         {
             Name = "John Doe",
             Email = "john.doe@email.com",
             Password = "JohnDoe123*"
         };
-        
-        var registrationResponse = await client.PostAsJsonAsync("api/identity/register", registrationPayload);
+
+        var registrationResponse = await _httpClient.PostAsJsonAsync("api/identity/register", registrationPayload);
         registrationResponse.EnsureSuccessStatusCode();
 
         var authenticationRequest = new AuthenticationCredentials
@@ -489,14 +509,18 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             Password = registrationPayload.Password
         };
 
-        var authenticationResponse = await client.PostAsJsonAsync("api/identity/authenticate", authenticationRequest);
-        var authContent = await authenticationResponse.Content.ReadFromJsonAsync<Response<AuthenticationResponse>>();
+        var authenticationResponse = await _httpClient.PostAsJsonAsync("api/identity/authenticate", authenticationRequest);
+        var authenticationContent = await authenticationResponse.Content.ReadFromJsonAsync<Response<AuthenticationResponse>>();
 
         authenticationResponse.EnsureSuccessStatusCode();
 
-        var token = authContent!.Data!.Token;
+        Assert.NotNull(authenticationContent);
+        Assert.NotNull(authenticationContent.Data);
+        Assert.NotNull(authenticationContent.Data.Token);
 
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var token = authenticationContent.Data.Token;
+
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var updatePayload = new AccountEditingRequest
         {
@@ -504,13 +528,13 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             Email = "jane.doe@email.com"
         };
 
-        var updateResponse = await client.PutAsJsonAsync("api/identity/", updatePayload);
+        var updateResponse = await _httpClient.PutAsJsonAsync("api/identity/", updatePayload);
         updateResponse.EnsureSuccessStatusCode();
 
         var responseContent = await updateResponse.Content.ReadFromJsonAsync<Response>();
 
         Assert.NotNull(responseContent);
-        Assert.True(responseContent!.IsSuccess);
+        Assert.True(responseContent.IsSuccess);
 
         Assert.Equal(StatusCodes.Status200OK, responseContent.StatusCode);
         Assert.Equal("Account updated successfully.", responseContent.Message);
@@ -519,29 +543,27 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
     [Fact(DisplayName = "[RF005] - Should return 401 Unauthorized when updating without authentication")]
     public async Task ShouldReturnUnauthorizedWhenUpdatingWithoutAuthentication()
     {
-        var client = Factory.CreateClient();
         var updatePayload = new AccountEditingRequest
         {
             Name = "Jane Doe",
             Email = "jane.doe@email.com"
         };
 
-        var updateResponse = await client.PutAsJsonAsync("api/identity/", updatePayload);
+        var updateResponse = await _httpClient.PutAsJsonAsync("api/identity/", updatePayload);
         Assert.Equal(HttpStatusCode.Unauthorized, updateResponse.StatusCode);
     }
 
     [Fact(DisplayName = "[RF005] - Should return 400 Bad Request when updating with invalid data")]
     public async Task ShouldReturnBadRequestWhenUpdatingWithInvalidData()
     {
-        var client = Factory.CreateClient();
         var registrationPayload = new AccountRegistrationRequest
         {
             Name = "John Doe",
             Email = "john.doe@email.com",
             Password = "JohnDoe123*"
         };
-        
-        var registrationResponse = await client.PostAsJsonAsync("api/identity/register", registrationPayload);
+
+        var registrationResponse = await _httpClient.PostAsJsonAsync("api/identity/register", registrationPayload);
         registrationResponse.EnsureSuccessStatusCode();
 
         var authenticationRequest = new AuthenticationCredentials
@@ -550,13 +572,17 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             Password = registrationPayload.Password
         };
 
-        var authenticationResponse = await client.PostAsJsonAsync("api/identity/authenticate", authenticationRequest);
+        var authenticationResponse = await _httpClient.PostAsJsonAsync("api/identity/authenticate", authenticationRequest);
         var authContent = await authenticationResponse.Content.ReadFromJsonAsync<Response<AuthenticationResponse>>();
 
         authenticationResponse.EnsureSuccessStatusCode();
 
-        var token = authContent!.Data!.Token;
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        Assert.NotNull(authContent);
+        Assert.NotNull(authContent.Data);
+        Assert.NotNull(authContent.Data.Token);
+
+        var token = authContent.Data.Token;
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var updatePayload = new AccountEditingRequest
         {
@@ -564,12 +590,19 @@ public sealed class IdentityEndpointTests(WebApiFactoryFixture<Program> factory)
             Email = string.Empty
         };
 
-        var updateResponse = await client.PutAsJsonAsync("api/identity/", updatePayload);
+        var updateResponse = await _httpClient.PutAsJsonAsync("api/identity/", updatePayload);
         var responseContent = await updateResponse.Content.ReadFromJsonAsync<ValidationFailureResponse>();
 
         Assert.Equal(HttpStatusCode.BadRequest, updateResponse.StatusCode);
 
         Assert.NotNull(responseContent);
-        Assert.NotEmpty(responseContent!.Errors);
+        Assert.NotEmpty(responseContent.Errors);
+    }
+
+    public async Task DisposeAsync() => await Task.CompletedTask;
+    public async Task InitializeAsync()
+    {
+        _factory.CleanUp();
+        await Task.CompletedTask;
     }
 }
