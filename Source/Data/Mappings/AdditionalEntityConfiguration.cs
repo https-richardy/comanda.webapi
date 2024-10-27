@@ -4,7 +4,7 @@ public sealed class AdditionalEntityConfiguration : IEntityTypeConfiguration<Add
 {
     public void Configure(EntityTypeBuilder<Additional> builder)
     {
-        builder.ToTable(nameof(Additional));
+        builder.ToTable("Additionals");
         builder.HasKey(additional => additional.Id);
 
         builder.Property(additional => additional.Name)
