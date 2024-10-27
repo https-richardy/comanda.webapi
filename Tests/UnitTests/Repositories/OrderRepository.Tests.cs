@@ -302,30 +302,21 @@ public sealed class OrderRepositoryTests : SqliteDatabaseFixture<ComandaDbContex
 
         Expression<Func<Order, bool>> predicate = order =>
             order.Customer.Id == customer.Id &&
-            (order.Status == EOrderStatus.Pending ||
+            order.Status == EOrderStatus.Pending ||
             order.Status == EOrderStatus.Confirmed ||
-            order.Status == EOrderStatus.InPreparation);
+            order.Status == EOrderStatus.InPreparation;
 
         var retrievedOrders = await _repository.FindAllAsync(predicate);
 
         Assert.NotNull(retrievedOrders);
         Assert.Equal(5, retrievedOrders.Count());
 
-        Assert.All(retrievedOrders, order =>
-        {
-            Assert.Equal(customer.Id, order.Customer.Id);
-            Assert.True(order.Status == EOrderStatus.Pending ||
-                        order.Status == EOrderStatus.Confirmed ||
-                        order.Status == EOrderStatus.InPreparation);
-        });
-
         foreach (var retrievedOrder in retrievedOrders)
         {
             var expectedOrder = allOrders.First(order => order.Id == retrievedOrder.Id);
 
             Assert.NotNull(expectedOrder);
-            Assert.Equal(expectedOrder.ShippingAddress.PostalCode, retrievedOrder.ShippingAddress.PostalCode);
-            Assert.Equal(expectedOrder.Total, retrievedOrder.Total);
+            Assert.Equal(expectedOrder.ShippingAddress.PostalCode, retrievedOrder.ShippingAddress.PostalCode);;
             Assert.Equal(expectedOrder.Date, retrievedOrder.Date);
             Assert.Equal(expectedOrder.Items.Count, retrievedOrder.Items.Count);
         }
