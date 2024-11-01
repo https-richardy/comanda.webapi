@@ -67,7 +67,7 @@ public sealed class CartRepositoryTests : SqliteDatabaseFixture<ComandaDbContext
         await DbContext.Carts.AddAsync(cart);
         await DbContext.SaveChangesAsync();
 
-        await _repository.RemoveItemAsync(cart, item);
+        await _repository.RemoveItemAsync(item);
         var updatedCart = await DbContext.Carts
             .Include(cart => cart.Items)
             .FirstAsync(cart => cart.Id == cart.Id);

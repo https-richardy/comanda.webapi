@@ -42,8 +42,8 @@ public sealed class CartItemDeletionHandler(
                 message: "Item not found in cart."
             );
 
-        cart.Items.Remove(itemToRemove);
-        await cartRepository.UpdateAsync(cart);
+        await cartRepository.RemoveItemAsync(itemToRemove);
+
 
         return new Response(
             statusCode: StatusCodes.Status200OK,

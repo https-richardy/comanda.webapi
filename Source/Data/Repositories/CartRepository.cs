@@ -69,9 +69,9 @@ public sealed class CartRepository(ComandaDbContext dbContext) :
         return cart;
     }
 
-    public async Task RemoveItemAsync(Cart cart, CartItem item)
+    public async Task RemoveItemAsync(CartItem item)
     {
-        cart.Items.Remove(item);
+        _dbContext.CartItems.Remove(item);
         await _dbContext.SaveChangesAsync();
     }
 
