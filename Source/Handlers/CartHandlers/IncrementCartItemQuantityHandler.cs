@@ -39,7 +39,7 @@ public sealed class IncrementCartItemQuantityHandler(
 
         itemToIncrement.Quantity++;
 
-        await cartRepository.UpdateAsync(cart);
+        await cartRepository.UpdateItemAsync(itemToIncrement);
 
         return new Response(
             statusCode: StatusCodes.Status200OK,
