@@ -34,7 +34,7 @@ public sealed class UpdateCartItemQuantityHandler(
             return new ValidationFailureResponse(errors: validationResult.Errors);
 
         var itemToUpdate = cart.Items
-            .FirstOrDefault(item => item.Product.Id == request.ProductId);
+            .FirstOrDefault(item => item.Id == request.ItemId);
 
         if (itemToUpdate is null)
             return new Response(
