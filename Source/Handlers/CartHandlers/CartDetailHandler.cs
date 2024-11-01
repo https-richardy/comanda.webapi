@@ -42,7 +42,7 @@ public sealed class CartDetailHandler(
         {
             formattedItems.Add(new FormattedCartItem
             {
-                Id = item.Product.Id,
+                Id = item.Id,
                 Title = item.Product.Title,
                 Price = item.Product.Price,
                 ImageUrl = item.Product?.ImagePath ?? string.Empty,
