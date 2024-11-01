@@ -64,6 +64,56 @@ public sealed class CartEndpointTests :
         Assert.Single(response.Data.Items);
     }
 
+    [Fact(DisplayName = "Given a product, when removing it from a cart, then it must be removed from the cart")]
+    public async Task GivenProduct_WhenRemovingItFromCart_ThenItMustBeRemovedFromTheCart()
+    {
+        /* arrange: obtaining the necessary services for the scenario. */
+
+        var services = _factory.GetServiceProvider();
+        var dbContext = _factory.GetDbContext();
+
+        /* act: adding an item to the cart so that there is at least one item for this scenario */
+
+        var product = _fixture.Create<Product>();
+        var cartItem = _fixture.Build<CartItem>()
+            .With(item => item.Product, product)
+            .Create();
+
+        await dbContext.Products.AddAsync(product);
+        await dbContext.SaveChangesAsync();
+
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "john.doe@email.com",
+            Password = "JohnDoe1234*"
+        });
+
+        var request = new InsertProductIntoCartRequest { ProductId = product.Id, Quantity = 1 };
+        var response = await authenticatedClient.PostAsJsonAsync("api/cart/items", request);
+
+        response.EnsureSuccessStatusCode();
+
+        /* act: checking that the item has been added. */
+
+        var responseCart = await authenticatedClient.GetFromJsonAsync<Response<CartResponse>>("api/cart");
+
+        Assert.NotNull(responseCart);
+        Assert.NotNull(responseCart.Data);
+        Assert.Single(responseCart.Data.Items);
+
+        /* act: sending a request to delete an item from the cart */
+
+        var deletionRequest = await authenticatedClient.DeleteAsync("api/cart/items/1");
+        deletionRequest.EnsureSuccessStatusCode();
+
+        /* act: getting the cart to check if it has indeed been deleted. */
+
+        responseCart = await authenticatedClient.GetFromJsonAsync<Response<CartResponse>>("api/cart");
+
+        Assert.NotNull(responseCart);
+        Assert.Null(responseCart.Data);
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
