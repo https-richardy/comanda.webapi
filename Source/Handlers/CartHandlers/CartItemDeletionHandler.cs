@@ -34,7 +34,7 @@ public sealed class CartItemDeletionHandler(
                 message: "Cart not found."
             );
 
-        var itemToRemove = cart.Items.FirstOrDefault(item => item.Product.Id == request.ItemId);
+        var itemToRemove = cart.Items.FirstOrDefault(item => item.Id == request.ItemId);
 
         if (itemToRemove is null)
             return new Response(
