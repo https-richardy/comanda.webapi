@@ -1,7 +1,8 @@
 namespace Comanda.WebApi.Data.Repositories;
 
 public sealed class CartRepository(ComandaDbContext dbContext) :
-    MinimalRepository<Cart, ComandaDbContext>(dbContext), ICartRepository
+    MinimalRepository<Cart, ComandaDbContext>(dbContext),
+    ICartRepository
 {
     public override async Task SaveAsync(Cart entity)
     {
@@ -87,5 +88,11 @@ public sealed class CartRepository(ComandaDbContext dbContext) :
             .ThenInclude(cartItem => cartItem.Additionals)
             .ThenInclude(additional => additional.Additional)
             .FirstOrDefaultAsync(cart => cart.Id == id);
+    }
+
+    public async Task UpdateItemAsync(CartItem item)
+    {
+        _dbContext.CartItems.Update(item);
+        await _dbContext.SaveChangesAsync();
     }
 }
