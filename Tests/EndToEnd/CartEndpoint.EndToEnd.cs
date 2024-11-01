@@ -114,6 +114,61 @@ public sealed class CartEndpointTests :
         Assert.Null(responseCart.Data);
     }
 
+    [Fact(DisplayName = "Given an existing item in the cart, when the request to increase the quantity, then it should be updated")]
+    public async Task GivenAnExistingItemInTheCart_WhenTheRequestToIncreaseTheQuantity_ThenItShouldBeUpdated()
+    {
+        /* arrange: obtaining the necessary services for the scenario. */
+
+        var services = _factory.GetServiceProvider();
+        var dbContext = _factory.GetDbContext();
+
+        /* act: adding an item to the cart so that there is at least one item for this scenario */
+
+        var product = _fixture.Create<Product>();
+        var cartItem = _fixture.Build<CartItem>()
+            .With(item => item.Product, product)
+            .Create();
+
+        await dbContext.Products.AddAsync(product);
+        await dbContext.SaveChangesAsync();
+
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "john.doe@email.com",
+            Password = "JohnDoe1234*"
+        });
+
+        var request = new InsertProductIntoCartRequest { ProductId = product.Id, Quantity = 1 };
+        var response = await authenticatedClient.PostAsJsonAsync("api/cart/items", request);
+
+        response.EnsureSuccessStatusCode();
+
+        /* act: checking that the item has been added. */
+
+        var responseCart = await authenticatedClient.GetFromJsonAsync<Response<CartResponse>>("api/cart");
+
+        Assert.NotNull(responseCart);
+        Assert.NotNull(responseCart.Data);
+        Assert.Single(responseCart.Data.Items);
+
+        /* act: sending a request to increase the quantity of the item in the cart */
+
+        var increaseRequest = new IncrementCartItemQuantityRequest { ItemId = 1 };
+        var increaseResponse = await authenticatedClient.PostAsJsonAsync("api/cart/items/1/increment", increaseRequest);
+
+        Assert.NotNull(increaseResponse);
+        Assert.True(increaseResponse.IsSuccessStatusCode);
+
+        /* act: getting the cart to check that the quantity of the item has indeed been increased. */
+
+        responseCart = await authenticatedClient.GetFromJsonAsync<Response<CartResponse>>("api/cart");
+
+        Assert.NotNull(responseCart);
+        Assert.NotNull(responseCart.Data);
+        Assert.Single(responseCart.Data.Items);
+        Assert.Equal(2, responseCart.Data.Items.First().Quantity);
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
