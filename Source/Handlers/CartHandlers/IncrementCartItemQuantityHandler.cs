@@ -29,7 +29,7 @@ public sealed class IncrementCartItemQuantityHandler(
         var cart = await cartRepository.FindCartWithItemsAsync(customer.Id);
 
         var itemToIncrement = cart.Items
-            .FirstOrDefault(item => item.Product.Id == request.ItemId);
+            .FirstOrDefault(item => item.Id == request.ItemId);
 
         if (itemToIncrement is null)
             return new Response(
