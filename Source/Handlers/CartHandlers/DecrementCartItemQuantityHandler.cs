@@ -29,7 +29,7 @@ public sealed class DecrementCartItemQuantityHandler(
         var cart = await cartRepository.FindCartWithItemsAsync(customer.Id);
 
         var itemToDecrement = cart.Items
-            .FirstOrDefault(item => item.Product.Id == request.ItemId);
+            .FirstOrDefault(item => item.Id == request.ItemId);
 
         if (itemToDecrement is null)
             return new Response(
