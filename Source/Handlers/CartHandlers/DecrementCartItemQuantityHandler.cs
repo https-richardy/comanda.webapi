@@ -45,7 +45,7 @@ public sealed class DecrementCartItemQuantityHandler(
 
         itemToDecrement.Quantity--;
 
-        await cartRepository.UpdateAsync(cart);
+        await cartRepository.UpdateItemAsync(itemToDecrement);
 
         return new Response(
             statusCode: StatusCodes.Status200OK,
