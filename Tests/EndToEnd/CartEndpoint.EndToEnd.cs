@@ -169,6 +169,57 @@ public sealed class CartEndpointTests :
         Assert.Equal(2, responseCart.Data.Items.First().Quantity);
     }
 
+    [Fact(DisplayName = "Given an existing item in the cart, when the request to decrease the quantity, then it should be updated")]
+    public async Task GivenAnExistingItemInTheCart_WhenTheRequestToDecreaseTheQuantity_ThenItShouldBeUpdated()
+    {
+        /* arrange: obtaining the necessary services for the scenario. */
+
+        var dbContext = _factory.GetDbContext();
+
+        /* act: add items to the cart so that there is existing data for this scenario */
+
+        var product = _fixture.Create<Product>();
+
+        await dbContext.Products.AddAsync(product);
+        await dbContext.SaveChangesAsync();
+
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "john.doe@email.com",
+            Password = "JohnDoe1234*"
+        });
+
+        var request = new InsertProductIntoCartRequest { ProductId = product.Id, Quantity = 2 };
+        var response = await authenticatedClient.PostAsJsonAsync("api/cart/items", request);
+
+        response.EnsureSuccessStatusCode();
+
+        /* act: checking that the item has been added. */
+
+        var responseCart = await authenticatedClient.GetFromJsonAsync<Response<CartResponse>>("api/cart");
+
+        Assert.NotNull(responseCart);
+        Assert.NotNull(responseCart.Data);
+        Assert.Single(responseCart.Data.Items);
+
+        /* act: sending a request to decrease the quantity of the item in the cart */
+
+        var decreaseRequest = new DecrementCartItemQuantityRequest { ItemId = 1 };
+        var decreaseResponse = await authenticatedClient.PostAsJsonAsync("api/cart/items/1/decrement", decreaseRequest);
+
+        Assert.NotNull(decreaseResponse);
+        Assert.True(decreaseResponse.IsSuccessStatusCode);
+
+        /* act: getting the cart to check that the quantity of the item has indeed been decreased. */
+
+        responseCart = await authenticatedClient.GetFromJsonAsync<Response<CartResponse>>("api/cart");
+
+        Assert.NotNull(responseCart);
+        Assert.NotNull(responseCart.Data);
+        Assert.Single(responseCart.Data.Items);
+        Assert.Equal(1, responseCart.Data.Items.First().Quantity);
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
