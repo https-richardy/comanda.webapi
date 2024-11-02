@@ -19,11 +19,6 @@ public sealed class ProductCreationValidator : AbstractValidator<ProductCreation
             .GreaterThan(0).WithMessage("Category ID must be greater than 0.");
 
         RuleFor(product => product.Ingredients)
-            .NotEmpty().WithMessage("At least one ingredient is required.")
-            .Must(ingredients => ingredients != null && ingredients.All(ingredient => ingredient.IngredientId > 0))
-            .WithMessage("All ingredients must be valid.");
-
-        RuleFor(product => product.Ingredients)
             .Must(ingredients => ingredients.All(ingredient => ingredient.StandardQuantity > 0))
             .WithMessage("The ingredients must have a standard quantity greater than zero.");
     }

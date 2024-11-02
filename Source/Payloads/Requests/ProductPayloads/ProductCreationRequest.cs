@@ -6,5 +6,5 @@ public sealed record ProductCreationRequest : IRequest<Response<ProductCreationR
     public string Description { get; init; }
     public decimal Price { get; init; }
     public int CategoryId { get; init; }
-    public ICollection<IngredientAssociationScheme> Ingredients { get; init; }
+    public ICollection<IngredientAssociationScheme> Ingredients { get; init; } = [];
 }
