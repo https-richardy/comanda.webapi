@@ -78,13 +78,16 @@ public sealed class ProfileEndpointTests :
     public async Task ShouldRegisterNewAddressAndAssociateWithCustomer()
     {
         var addressServiceMock = new Mock<IAddressService>();
-        var address = _fixture.Create<Address>();
+        var address = _fixture.Build<Address>()
+            .Without(address => address.Reference)
+            .Without(address => address.Complement)
+            .Create();
 
         addressServiceMock
             .Setup(service => service.GetByZipCodeAsync(It.IsAny<string>()))
             .ReturnsAsync(address);
 
-        var client = _factory.WithWebHostBuilder(builder =>
+        var scopedClient = _factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
             {
@@ -94,7 +97,7 @@ public sealed class ProfileEndpointTests :
                     services.RemoveAll<IAddressService>();
                 }
 
-                services.AddSingleton(addressServiceMock.Object);
+                services.AddScoped(provider => addressServiceMock.Object);
             });
         })
         .CreateClient();
@@ -102,63 +105,56 @@ public sealed class ProfileEndpointTests :
         // Arrange: creating the customer first.
         var signupCredentials = _fixture.Build<AccountRegistrationRequest>()
             .With(credential => credential.Name, "John Doe")
-            .With(credential => credential.Email, "john@doe.com")
-            .With(credential => credential.Password, "JohnDoe123*")
+            .With(credential => credential.Email, "john.doe@email.com")
+            .With(credential => credential.Password, "JohnDoe1234*")
             .Create();
 
-        var signupResult = await _httpClient.PostAsJsonAsync("api/identity/register", signupCredentials);
+        var signupResult = await scopedClient.PostAsJsonAsync("api/identity/register", signupCredentials);
         signupResult.EnsureSuccessStatusCode();
 
-        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        // arrange: authenticate httpClient as customer
+
+        var authenticationResponse = await scopedClient.PostAsJsonAsync($"api/identity/authenticate", new AuthenticationCredentials
         {
-            Email = "john@doe.com",
-            Password = "JohnDoe123*"
+            Email = "john.doe@email.com",
+            Password = "JohnDoe1234*"
         });
+
+        var authenticationContent = await authenticationResponse.Content.ReadFromJsonAsync<Response<AuthenticationResponse>>();
+        authenticationResponse.EnsureSuccessStatusCode();
+
+        Assert.NotNull(authenticationContent);
+        Assert.NotNull(authenticationContent.Data);
+        Assert.NotNull(authenticationContent.Data.Token);
+
+        var authorizationHeader = new AuthenticationHeaderValue("Bearer", authenticationContent.Data.Token);
+        scopedClient.DefaultRequestHeaders.Authorization = authorizationHeader;
 
         var newAddressRequest = new NewAddressRegistrationRequest
         {
             PostalCode = "12345678",
-            Number = "10"
+            Number = "10",
+            Complement = _fixture.Create<string>(),
+            Reference = _fixture.Create<string>()
         };
 
-        /*
-            This workaround was implemented to get around the impossibility of removing the actual implementation of the
-            IAddressService, which is registered as an HTTP service (HttpClient) in the application.
+        var response = await scopedClient.PostAsJsonAsync("api/profile/addresses", newAddressRequest);
+        var customerResponse = await scopedClient.GetAsync("api/profile/addresses");
 
-            The addition of the IAddressService mock was not being effective, resulting in test failures when
-            trying to use the real service. Therefore, to ensure that the address registration functionality
-            functionality still worked during the tests, this logic simulates the operation of adding the address
-            directly into the database if the request fails.
-
-            This approach is temporary and should be reviewed in future iterations.
-        */
-
-        var response = await authenticatedClient.PostAsJsonAsync("api/profile/addresses", newAddressRequest);
-        if (!response.IsSuccessStatusCode)
-        {
-            var dbContext = _factory.GetDbContext();
-            var customer = await dbContext.Customers
-                .Where(customer => customer.Account.Email == "john@doe.com")
-                .FirstOrDefaultAsync();
-
-            if (customer is not null)
-            {
-                customer.Addresses.Add(address);
-                dbContext.Addresses.Add(address);
-                dbContext.Customers.Update(customer);
-
-                await dbContext.SaveChangesAsync();
-            }
-        }
-
-        var customerResponse = await authenticatedClient.GetAsync("api/profile/addresses");
         customerResponse.EnsureSuccessStatusCode();
+        var customerAddresses = await customerResponse.Content.ReadFromJsonAsync<Response<IEnumerable<Address>>>();
 
-        var customerData = await customerResponse.Content.ReadFromJsonAsync<Response<IEnumerable<Address>>>();
+        Assert.NotNull(customerAddresses);
+        Assert.NotNull(customerAddresses.Data);
+        Assert.Single(customerAddresses.Data);
 
-        Assert.NotNull(customerData);
-        Assert.NotNull(customerData.Data);
-        Assert.Single(customerData.Data);
+        var registeredAddress = customerAddresses.Data.First();
+
+        Assert.NotNull(registeredAddress.Complement);
+        Assert.NotNull(registeredAddress.Reference);
+
+        Assert.False(string.IsNullOrEmpty(registeredAddress.Complement));
+        Assert.False(string.IsNullOrEmpty(registeredAddress.Reference));
     }
 
     public async Task DisposeAsync()
