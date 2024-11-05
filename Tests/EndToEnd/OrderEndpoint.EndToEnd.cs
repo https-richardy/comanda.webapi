@@ -304,6 +304,181 @@ public sealed class OrderEndpointTests :
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    [Fact(DisplayName = "Customer should be able to cancel their own order")]
+    public async Task CustomerShouldBeAbleToCancelTheirOwnOrder()
+    {
+        // arrange: obtaining the necessary services
+        var services = _factory.GetServiceProvider();
+        var dbContext = services.GetRequiredService<ComandaDbContext>();
+
+        // arrange: creating a order and authenticate the customer
+        var order = _fixture.Build<Order>()
+            .With(order => order.Status, EOrderStatus.Pending)
+            .Create();
+
+        await dbContext.Orders.AddAsync(order);
+        await dbContext.SaveChangesAsync();
+
+        // arrange: mock the refund manager
+
+        var refundManagerMock = new Mock<IRefundManager>();
+        refundManagerMock
+            .Setup(manager => manager.RefundOrderAsync(It.IsAny<Order>()))
+            .ReturnsAsync(new Stripe.Refund { Status = "succeeded" });
+
+        // arrange: we are removing the real refund manager service so that this test does not depend on internet connection
+        // and also we don't want to perform real payments in test mode on stripe or something like that
+        var scopedClient = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                var refundManagerDescriptor = services.SingleOrDefault(descriptor =>
+                    descriptor.ServiceType == typeof(IRefundManager));
+
+                if (refundManagerDescriptor is not null)
+                    services.Remove(refundManagerDescriptor);
+
+                services.AddScoped(provider => refundManagerMock.Object);
+            });
+        })
+        .CreateClient();
+
+        // arrange: authenticate httpClient as customer
+
+        var authenticationResponse = await scopedClient.PostAsJsonAsync($"api/identity/authenticate", new AuthenticationCredentials
+        {
+            Email = "john.doe@email.com",
+            Password = "JohnDoe1234*"
+        });
+
+        var authenticationContent = await authenticationResponse.Content.ReadFromJsonAsync<Response<AuthenticationResponse>>();
+        authenticationResponse.EnsureSuccessStatusCode();
+
+        Assert.NotNull(authenticationContent);
+        Assert.NotNull(authenticationContent.Data);
+        Assert.NotNull(authenticationContent.Data.Token);
+
+        var authorizationHeader = new AuthenticationHeaderValue("Bearer", authenticationContent.Data.Token);
+        scopedClient.DefaultRequestHeaders.Authorization = authorizationHeader;
+
+        // act: send a request to cancel the order
+        var response = await scopedClient.PostAsJsonAsync($"api/orders/{order.Id}/cancel", new OrderCancellationRequest());
+        var content = await response.Content.ReadFromJsonAsync<Response>();
+
+        // assert: verify that the response was successful
+        response.EnsureSuccessStatusCode();
+
+        Assert.NotNull(content);
+        Assert.NotNull(content.Message);
+
+        // assert: verify that the order status has been updated
+        var updatedOrder = await dbContext.Orders
+            .AsNoTracking()
+            .FirstOrDefaultAsync(order => order.Id == order.Id);
+
+        Assert.NotNull(updatedOrder);
+        Assert.Equal(EOrderStatus.CancelledByCustomer, updatedOrder.Status);
+    }
+
+    [Fact(DisplayName = "Administrator should be able to cancel any order")]
+    public async Task AdministratorShouldBeAbleToCancelAnyOrder()
+    {
+        // arrange: obtaining the necessary services
+        var services = _factory.GetServiceProvider();
+        var dbContext = services.GetRequiredService<ComandaDbContext>();
+
+        // arrange: creating a order and authenticate the customer
+        var order = _fixture.Build<Order>()
+            .With(order => order.Status, EOrderStatus.Pending)
+            .Create();
+
+        await dbContext.Orders.AddAsync(order);
+        await dbContext.SaveChangesAsync();
+
+        // arrange: mock the refund manager
+
+        var refundManagerMock = new Mock<IRefundManager>();
+        refundManagerMock
+            .Setup(manager => manager.RefundOrderAsync(It.IsAny<Order>()))
+            .ReturnsAsync(new Stripe.Refund { Status = "succeeded" });
+
+        // arrange: we are removing the real refund manager service so that this test does not depend on internet connection
+        // and also we don't want to perform real payments in test mode on stripe or something like that
+        var scopedClient = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                var refundManagerDescriptor = services.SingleOrDefault(descriptor =>
+                    descriptor.ServiceType == typeof(IRefundManager));
+
+                if (refundManagerDescriptor is not null)
+                    services.Remove(refundManagerDescriptor);
+
+                services.AddScoped(provider => refundManagerMock.Object);
+            });
+        })
+        .CreateClient();
+
+        // arrange: authenticate httpClient as administrator
+
+        var authenticationResponse = await scopedClient.PostAsJsonAsync($"api/identity/authenticate", new AuthenticationCredentials
+        {
+            Email = "comanda@admin.com",
+            Password = "ComandaAdministrator123*"
+        });
+
+        var authenticationContent = await authenticationResponse.Content.ReadFromJsonAsync<Response<AuthenticationResponse>>();
+        authenticationResponse.EnsureSuccessStatusCode();
+
+        Assert.NotNull(authenticationContent);
+        Assert.NotNull(authenticationContent.Data);
+        Assert.NotNull(authenticationContent.Data.Token);
+
+        var authorizationHeader = new AuthenticationHeaderValue("Bearer", authenticationContent.Data.Token);
+        scopedClient.DefaultRequestHeaders.Authorization = authorizationHeader;
+
+        // act: send a request to cancel the order
+        var response = await scopedClient.PostAsJsonAsync($"api/orders/{order.Id}/cancel", new OrderCancellationRequest());
+        var content = await response.Content.ReadFromJsonAsync<Response>();
+
+        // assert: verify that the response was successful
+        response.EnsureSuccessStatusCode();
+
+        Assert.NotNull(content);
+        Assert.NotNull(content.Message);
+
+        // assert: verify that the order status has been updated
+        var updatedOrder = await dbContext.Orders
+            .AsNoTracking()
+            .FirstOrDefaultAsync(order => order.Id == order.Id);
+
+        Assert.NotNull(updatedOrder);
+        Assert.Equal(EOrderStatus.CancelledBySystem, updatedOrder.Status);
+    }
+
+    [Fact(DisplayName = "Anonymous user should not be able to cancel an order")]
+    public async Task AnonymousUserShouldNotBeAbleToCancelAnOrder()
+    {
+        // arrange: obtaining the necessary services
+        var services = _factory.GetServiceProvider();
+        var dbContext = services.GetRequiredService<ComandaDbContext>();
+
+        // arrange: creating a order
+        var order = _fixture.Build<Order>()
+            .With(o => o.Status, EOrderStatus.Pending)
+            .Create();
+
+        await dbContext.Orders.AddAsync(order);
+        await dbContext.SaveChangesAsync();
+
+        // act: sends an unauthenticated request to cancel an existing request.
+        var anonymousClient = _factory.CreateClient();
+        var response = await anonymousClient.PostAsJsonAsync($"api/orders/{order.Id}/cancel", new OrderCancellationRequest());
+
+        // assert: checks if the server response is “unauthorized”
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
