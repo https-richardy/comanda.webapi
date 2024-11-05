@@ -514,6 +514,29 @@ public sealed class OrderEndpointTests :
         Assert.NotNull(content.Message);
     }
 
+    [Fact(DisplayName = "User should receive a not found response when trying to cancel a non-existent order")]
+    public async Task UserShouldReceiveNotFoundWhenCancellingNonExistentOrder()
+    {
+        // arrange: authenticate httpClient as a customer or administrator
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "john.doe@email.com",
+            Password = "JohnDoe1234*"
+        });
+
+        var invalidOrderId = 999;
+
+        // act: send a request to cancel the non-existent order
+        var response = await authenticatedClient.PostAsJsonAsync($"api/orders/{invalidOrderId}/cancel", new OrderCancellationRequest());
+        var content = await response.Content.ReadFromJsonAsync<Response>();
+
+        // assert: verify that the response indicates not found
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+
+        Assert.NotNull(content);
+        Assert.NotNull(content.Message);
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
