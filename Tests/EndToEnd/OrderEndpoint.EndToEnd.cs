@@ -479,6 +479,41 @@ public sealed class OrderEndpointTests :
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    [Theory(DisplayName = "User should not be able to cancel a delivered or shipped order")]
+    [InlineData(EOrderStatus.Delivered)]
+    [InlineData(EOrderStatus.Shipped)]
+    public async Task UserShouldNotBeAbleToCancelDeliveredOrShippedOrder(EOrderStatus status)
+    {
+        // arrange: obtaining the necessary services
+        var services = _factory.GetServiceProvider();
+        var dbContext = services.GetRequiredService<ComandaDbContext>();
+
+        // arrange: creating a order
+        var order = _fixture.Build<Order>()
+            .With(order => order.Status, status)
+            .Create();
+
+        await dbContext.Orders.AddAsync(order);
+        await dbContext.SaveChangesAsync();
+
+        // arrange: authenticate httpClient as a customer or administrator
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "john.doe@email.com",
+            Password = "JohnDoe1234*"
+        });
+
+        // act: send a request to cancel the order
+        var response = await authenticatedClient.PostAsJsonAsync($"api/orders/{order.Id}/cancel", new OrderCancellationRequest());
+        var content = await response.Content.ReadFromJsonAsync<Response>();
+
+        // assert: verify that the response indicates a bad request
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        Assert.NotNull(content);
+        Assert.NotNull(content.Message);
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
