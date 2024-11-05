@@ -198,6 +198,112 @@ public sealed class OrderEndpointTests :
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    [Fact(DisplayName = "Given a valid request to set order status, when processing the request, then it must update the order status")]
+    public async Task GivenAValidRequestToSetOrderStatusWhenProcessingTheRequestThenItMustUpdateTheOrderStatus()
+    {
+        // arrange: obtaining the necessary services
+        var services = _factory.GetServiceProvider();
+        var dbContext = services.GetRequiredService<ComandaDbContext>();
+
+        // arrange: creating an order
+        var order = _fixture.Build<Order>()
+            .With(order => order.Status, EOrderStatus.Pending)
+            .Create();
+
+        await dbContext.Orders.AddAsync(order);
+        await dbContext.SaveChangesAsync();
+
+        // arrange: authenticate httpClient as administrator
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "comanda@admin.com",
+            Password = "ComandaAdministrator123*"
+        });
+
+        var payload = new SetOrderStatusRequest
+        {
+            Status = EOrderStatus.Confirmed
+        };
+
+        // act: send a request to change the order status.
+
+        var response = await authenticatedClient.PutAsJsonAsync($"api/orders/{order.Id}/set-status", payload);
+        response.EnsureSuccessStatusCode();
+
+        var updateResponse = await response.Content.ReadFromJsonAsync<Response>();
+
+        // assert: verify that the response was successful
+
+        Assert.NotNull(updateResponse);
+        Assert.True(updateResponse.IsSuccess);
+
+        // assert: verify that the order status has been updated
+        var updatedOrder = await dbContext.Orders
+            .AsNoTracking()
+            .FirstOrDefaultAsync(order => order.Id == order.Id);
+
+        Assert.NotNull(updatedOrder);
+        Assert.Equal(EOrderStatus.Confirmed, updatedOrder.Status);
+    }
+
+    [Fact(DisplayName = "Should not allow authenticated customers to set order status")]
+    public async Task ShouldNotAllowAuthenticatedCustomersToSetOrderStatus()
+    {
+        // arrange: obtaining the necessary services
+        var services = _factory.GetServiceProvider();
+        var dbContext = services.GetRequiredService<ComandaDbContext>();
+
+        // arrange: authenticate httpClient as customer
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "john.doe@email.com",
+            Password = "JohnDoe1234*"
+        });
+
+        // arrange: create a sample order
+        var order = _fixture.Create<Order>();
+
+        await dbContext.Orders.AddAsync(order);
+        await dbContext.SaveChangesAsync();
+
+        var payload = new SetOrderStatusRequest
+        {
+            Status = EOrderStatus.Confirmed
+        };
+
+        // act and assert: send a request to change the order status
+        var response = await authenticatedClient.PutAsJsonAsync($"api/orders/{order.Id}/set-status", payload);
+        
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact(DisplayName = "Should not allow anonymous users to set order status")]
+    public async Task ShouldNotAllowAnonymousUsersToSetOrderStatus()
+    {
+        // arrange: obtaining the necessary services
+        var services = _factory.GetServiceProvider();
+        var dbContext = services.GetRequiredService<ComandaDbContext>();
+
+        // arrange: create a sample order
+        var order = _fixture.Create<Order>();
+
+        await dbContext.Orders.AddAsync(order);
+        await dbContext.SaveChangesAsync();
+
+        var payload = new SetOrderStatusRequest
+        {
+            Status = EOrderStatus.Confirmed
+        };
+
+        // arrange: set httpClient to be anonymous
+        var anonymousClient = _factory.CreateClient();
+
+        // act and assert: send a request to change the order status
+        var response = await anonymousClient.PutAsJsonAsync($"api/orders/{order.Id}/set-status", payload);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
