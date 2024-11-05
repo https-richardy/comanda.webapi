@@ -25,7 +25,10 @@ public sealed class PaginationHelper<T>
     /// <summary>
     /// Gets the collection of items on the current page.
     /// </summary>
-    public IEnumerable<T> Results { get; private set; } = new List<T>();
+    public IEnumerable<T> Results { get; set; } = [];
+
+    // Default constructor for deserialization
+    public PaginationHelper() {  }
 
     public PaginationHelper(IEnumerable<T> data, int pageNumber, int pageSize, HttpContext httpContext)
     {
