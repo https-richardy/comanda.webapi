@@ -1,7 +1,8 @@
 namespace Comanda.WebApi.Handlers;
 
 public sealed class SetOrderStatusHandler(
-    IOrderRepository orderRepository
+    IOrderRepository orderRepository,
+    IHubContext<NotificationHub> notificationHub
 ) : IRequestHandler<SetOrderStatusRequest, Response>
 {
     public async Task<Response> Handle(
@@ -18,6 +19,10 @@ public sealed class SetOrderStatusHandler(
 
         order.Status = request.Status;
         await orderRepository.UpdateAsync(order);
+
+        await notificationHub.Clients
+            .Group(request.OrderId.ToString())
+            .SendAsync("receiveOrderStatusUpdate", order);
 
         return new Response(
             statusCode: StatusCodes.Status200OK,

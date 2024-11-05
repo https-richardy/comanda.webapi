@@ -7,7 +7,13 @@ public static class ServicesExtension
     {
         Stripe.StripeConfiguration.ApiKey = configuration["Stripe:SecretKey"];
 
-        services.AddSignalR();
+        services.AddSignalR()
+            .AddJsonProtocol(options =>
+            {
+                options.PayloadSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+                options.PayloadSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+            });
+
         services.ConfigureCORS();
 
         services.AddControllers()
