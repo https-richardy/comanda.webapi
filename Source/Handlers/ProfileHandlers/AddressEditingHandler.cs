@@ -30,8 +30,8 @@ public sealed class AddressEditingHandler(
 
         if (address is null)
             return new Response(
-                statusCode: StatusCodes.Status403Forbidden,
-                message: "address does not belong to the customer."
+                statusCode: StatusCodes.Status404NotFound,
+                message: "address not found"
             );
 
         if (!string.IsNullOrEmpty(request.PostalCode))

@@ -263,6 +263,42 @@ public sealed class ProfileEndpointTests :
         Assert.Equal("Updated Complement", updatedAddress.Complement);
     }
 
+    [Fact(DisplayName = "Should return 404 if trying to update a non-existent address")]
+    public async Task ShouldReturn404IfAddressDoesNotExist()
+    {
+        // arrange: creating the customer first
+        var signupCredentials = _fixture.Build<AccountRegistrationRequest>()
+            .With(credential => credential.Name, "John Doe")
+            .With(credential => credential.Email, "john@doe.com")
+            .With(credential => credential.Password, "JohnDoe1234*")
+            .Create();
+
+        // arrange: registering the customer
+        var signupResult = await _httpClient.PostAsJsonAsync("api/identity/register", signupCredentials);
+        signupResult.EnsureSuccessStatusCode();
+
+        // arrange: authenticate httpClient as customer
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "john@doe.com",
+            Password = "JohnDoe1234*"
+        });
+
+        const int nonExistentAddressId = 999;
+        var updateRequest = new AddressEditingRequest
+        {
+            PostalCode = "00000000",
+            Number = "0",
+            Complement = "Non-existent Complement"
+        };
+
+        // act: try to update an address that does not exist
+        var response = await authenticatedClient.PutAsJsonAsync($"api/profile/addresses/{nonExistentAddressId}", updateRequest);
+
+        // assert: verify that the response status code is 404
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
