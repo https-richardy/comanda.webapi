@@ -299,6 +299,66 @@ public sealed class ProfileEndpointTests :
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    [Fact(DisplayName = "Should delete an existing address and verify it is removed from the customer")]
+    public async Task ShouldDeleteExistingAddressAndVerifyItIsRemoved()
+    {
+        // arrange: create authenticated customer and a new address
+        var services = _factory.GetServiceProvider();
+        var dbContext = services.GetRequiredService<ComandaDbContext>();
+
+        var signupCredentials = _fixture.Build<AccountRegistrationRequest>()
+            .With(credential => credential.Name, "Alex Doe")
+            .With(credential => credential.Email, "alex@doe.com")
+            .With(credential => credential.Password, "AlexDoe123*")
+            .Create();
+
+        var signupResult = await _httpClient.PostAsJsonAsync("api/identity/register", signupCredentials);
+        signupResult.EnsureSuccessStatusCode();
+
+        var addresses = _fixture
+            .CreateMany<Address>(1)
+            .ToList();
+
+        await dbContext.Addresses.AddRangeAsync(addresses);
+        await dbContext.SaveChangesAsync();
+
+        var customer = await dbContext.Customers
+            .Where(customer => customer.Account.Email == "alex@doe.com")
+            .FirstOrDefaultAsync();
+
+        Assert.NotNull(customer);
+
+        customer.Addresses = addresses;
+
+        dbContext.Customers.Update(customer);
+        await dbContext.SaveChangesAsync();
+
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "alex@doe.com",
+            Password = "AlexDoe123*"
+        });
+
+        var addressToDelete = customer.Addresses.First();
+
+        // act: send request to delete the address
+        var deleteResponse = await authenticatedClient.DeleteAsync($"api/profile/addresses/{addressToDelete.Id}");
+
+        // assert: ensure the address was deleted successfully
+        deleteResponse.EnsureSuccessStatusCode();
+
+        // act: send request to get the customer's addresses after deletion
+        var customerResponse = await authenticatedClient.GetAsync("api/profile/addresses");
+        customerResponse.EnsureSuccessStatusCode();
+
+        // assert: check that the address list no longer contains the deleted address
+        var customerAddresses = await customerResponse.Content.ReadFromJsonAsync<Response<IEnumerable<Address>>>();
+
+        Assert.NotNull(customerAddresses);
+        Assert.NotNull(customerAddresses.Data);
+        Assert.Empty(customerAddresses.Data); // No addresses should remain
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
