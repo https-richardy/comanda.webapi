@@ -359,6 +359,34 @@ public sealed class ProfileEndpointTests :
         Assert.Empty(customerAddresses.Data); // No addresses should remain
     }
 
+    [Fact(DisplayName = "Should return 404 if trying to delete a non-existent address")]
+    public async Task ShouldReturn404IfDeletingNonExistentAddress()
+    {
+        // arrange: Create and authenticate a customer
+        var signupCredentials = _fixture.Build<AccountRegistrationRequest>()
+            .With(credential => credential.Name, "Jamie Doe")
+            .With(credential => credential.Email, "jamie@doe.com")
+            .With(credential => credential.Password, "JamieDoe123*")
+            .Create();
+
+        var signupResult = await _httpClient.PostAsJsonAsync("api/identity/register", signupCredentials);
+        signupResult.EnsureSuccessStatusCode();
+
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "jamie@doe.com",
+            Password = "JamieDoe123*"
+        });
+
+        const int nonExistentAddressId = 999;
+
+        // act: Send request to delete a non-existent address
+        var deleteResponse = await authenticatedClient.DeleteAsync($"api/profile/addresses/{nonExistentAddressId}");
+
+        // assert: Ensure the response is 404 Not Found
+        Assert.Equal(HttpStatusCode.NotFound, deleteResponse.StatusCode);
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
