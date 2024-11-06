@@ -495,6 +495,160 @@ public sealed class ProfileEndpointTests :
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    [Fact(DisplayName = "Should return order details of an authenticated customer")]
+    public async Task ShouldReturnOrderDetailsOfAuthenticatedCustomer()
+    {
+        // arrange: create and authenticate a customer, add an order
+        var services = _factory.GetServiceProvider();
+        var dbContext = services.GetRequiredService<ComandaDbContext>();
+
+        var signupCredentials = _fixture.Build<AccountRegistrationRequest>()
+            .With(credential => credential.Name, "John Doe")
+            .With(credential => credential.Email, "john@doe.com")
+            .With(credential => credential.Password, "JohnDoe123*")
+            .Create();
+
+        var signupResult = await _httpClient.PostAsJsonAsync("api/identity/register", signupCredentials);
+        signupResult.EnsureSuccessStatusCode();
+
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "john@doe.com",
+            Password = "JohnDoe123*"
+        });
+
+        // create an order
+        var customer = await dbContext.Customers
+            .Where(customer => customer.Account.Email == "john@doe.com")
+            .FirstOrDefaultAsync();
+
+        Assert.NotNull(customer);
+
+        var order = _fixture.Build<Order>()
+            .With(order => order.Customer, customer)
+            .With(order => order.CustomerName, customer.FullName)
+            .With(order => order.Status, EOrderStatus.Pending)
+            .Create();
+
+        await dbContext.Orders.AddAsync(order);
+        await dbContext.SaveChangesAsync();
+
+        // act: Send request to get the order details
+        var response = await authenticatedClient.GetAsync($"api/profile/orders/{order.Id}");
+        var responseContent = await response.Content.ReadFromJsonAsync<Response<FormattedOrderDetails>>();
+
+        response.EnsureSuccessStatusCode();
+
+        // assert: Ensure the response has correct order details
+        Assert.NotNull(responseContent);
+        Assert.NotNull(responseContent.Data);
+        Assert.Equal(order.Id, responseContent.Data.Id);
+        Assert.Equal(customer.FullName, responseContent.Data.Customer);
+        Assert.Equal(order.Status, responseContent.Data.Status);
+        Assert.True(responseContent.Data.Total > 0);
+        Assert.False(string.IsNullOrEmpty(responseContent.Data.ShippingAddress));
+    }
+
+    [Fact(DisplayName = "Should return 404 Not Found when order does not exist")]
+    public async Task ShouldReturnNotFoundWhenOrderDoesNotExist()
+    {
+        // arrange: create and authenticate a customer
+        var signupCredentials = _fixture.Build<AccountRegistrationRequest>()
+            .With(credential => credential.Name, "Jane Doe")
+            .With(credential => credential.Email, "jane@doe.com")
+            .With(credential => credential.Password, "JaneDoe123*")
+            .Create();
+
+        var signupResult = await _httpClient.PostAsJsonAsync("api/identity/register", signupCredentials);
+        signupResult.EnsureSuccessStatusCode();
+
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "jane@doe.com",
+            Password = "JaneDoe123*"
+        });
+
+        // act: Send request to get an order that does not exist
+        const int nonExistentOrderId = 999;
+
+        var response = await authenticatedClient.GetAsync($"api/profile/orders/{nonExistentOrderId}");
+
+        // assert: Ensure the response is Not Found
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact(DisplayName = "Should return 403 Forbidden if customer tries to access another customer's order")]
+    public async Task ShouldReturnForbiddenIfCustomerTriesToAccessAnotherCustomersOrder()
+    {
+        // arrange: create and authenticate two customers, and add orders
+        var services = _factory.GetServiceProvider();
+        var dbContext = services.GetRequiredService<ComandaDbContext>();
+
+        var signupCredentialsJohnDoe = _fixture.Build<AccountRegistrationRequest>()
+            .With(credential => credential.Name, "John Doe")
+            .With(credential => credential.Email, "john@doe.com")
+            .With(credential => credential.Password, "JohnDoe123*")
+            .Create();
+
+        var signupCredentialsJaneSmith = _fixture.Build<AccountRegistrationRequest>()
+            .With(credential => credential.Name, "Jane Smith")
+            .With(credential => credential.Email, "jane@smith.com")
+            .With(credential => credential.Password, "JaneSmith123*")
+            .Create();
+
+        var johnDoeSignupResult = await _httpClient.PostAsJsonAsync("api/identity/register", signupCredentialsJohnDoe);
+        johnDoeSignupResult.EnsureSuccessStatusCode();
+
+        var janeSmithSignupResult = await _httpClient.PostAsJsonAsync("api/identity/register", signupCredentialsJaneSmith);
+        janeSmithSignupResult.EnsureSuccessStatusCode();
+
+        var johnDoeAuthenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "john@doe.com",
+            Password = "JohnDoe123*"
+        });
+
+        var janeSmithAuthenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "jane@smith.com",
+            Password = "JaneSmith123*"
+        });
+
+        // create an order for John Doe
+        var johnDoe = await dbContext.Customers
+            .Where(customer => customer.Account.Email == "john@doe.com")
+            .FirstOrDefaultAsync();
+
+        Assert.NotNull(johnDoe);
+
+        var order = _fixture.Build<Order>()
+            .With(order => order.Customer, johnDoe)
+            .With(order => order.CustomerName, johnDoe.FullName)
+            .With(order => order.Status, EOrderStatus.Pending)
+            .Create();
+
+        await dbContext.Orders.AddAsync(order);
+        await dbContext.SaveChangesAsync();
+
+        // act: Send request to get John's order while authenticated as Jane
+        var response = await janeSmithAuthenticatedClient.GetAsync($"api/profile/orders/{order.Id}");
+
+        // assert: Ensure the response is Forbidden
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact(DisplayName = "Should return 401 Unauthorized when trying to get order details without authentication")]
+    public async Task ShouldReturnUnauthorizedWhenTryingToGetOrderDetailsWithoutAuthentication()
+    {
+        // act: send request to get order details without authentication
+        const int orderId = 1;
+
+        var response = await _httpClient.GetAsync($"api/profile/orders/{orderId}");
+
+        // assert: ensure the response is Unauthorized
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
