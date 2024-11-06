@@ -12,6 +12,6 @@ public partial class Program
         var app = builder.Build();
 
         await app.SetupPipeline(app.Environment);
-        app.Run();
+        await app.RunAsync();
     }
 }
