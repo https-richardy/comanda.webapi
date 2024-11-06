@@ -649,6 +649,61 @@ public sealed class ProfileEndpointTests :
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    [Fact(DisplayName = "Should return order history of an authenticated customer")]
+    public async Task ShouldReturnOrderHistoryOfAuthenticatedCustomer()
+    {
+        // arrange: creates and authenticates a client, adds previous orders
+        var services = _factory.GetServiceProvider();
+        var dbContext = services.GetRequiredService<ComandaDbContext>();
+
+        var signupCredentials = _fixture.Build<AccountRegistrationRequest>()
+            .With(credential => credential.Name, "John Doe")
+            .With(credential => credential.Email, "john@doe.com")
+            .With(credential => credential.Password, "JohnDoe123*")
+            .Create();
+
+        var signupResult = await _httpClient.PostAsJsonAsync("api/identity/register", signupCredentials);
+        signupResult.EnsureSuccessStatusCode();
+
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "john@doe.com",
+            Password = "JohnDoe123*"
+        });
+
+        var customer = await dbContext.Customers
+            .Where(customer => customer.Account.Email == "john@doe.com")
+            .FirstOrDefaultAsync();
+
+        Assert.NotNull(customer);
+
+        var orders = _fixture.Build<Order>()
+            .With(order => order.Customer, customer)
+            .With(order => order.CustomerName, customer.FullName)
+            .CreateMany(5)
+            .ToList();
+
+        await dbContext.Orders.AddRangeAsync(orders);
+        await dbContext.SaveChangesAsync();
+
+        // act: sends request to get the order history
+        var response = await authenticatedClient.GetAsync("api/profile/orders/history?pageNumber=1&pageSize=10");
+        var responseContent = await response.Content.ReadFromJsonAsync<Response<PaginationHelper<FormattedOrder>>>();
+
+        response.EnsureSuccessStatusCode();
+
+        // assert: verify if the history was returned correctly
+        Assert.NotNull(responseContent);
+        Assert.NotNull(responseContent.Data);
+        Assert.Equal(5, responseContent.Data.Results.Count());
+
+        Assert.All(responseContent.Data.Results, order =>
+        {
+            Assert.True(order.Total > 0);
+            Assert.False(string.IsNullOrEmpty(order.ShippingAddress));
+        });
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
