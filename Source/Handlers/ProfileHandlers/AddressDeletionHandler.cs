@@ -2,7 +2,8 @@ namespace Comanda.WebApi.Handlers;
 
 public sealed class AddressDeletionHandler(
     IUserContextService userContextService,
-    ICustomerRepository customerRepository
+    ICustomerRepository customerRepository,
+    IAddressRepository addressRepository
 ) : IRequestHandler<AddressDeletionRequest, Response>
 {
     public async Task<Response> Handle(
@@ -28,8 +29,7 @@ public sealed class AddressDeletionHandler(
             );
         }
 
-        customer.Addresses.Remove(address);
-        await customerRepository.UpdateAsync(customer);
+        await addressRepository.DeleteAsync(address);
 
         return new Response(
             statusCode: StatusCodes.Status200OK,
