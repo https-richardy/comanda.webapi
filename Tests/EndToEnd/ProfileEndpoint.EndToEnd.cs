@@ -102,7 +102,7 @@ public sealed class ProfileEndpointTests :
         })
         .CreateClient();
 
-        // Arrange: creating the customer first.
+        // arrange: creating the customer first.
         var signupCredentials = _fixture.Build<AccountRegistrationRequest>()
             .With(credential => credential.Name, "John Doe")
             .With(credential => credential.Email, "john.doe@email.com")
@@ -157,11 +157,113 @@ public sealed class ProfileEndpointTests :
         Assert.False(string.IsNullOrEmpty(registeredAddress.Reference));
     }
 
-    public async Task DisposeAsync()
+    [Fact(DisplayName = "Should update an existing address and return the updated information")]
+    public async Task ShouldUpdateExistingAddressAndReturnUpdatedInfo()
     {
-        await Task.CompletedTask;
+        // arrange: obtaining the necessary services and mocking the address service
+        var addressServiceMock = new Mock<IAddressService>();
+        var address = _fixture.Build<Address>()
+            .Without(address => address.Reference)
+            .Without(address => address.Complement)
+            .Create();
+
+        addressServiceMock
+            .Setup(service => service.GetByZipCodeAsync(It.IsAny<string>()))
+            .ReturnsAsync(address);
+
+        // arrange: obtaining the necessary services
+        var services = _factory.GetServiceProvider();
+        var dbContext = services.GetRequiredService<ComandaDbContext>();
+
+        // arrange: creating the customer first.
+        var signupCredentials = _fixture.Build<AccountRegistrationRequest>()
+            .With(credential => credential.Name, "Jane Doe")
+            .With(credential => credential.Email, "jane@doe.com")
+            .With(credential => credential.Password, "JaneDoe123*")
+            .Create();
+
+        // remove the real address service and add the mock
+        var scopedClient = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                var descriptor = services.FirstOrDefault(descriptor => descriptor.ServiceType == typeof(IAddressService));
+                if (descriptor is not null)
+                {
+                    services.RemoveAll<IAddressService>();
+                }
+
+                services.AddScoped(provider => addressServiceMock.Object);
+            });
+        })
+        .CreateClient();
+
+        var signupResult = await scopedClient.PostAsJsonAsync("api/identity/register", signupCredentials);
+        signupResult.EnsureSuccessStatusCode();
+
+        // arrange: authenticate httpClient (scoped) as customer
+        var authenticationResponse = await scopedClient.PostAsJsonAsync($"api/identity/authenticate", new AuthenticationCredentials
+        {
+            Email = "jane@doe.com",
+            Password = "JaneDoe123*"
+        });
+
+        var authenticationContent = await authenticationResponse.Content.ReadFromJsonAsync<Response<AuthenticationResponse>>();
+        authenticationResponse.EnsureSuccessStatusCode();
+
+        Assert.NotNull(authenticationContent);
+        Assert.NotNull(authenticationContent.Data);
+        Assert.NotNull(authenticationContent.Data.Token);
+
+        var authorizationHeader = new AuthenticationHeaderValue("Bearer", authenticationContent.Data.Token);
+        scopedClient.DefaultRequestHeaders.Authorization = authorizationHeader;
+
+        // arrange: create a sample address
+        var newAddressRequest = new NewAddressRegistrationRequest
+        {
+            PostalCode = "12345678",
+            Number = "10",
+            Complement = _fixture.Create<string>(),
+            Reference = _fixture.Create<string>()
+        };
+
+        var response = await scopedClient.PostAsJsonAsync("api/profile/addresses", newAddressRequest);
+        var customerAddressesResponse = await scopedClient.GetAsync("api/profile/addresses");
+
+        customerAddressesResponse.EnsureSuccessStatusCode();
+        var customerAddresses = await customerAddressesResponse.Content.ReadFromJsonAsync<Response<IEnumerable<Address>>>();
+
+        Assert.NotNull(customerAddresses);
+        Assert.NotNull(customerAddresses.Data);
+        Assert.Single(customerAddresses.Data);
+
+        var existingAddress = customerAddresses.Data.First();
+        var updateRequest = new AddressEditingRequest
+        {
+            PostalCode = "87654321",
+            Number = "99",
+            Complement = "Updated Complement"
+        };
+
+        // act: update the address
+        var updateResponse = await scopedClient.PutAsJsonAsync($"api/profile/addresses/{existingAddress.Id}", updateRequest);
+
+        // assert: ensure that the response is successful
+        updateResponse.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+
+        // assert: ensure that the address was updated
+        var updatedAddress = await dbContext.Addresses
+            .Where(address => address.Id == existingAddress.Id)
+            .FirstOrDefaultAsync();
+
+        Assert.NotNull(updatedAddress);
+
+        Assert.Equal("99", updatedAddress.Number);
+        Assert.Equal("Updated Complement", updatedAddress.Complement);
     }
 
+    public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
         _factory.CleanUp();
