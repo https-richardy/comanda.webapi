@@ -387,6 +387,114 @@ public sealed class ProfileEndpointTests :
         Assert.Equal(HttpStatusCode.NotFound, deleteResponse.StatusCode);
     }
 
+    [Fact(DisplayName = "Should return current orders of an authenticated customer")]
+    public async Task ShouldReturnCurrentOrdersOfAuthenticatedCustomer()
+    {
+        // arrange: create and authenticate a customer, add some orders
+        var services = _factory.GetServiceProvider();
+        var dbContext = services.GetRequiredService<ComandaDbContext>();
+
+        var signupCredentials = _fixture.Build<AccountRegistrationRequest>()
+            .With(credential => credential.Name, "John Doe")
+            .With(credential => credential.Email, "john@doe.com")
+            .With(credential => credential.Password, "JohnDoe123*")
+            .Create();
+
+        var signupResult = await _httpClient.PostAsJsonAsync("api/identity/register", signupCredentials);
+        signupResult.EnsureSuccessStatusCode();
+
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "john@doe.com",
+            Password = "JohnDoe123*"
+        });
+
+        // create orders
+        var customer = await dbContext.Customers
+            .Where(customer => customer.Account.Email == "john@doe.com")
+            .FirstOrDefaultAsync();
+
+        Assert.NotNull(customer);
+
+        var orders = _fixture.Build<Order>()
+            .With(order => order.Customer, customer)
+            .With(order => order.CustomerName, customer.FullName)
+            .With(order => order.Status, EOrderStatus.Pending)
+            .CreateMany(2)
+            .ToList();
+
+        await dbContext.Orders.AddRangeAsync(orders);
+        await dbContext.SaveChangesAsync();
+
+        // act: Send request to get the current orders
+        var response = await authenticatedClient.GetAsync("api/profile/orders");
+        var responseContent = await response.Content.ReadFromJsonAsync<Response<IEnumerable<FormattedOrder>>>();
+
+        response.EnsureSuccessStatusCode();
+
+        Assert.NotNull(responseContent);
+        Assert.NotNull(responseContent.Data);
+        Assert.Equal(2, responseContent.Data.Count());
+
+        Assert.All(responseContent.Data, order =>
+        {
+            Assert.Equal(customer.FullName, order.Customer);
+            Assert.Equal(EOrderStatus.Pending, order.Status);
+
+            Assert.True(order.Total > 0);
+            Assert.False(string.IsNullOrEmpty(order.ShippingAddress));
+        });
+    }
+
+    [Fact(DisplayName = "Should return an empty list when the customer has no current orders")]
+    public async Task ShouldReturnEmptyListWhenCustomerHasNoCurrentOrders()
+    {
+        // arrange: create and authenticate a customer
+        var services = _factory.GetServiceProvider();
+        var dbContext = services.GetRequiredService<ComandaDbContext>();
+
+        var signupCredentials = _fixture.Build<AccountRegistrationRequest>()
+            .With(credential => credential.Name, "Jane Doe")
+            .With(credential => credential.Email, "jane@doe.com")
+            .With(credential => credential.Password, "JaneDoe123*")
+            .Create();
+
+        var signupResult = await _httpClient.PostAsJsonAsync("api/identity/register", signupCredentials);
+        signupResult.EnsureSuccessStatusCode();
+
+        // arrange: authenticate httpClient as customer
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "jane@doe.com",
+            Password = "JaneDoe123*"
+        });
+
+        var customer = await dbContext.Customers
+            .Where(customer => customer.Account.Email == "jane@doe.com")
+            .FirstOrDefaultAsync();
+
+        // act: Send request to get the current orders
+        var response = await authenticatedClient.GetAsync("api/profile/orders");
+        var responseContent = await response.Content.ReadFromJsonAsync<Response<IEnumerable<FormattedOrder>>>();
+
+        // assert: Ensure the response is empty
+        response.EnsureSuccessStatusCode();
+
+        Assert.NotNull(responseContent);
+        Assert.NotNull(responseContent.Data);
+        Assert.Empty(responseContent.Data);
+    }
+
+    [Fact(DisplayName = "Should return 401 Unauthorized if customer is not authenticated")]
+    public async Task ShouldReturnUnauthorizedIfCustomerIsNotAuthenticated()
+    {
+        // act: Send request to get the current orders without authentication
+        var response = await _httpClient.GetAsync("api/profile/orders");
+
+        // assert: Ensure the response is Unauthorized
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
