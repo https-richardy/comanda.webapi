@@ -409,6 +409,65 @@ public sealed class AdditionalsEndpointEndToEndTestSuite :
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    [Fact(DisplayName = "Given an existing additional, when deleting, it should return 200 OK and the additional should be removed")]
+    public async Task GivenAnExistingAdditional_WhenDeleting_ThenItShouldReturnOkAndRemoveTheAdditional()
+    {
+        // arrange: configure DbContext and authentication
+        var dbContext = _factory.GetDbContext();
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "comanda@admin.com",
+            Password = "ComandaAdministrator123*"
+        });
+
+        // arrange: create an existing category
+        var category = _fixture.Create<Category>();
+
+        await dbContext.Categories.AddAsync(category);
+        await dbContext.SaveChangesAsync();
+
+        // arrange: create an existing additional
+        var additional = _fixture.Build<Additional>()
+            .With(additional => additional.Category, category)
+            .Create();
+
+        await dbContext.Additionals.AddAsync(additional);
+        await dbContext.SaveChangesAsync();
+
+        // act: delete the additional
+        var response = await authenticatedClient.DeleteAsync($"/api/additionals/{additional.Id}");
+
+        // assert: verify successful response (200 OK)
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        // act: try to retrieve all additionals and verify the collection is empty
+        var getAllResponse = await authenticatedClient.GetFromJsonAsync<Response<IEnumerable<Additional>>>("/api/additionals");
+
+        // assert: verify that the additional was removed
+        Assert.NotNull(getAllResponse);
+        Assert.NotNull(getAllResponse.Data);
+
+        Assert.Empty(getAllResponse.Data);
+        Assert.DoesNotContain(additional, getAllResponse.Data);
+    }
+
+    [Fact(DisplayName = "Given a non-existent additional, when deleting, it should return 404 Not Found")]
+    public async Task GivenANonExistentAdditional_WhenDeleting_ThenItShouldReturnNotFound()
+    {
+        // arrange: configure authentication
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "comanda@admin.com",
+            Password = "ComandaAdministrator123*"
+        });
+
+        // act: try to delete a non-existent additional
+        var response = await authenticatedClient.DeleteAsync("/api/additionals/999");
+
+        // assert: verify 404 Not Found
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
