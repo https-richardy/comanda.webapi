@@ -162,6 +162,85 @@ public sealed class AdditionalsEndpointEndToEndTestSuite :
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    [Fact(DisplayName = "Given valid data, when creating an additional, it should return 201 Created")]
+    public async Task GivenValidData_WhenCreatingAnAdditional_ThenItShouldReturnCreated()
+    {
+        // arrange: configure DbContext and authentication
+        var dbContext = _factory.GetDbContext();
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "comanda@admin.com",
+            Password = "ComandaAdministrator123*"
+        });
+
+        // arrange: create an existing category
+        var category = _fixture.Create<Category>();
+
+        await dbContext.Categories.AddAsync(category);
+        await dbContext.SaveChangesAsync();
+
+        // act: send request to create an additional
+        var createRequest = _fixture.Build<AdditionalCreationRequest>()
+            .With(payload => payload.CategoryId, category.Id)
+            .Create();
+
+        var response = await authenticatedClient.PostAsJsonAsync("/api/additionals", createRequest);
+        var createdAdditional = await dbContext.Additionals.FirstAsync();
+
+        // assert: verify successful response
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.NotNull(createdAdditional);
+    }
+
+    [Fact(DisplayName = "Given a non-existent category, when creating an additional, it should return 404 not found")]
+    public async Task GivenNonExistentCategory_WhenCreatingAnAdditional_ThenItShouldReturnNotFound()
+    {
+        // arrange: configure authentication
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "comanda@admin.com",
+            Password = "ComandaAdministrator123*"
+        });
+
+        // act: try to create an additional with a non-existent category
+        var createRequest = new AdditionalCreationRequest
+        {
+            Name = "Cheddar",
+            Price = 2.50m,
+            CategoryId = 999
+        };
+
+        var response = await authenticatedClient.PostAsJsonAsync("/api/additionals", createRequest);
+
+        // assert: verify that the status code is 404 not found
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact(DisplayName = "Given invalid data, when creating an additional, it should return 400 Bad Request")]
+    public async Task GivenInvalidData_WhenCreatingAnAdditional_ThenItShouldReturnBadRequest()
+    {
+        // arrange: configure authentication
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "comanda@admin.com",
+            Password = "ComandaAdministrator123*"
+        });
+
+        // act: try to create an additional with invalid data (no name)
+        var createRequest = new AdditionalCreationRequest
+        {
+            Name = "",
+            Price = -1m,
+            CategoryId = 999
+        };
+
+        var response = await authenticatedClient.PostAsJsonAsync("/api/additionals", createRequest);
+
+        // assert: verify that the status code is 400 Bad Request
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
