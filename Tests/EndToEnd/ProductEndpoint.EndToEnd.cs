@@ -189,6 +189,55 @@ public sealed class ProductEndpointTests :
         Assert.Equal(updatePayload.Description, fetchedProduct.Data.Description);
     }
 
+    [Fact(DisplayName = "Given a valid product deletion request, it must delete the product")]
+    public async Task GivenAValidProductDeletionRequestItMustDeleteTheProduct()
+    {
+        // arrange: obtain services and create a category
+        var services = _factory.GetServiceProvider();
+        var dbContext = services.GetRequiredService<ComandaDbContext>();
+
+        // arrange: create a category
+        var category = _fixture.Create<Category>();
+
+        await dbContext.Categories.AddAsync(category);
+        await dbContext.SaveChangesAsync();
+
+        // arrange: create a product
+        var payload = _fixture.Build<ProductCreationRequest>()
+            .With(request => request.CategoryId, category.Id)
+            .Without(request => request.Ingredients)
+            .Create();
+
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "comanda@admin.com",
+            Password = "ComandaAdministrator123*"
+        });
+
+        // act: create product
+        var createResponse = await authenticatedClient.PostAsJsonAsync("api/products", payload);
+        var createResponseContent = await createResponse.Content.ReadFromJsonAsync<Response<ProductCreationResponse>>();
+
+        createResponse.EnsureSuccessStatusCode();
+
+        Assert.NotNull(createResponseContent);
+        Assert.NotNull(createResponseContent.Data);
+
+        var createdProductId = createResponseContent.Data.ProductId;
+
+        // act: send DELETE request to delete the product
+        var deleteResponse = await authenticatedClient.DeleteAsync($"api/products/{createdProductId}");
+        deleteResponse.EnsureSuccessStatusCode();
+
+        // assert: verify the product is deleted from the database
+        var deletedProduct = await dbContext.Products.FindAsync(createdProductId);
+        Assert.Null(deletedProduct); // product should be null after deletion
+
+        // assert: verify fetching the product returns 404
+        var getProductResponse = await authenticatedClient.GetAsync($"api/products/{createdProductId}");
+        Assert.Equal(HttpStatusCode.NotFound, getProductResponse.StatusCode);
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
