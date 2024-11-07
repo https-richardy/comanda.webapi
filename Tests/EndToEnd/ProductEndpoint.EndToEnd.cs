@@ -119,6 +119,76 @@ public sealed class ProductEndpointTests :
         Assert.False(string.IsNullOrEmpty(updatedProduct.ImagePath));
     }
 
+    [Fact(DisplayName = "Given a valid product update request, it must update the product")]
+    public async Task GivenAValidProductUpdateRequestItMustUpdateTheProduct()
+    {
+        // arrange: obtain services and create a category
+        var services = _factory.GetServiceProvider();
+        var dbContext = services.GetRequiredService<ComandaDbContext>();
+
+        // arrange: create a category
+        var category = _fixture.Create<Category>();
+
+        await dbContext.Categories.AddAsync(category);
+        await dbContext.SaveChangesAsync();
+
+        // arrange: create a product
+        var payload = _fixture.Build<ProductCreationRequest>()
+            .With(request => request.CategoryId, category.Id)
+            .Without(request => request.Ingredients)
+            .Create();
+
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "comanda@admin.com",
+            Password = "ComandaAdministrator123*"
+        });
+
+        // act: send a request to create a new product
+        var createResponse = await authenticatedClient.PostAsJsonAsync("api/products", payload);
+        var createResponseContent = await createResponse.Content.ReadFromJsonAsync<Response<ProductCreationResponse>>();
+
+        createResponse.EnsureSuccessStatusCode();
+
+        Assert.NotNull(createResponseContent);
+        Assert.NotNull(createResponseContent.Data);
+
+        var createdProductId = createResponseContent.Data.ProductId;
+
+        // arrange: create request to update the product
+        var updatePayload = _fixture.Build<ProductEditingRequest>()
+            .With(request => request.Title, "Updated Product Title")
+            .With(request => request.Description, "Updated Description")
+            .With(request => request.CategoryId, category.Id)
+            .Create();
+
+        // act: send a request to update the product
+        var updateResponse = await authenticatedClient.PutAsJsonAsync($"api/products/{createdProductId}", updatePayload);
+        var responseString = await updateResponse.Content.ReadAsStringAsync();
+
+        updateResponse.EnsureSuccessStatusCode();
+
+        // assert: verify if the product was updated
+        var updatedProduct = await dbContext.Products.FirstAsync(product => product.Id == createdProductId);
+
+        // verify if the data was updated correctly
+        Assert.Equal(updatePayload.Title, updatedProduct.Title);
+        Assert.Equal(updatePayload.Description, updatedProduct.Description);
+        Assert.Equal(updatePayload.CategoryId, updatedProduct.Category.Id);
+
+        // optional: fetch the product via GET to confirm the updated data
+        var getProductResponse = await authenticatedClient.GetAsync($"api/products/{createdProductId}");
+        var fetchedProduct = await getProductResponse.Content.ReadFromJsonAsync<Response<FormattedProduct>>();
+
+        getProductResponse.EnsureSuccessStatusCode();
+
+        Assert.NotNull(fetchedProduct);
+        Assert.NotNull(fetchedProduct.Data);
+
+        Assert.Equal(updatePayload.Title, fetchedProduct.Data.Title);
+        Assert.Equal(updatePayload.Description, fetchedProduct.Data.Description);
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
