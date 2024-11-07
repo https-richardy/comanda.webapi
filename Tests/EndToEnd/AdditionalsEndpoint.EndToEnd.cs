@@ -66,6 +66,66 @@ public sealed class AdditionalsEndpointEndToEndTestSuite :
         });
     }
 
+    [Fact(DisplayName = "Given a category, when requesting the additionals listing, it should return the available additionals for that category")]
+    public async Task GivenACategory_WhenRequestingAdditionalsListing_ThenAvailableAdditionalsShouldBeReturned()
+    {
+        // arrange: obtaining the necessary services
+        var services = _factory.GetServiceProvider();
+        var dbContext = _factory.GetDbContext();
+
+        // arrange: creating categories and additionals
+        const int additionalQuantity = 5;
+
+        var otherCategory = _fixture.Create<Category>();
+        var snackCategory = _fixture.Build<Category>()
+            .With(category => category.Name, "snack")
+            .Create();
+
+        var categories = new List<Category> { snackCategory, otherCategory };
+
+        await dbContext.Categories.AddRangeAsync(categories);
+        await dbContext.SaveChangesAsync();
+
+        var snackAdditionals = _fixture.Build<Additional>()
+            .With(additional => additional.Category, snackCategory)
+            .CreateMany(additionalQuantity)
+            .ToList();
+
+        var otherAdditionals = _fixture.Build<Additional>()
+            .With(additional => additional.Category, otherCategory)
+            .CreateMany(10)
+            .ToList();
+
+        var additionals = snackAdditionals.Concat(otherAdditionals).ToList();
+
+        await dbContext.Additionals.AddRangeAsync(additionals);
+        await dbContext.SaveChangesAsync();
+
+        // arrange: authenticate httpClient as administrator
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "comanda@admin.com",
+            Password = "ComandaAdministrator123*"
+        });
+
+        // act: fetching additionals for the snack category
+        var queryParams = new Dictionary<string, string>
+        {
+            { "categoryId", $"{snackCategory.Id}" },
+        };
+
+        var urlEncodedContent = new FormUrlEncodedContent(queryParams);
+        var queryString = await urlEncodedContent.ReadAsStringAsync();
+
+        var response = await authenticatedClient.GetFromJsonAsync<Response<IEnumerable<Additional>>>($"api/additionals/search?{queryString}");
+
+        // assert: verifying the response and data
+        Assert.NotNull(response);
+        Assert.NotNull(response.Data);
+        Assert.NotEmpty(response.Data);
+        Assert.Equal(additionalQuantity, response.Data.Count());
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
