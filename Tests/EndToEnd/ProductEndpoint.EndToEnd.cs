@@ -304,6 +304,57 @@ public sealed class ProductEndpointTests :
         Assert.False(getResponseContent.IsSuccess);
     }
 
+    [Fact(DisplayName = "Given valid request parameters, it must return a list of products")]
+    public async Task GivenValidRequestParametersItMustReturnAListOfProducts()
+    {
+        // arrange: obtain services and create a category
+        var services = _factory.GetServiceProvider();
+        var dbContext = services.GetRequiredService<ComandaDbContext>();
+
+        // create categories and products
+        var category1 = _fixture.Create<Category>();
+        var category2 = _fixture.Create<Category>();
+
+        await dbContext.Categories.AddRangeAsync(category1, category2);
+        await dbContext.SaveChangesAsync();
+
+        var products = new List<Product>
+        {
+            _fixture.Build<Product>()
+                .With(product => product.Title, "Product 1")
+                .With(product => product.Category, category1)
+                .Create(),
+
+            _fixture.Build<Product>()
+                .With(product => product.Title, "Product 2")
+                .With(product => product.Category, category1)
+                .Create(),
+
+            _fixture.Build<Product>()
+                .With(product => product.Title, "Product 3")
+                .With(product => product.Category, category2)
+                .Create()
+        };
+
+        await dbContext.Products.AddRangeAsync(products);
+        await dbContext.SaveChangesAsync();
+
+        // act: send GET request to list the products (with pagination)
+        var request = new ProductListingRequest { Page = 1, PageSize = 2 };
+
+        var response = await _httpClient.GetAsync($"api/products?page={request.Page}&pageSize={request.PageSize}");
+        var responseContent = await response.Content.ReadFromJsonAsync<Response<PaginationHelper<FormattedProduct>>>();
+
+        response.EnsureSuccessStatusCode();
+
+        // assert: verify if the response contains products and paginated correctly
+        Assert.NotNull(responseContent);
+        Assert.NotNull(responseContent.Data);
+
+        Assert.NotEmpty(responseContent.Data.Results);
+        Assert.Equal(request.PageSize, responseContent.Data.Results.Count()); 
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
