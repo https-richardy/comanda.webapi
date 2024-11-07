@@ -128,6 +128,40 @@ public sealed class AdditionalsEndpointEndToEndTestSuite :
         Assert.Equal(additionalQuantity, response.Data.Count());
     }
 
+    [Fact(DisplayName = "Given an invalid category, when requesting the additionals listing, it should return 404 Not Found")]
+    public async Task GivenAnInvalidCategory_WhenRequestingAdditionalsListing_ThenNotFoundShouldBeReturned()
+    {
+        // arrange: obtaining the necessary services
+        var dbContext = _factory.GetDbContext();
+
+        // arrange: creating valid categories without the requested category
+        var existingCategory = _fixture.Create<Category>();
+
+        await dbContext.Categories.AddAsync(existingCategory);
+        await dbContext.SaveChangesAsync();
+
+        // arrange: authenticate httpClient as administrator
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "comanda@admin.com",
+            Password = "ComandaAdministrator123*"
+        });
+
+        // act: requesting additionals with a non-existent categoryId
+        var queryParams = new Dictionary<string, string>
+        {
+            { "categoryId", "999" },
+        };
+
+        var urlEncodedContent = new FormUrlEncodedContent(queryParams);
+        var queryString = await urlEncodedContent.ReadAsStringAsync();
+
+        var response = await authenticatedClient.GetAsync($"api/additionals/search?{queryString}");
+
+        // assert: verifying the response for 404 Not Found
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
