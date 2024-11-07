@@ -96,7 +96,9 @@ public sealed class AdditionalsEndpointEndToEndTestSuite :
             .CreateMany(10)
             .ToList();
 
-        var additionals = snackAdditionals.Concat(otherAdditionals).ToList();
+        var additionals = snackAdditionals
+            .Concat(otherAdditionals)
+            .ToList();
 
         await dbContext.Additionals.AddRangeAsync(additionals);
         await dbContext.SaveChangesAsync();
