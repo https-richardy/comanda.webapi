@@ -238,6 +238,72 @@ public sealed class ProductEndpointTests :
         Assert.Equal(HttpStatusCode.NotFound, getProductResponse.StatusCode);
     }
 
+    [Fact(DisplayName = "Given a valid product ID, it must return the product details")]
+    public async Task GivenAValidProductIdItMustReturnTheProductDetails()
+    {
+        // arrange: obtain services and create category
+        var services = _factory.GetServiceProvider();
+        var dbContext = services.GetRequiredService<ComandaDbContext>();
+
+        var category = _fixture.Create<Category>();
+
+        await dbContext.Categories.AddAsync(category);
+        await dbContext.SaveChangesAsync();
+
+        // arrange: create a product
+        var payload = _fixture.Build<ProductCreationRequest>()
+            .With(request => request.CategoryId, category.Id)
+            .Without(request => request.Ingredients)
+            .Create();
+
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "comanda@admin.com",
+            Password = "ComandaAdministrator123*"
+        });
+
+        // act: create product
+        var createResponse = await authenticatedClient.PostAsJsonAsync("api/products", payload);
+        var createResponseContent = await createResponse.Content.ReadFromJsonAsync<Response<ProductCreationResponse>>();
+
+        createResponse.EnsureSuccessStatusCode();
+
+        Assert.NotNull(createResponseContent);
+        Assert.NotNull(createResponseContent.Data);
+
+        var createdProductId = createResponseContent.Data.ProductId;
+
+        // act: send GET request to retrieve the created product
+        var getResponse = await authenticatedClient.GetAsync($"api/products/{createdProductId}");
+        getResponse.EnsureSuccessStatusCode();
+
+        // assert: verify if the product was returned correctly
+        var getResponseContent = await getResponse.Content.ReadFromJsonAsync<Response<Product>>();
+
+        Assert.NotNull(getResponseContent);
+        Assert.NotNull(getResponseContent.Data);
+
+        Assert.True(getResponseContent.IsSuccess);
+        Assert.Equal(createdProductId, getResponseContent.Data.Id);
+    }
+
+    [Fact(DisplayName = "Given a non-existing product ID, it must return a 404 Not Found")]
+    public async Task GivenANonExistingProductIdItMustReturn404NotFound()
+    {
+        // act: send a GET request to retrieve a non-existing product
+        const int nonExistingProductId = 9999;
+        var getResponse = await _httpClient.GetAsync($"api/products/{nonExistingProductId}");
+
+        // assert: verify if the response is 404 Not Found
+        Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
+
+        // optional: verify if the response message is adequate
+        var getResponseContent = await getResponse.Content.ReadFromJsonAsync<Response<Product>>();
+
+        Assert.NotNull(getResponseContent);
+        Assert.False(getResponseContent.IsSuccess);
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
