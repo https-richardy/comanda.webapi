@@ -3,7 +3,6 @@ namespace Comanda.WebApi.Handlers;
 public sealed class ProductEditingHandler(
     IProductRepository productRepository,
     ICategoryRepository categoryRepository,
-    IFileUploadService fileUploadService,
     IValidator<ProductEditingRequest> validator,
     ILogger<ProductEditingHandler> logger
 ) : IRequestHandler<ProductEditingRequest, Response>
@@ -32,14 +31,9 @@ public sealed class ProductEditingHandler(
             );
 
         var updatedProduct = TinyMapper.Map<Product>(request);
+
         updatedProduct.Category = category;
-
-        if (request.Image is not null)
-            updatedProduct.ImagePath = await fileUploadService.UploadFileAsync(request.Image);
-
-        /* If no image is uploaded, keep the existing image path. */
-        else
-            updatedProduct.ImagePath = existingProduct.ImagePath;
+        updatedProduct.ImagePath = existingProduct.ImagePath;
 
         await productRepository.UpdateAsync(updatedProduct);
 
