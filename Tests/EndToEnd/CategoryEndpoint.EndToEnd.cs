@@ -127,6 +127,55 @@ public sealed class CategoryEndpointTests :
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    [Fact(DisplayName = "Given an existing category, when deleting it, it should return 200 OK")]
+    public async Task GivenAnExistingCategory_WhenDeletingIt_ThenItShouldReturnOk()
+    {
+        // arrange: create a category and add it to the database
+        var category = _fixture.Create<Category>();
+        var dbContext = _factory.GetDbContext();
+
+        await dbContext.Categories.AddAsync(category);
+        await dbContext.SaveChangesAsync();
+
+        // arrange: authenticate client
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "comanda@admin.com",
+            Password = "ComandaAdministrator123*"
+        });
+
+        // act: delete the category
+        var response = await authenticatedClient.DeleteAsync($"api/categories/{category.Id}");
+        response.EnsureSuccessStatusCode();
+
+        // assert: verify that the category is deleted
+        response = await authenticatedClient.GetAsync($"api/categories/{category.Id}");
+        var deletedCategory = await response.Content.ReadFromJsonAsync<Response<Category>>();
+
+        Assert.NotNull(deletedCategory);
+        Assert.Null(deletedCategory.Data);
+    }
+
+    [Fact(DisplayName = "Given a non-existent category, when deleting it, it should return 404 Not Found")]
+    public async Task GivenANonExistentCategory_WhenDeletingIt_ThenItShouldReturnNotFound()
+    {
+        // arrange: authenticate client
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "comanda@admin.com",
+            Password = "ComandaAdministrator123*"
+        });
+
+        // arrange: prepare a non-existent category id
+        const int nonExistentCategoryId = 999;
+
+        // act: attempt to delete non-existent category
+        var response = await authenticatedClient.DeleteAsync($"api/categories/{nonExistentCategoryId}");
+
+        // assert: verify that 404 Not Found is returned
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
