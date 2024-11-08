@@ -41,6 +41,34 @@ public sealed class CategoryEndpointTests :
         Assert.True(responseContent.IsSuccess);
     }
 
+    [Fact(DisplayName = "Given existing categories, when requesting the categories endpoint, it should return the categories")]
+    public async Task GivenExistingCategories_WhenRequestingTheCategoriesEndpoint_ThenItShouldReturnTheCategories()
+    {
+        // arrange: creating some categories
+        var categories = _fixture.CreateMany<Category>(5);
+
+        var dbContext = _factory.GetDbContext();
+
+        await dbContext.Categories.AddRangeAsync(categories);
+        await dbContext.SaveChangesAsync();
+
+        // act: request the categories
+        var response = await _httpClient.GetAsync("api/categories");
+        var responseContent = await response.Content.ReadFromJsonAsync<Response<IEnumerable<Category>>>();
+
+        response.EnsureSuccessStatusCode();
+
+        Assert.NotNull(responseContent);
+        Assert.NotNull(responseContent.Data);
+
+        Assert.Equal(categories.Count(), responseContent.Data.Count());
+
+        Assert.All(responseContent.Data, category =>
+        {
+            Assert.Contains(categories, existingCategory => existingCategory.Id == category.Id);
+        });
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
