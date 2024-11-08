@@ -103,6 +103,30 @@ public sealed class CategoryEndpointTests :
         Assert.Equal(updateRequest.Title, content.Data.Name);
     }
 
+    [Fact(DisplayName = "Given a non-existent category, when updating it, it should return 404 Not Found")]
+    public async Task GivenANonExistentCategory_WhenUpdatingIt_ThenItShouldReturnNotFound()
+    {
+        // arrange: authenticate client
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "comanda@admin.com",
+            Password = "ComandaAdministrator123*"
+        });
+
+        // arrange: prepare a non-existent category id
+        const int nonExistentCategoryId = 999;
+
+        // act: prepare update request and send it
+        var updateRequest = _fixture.Build<CategoryEditingRequest>()
+            .With(payload => payload.Title, "Updated Category")
+            .Create();
+
+        var response = await authenticatedClient.PutAsJsonAsync($"api/categories/{nonExistentCategoryId}", updateRequest);
+
+        // assert: verify that 404 Not Found is returned
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
