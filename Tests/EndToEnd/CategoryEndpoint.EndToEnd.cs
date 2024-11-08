@@ -69,6 +69,40 @@ public sealed class CategoryEndpointTests :
         });
     }
 
+    [Fact(DisplayName = "Given an existing category, when updating it, it should return 200 OK and update the category")]
+    public async Task GivenAnExistingCategory_WhenUpdatingIt_ThenItShouldReturnOkAndTheCategoryShouldBeUpdated()
+    {
+        // arrange: create a category and add it to the database
+        var category = _fixture.Create<Category>();
+        var dbContext = _factory.GetDbContext();
+
+        await dbContext.Categories.AddAsync(category);
+        await dbContext.SaveChangesAsync();
+
+        // arrange: authenticate client
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "comanda@admin.com",
+            Password = "ComandaAdministrator123*"
+        });
+
+        // act: prepare update request and send it
+        var updateRequest = _fixture.Build<CategoryEditingRequest>()
+            .With(payload => payload.Title, "Updated Category")
+            .Create();
+
+        var response = await authenticatedClient.PutAsJsonAsync($"api/categories/{category.Id}", updateRequest);
+        response.EnsureSuccessStatusCode();
+
+        // assert: verify that the category was updated
+        var httpResponse = await authenticatedClient.GetAsync($"api/categories/{category.Id}");
+        var content = await httpResponse.Content.ReadFromJsonAsync<Response<Category>>();
+
+        Assert.NotNull(content);
+        Assert.NotNull(content.Data);
+        Assert.Equal(updateRequest.Title, content.Data.Name);
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
