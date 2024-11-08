@@ -1,5 +1,6 @@
 namespace Comanda.WebApi.Controllers;
 
+[ExcludeFromCodeCoverage]
 [ApiController]
 [Route("api/miscellaneous")]
 public sealed class MiscellaneousController : ControllerBase
