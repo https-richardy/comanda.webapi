@@ -1,13 +1,15 @@
 namespace Comanda.WebApi.Services;
 
 public sealed class CheckoutManager(
-    IHostInformationProvider hostInformation,
-    ISettingsRepository settingsRepository
+    ISettingsRepository settingsRepository,
+    IConfiguration configuration
 ) : ICheckoutManager
 {
     public async Task<Session> CreateCheckoutSessionAsync(Cart cart, Address address)
     {
+        var clientAddress = configuration.GetValue<string>("ClientSettings:Address");
         var settings = await settingsRepository.GetSettingsAsync();
+
         var options = new SessionCreateOptions
         {
             PaymentMethodTypes = new List<string> { "card" },
@@ -18,8 +20,8 @@ public sealed class CheckoutManager(
                 { "shippingAddressId", address.Id.ToString() }
             },
             Mode = "payment",
-            SuccessUrl = $"{hostInformation.HostAddress}/api/checkout/success?sessionId={{CHECKOUT_SESSION_ID}}",
-            CancelUrl = $"{hostInformation.HostAddress}/api/checkout/cancel?sessionId={{CHECKOUT_SESSION_ID}}",
+            SuccessUrl = $"{clientAddress}/checkout/success?sessionId={{CHECKOUT_SESSION_ID}}",
+            CancelUrl = $"{clientAddress}/checkout/cancel?sessionId={{CHECKOUT_SESSION_ID}}",
         };
 
         options.LineItems.Add(new SessionLineItemOptions
