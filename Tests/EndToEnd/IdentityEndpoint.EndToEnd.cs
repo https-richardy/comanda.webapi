@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace Comanda.TestingSuite.EndToEnd;
 
+[Trait("category", "E2E")]
 public sealed class IdentityEndpointTests :
     IClassFixture<ApiIntegrationBase<Program, ComandaDbContext>>,
     IAsyncLifetime

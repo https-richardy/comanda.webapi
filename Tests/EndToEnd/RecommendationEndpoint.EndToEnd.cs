@@ -3,6 +3,7 @@ using DotnetGeminiSDK.Model.Response;
 
 namespace Comanda.TestingSuite.EndToEnd;
 
+[Trait("category", "E2E")]
 public sealed class RecommendationEndpointEndToEnd :
     IClassFixture<ApiIntegrationBase<Program, ComandaDbContext>>,
     IAsyncLifetime

@@ -1,5 +1,6 @@
 namespace Comanda.TestingSuite.EndToEnd;
 
+[Trait("category", "E2E")]
 public sealed class CategoryEndpointTests :
     IClassFixture<ApiIntegrationBase<Program, ComandaDbContext>>,
     IAsyncLifetime

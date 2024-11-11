@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Comanda.TestingSuite.EndToEnd;
 
+[Trait("category", "E2E")]
 public sealed class ProfileEndpointTests :
     IClassFixture<ApiIntegrationBase<Program, ComandaDbContext>>,
     IAsyncLifetime
