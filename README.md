@@ -1,8 +1,42 @@
 # Comanda API
 
-**Versão:** `v1.0.0-alpha1`
+**Versão Atual:** `v1.0.0-beta-1`  
+**Status:** Beta (possível presença de bugs; melhorias em andamento 🚧)
 
-Comanda é uma Web API desenvolvida para facilitar a gestão de pedidos online em lanchonetes, como aquelas que vendem hambúrgueres, pizzas, entre outros. A API fornece uma interface simples e intuitiva para gerenciar pedidos, personalizar produtos, gerenciar perfis de clientes, e muito mais.
+Bem-vindo ao **Comanda API**, uma solução poderosa e flexível para gerenciar pedidos online, perfeita para lanchonetes, restaurantes e estabelecimentos que desejam oferecer uma experiência moderna e eficiente aos seus clientes. Comanda é uma API desenvolvida para simplificar e automatizar desde o registro de clientes até o checkout online com pagamentos integrados.
+
+> 🚀 Esta versão representa um marco significativo, trazendo uma API muito mais funcional e próxima do uso em produção.
+
+
+## ✨ **Destaques da v1.0.0-beta-1**
+
+### 🚀 **Novidades**
+
+- **Recomendações Personalizadas**: Implementação de um sistema baseado em inteligência artificial para sugerir produtos com base no histórico de pedidos.
+- **Melhorias no Fluxo de Checkout**: Redirecionamento para a aplicação frontend após o pagamento ou cancelamento no **Stripe**.
+
+- **Gerenciamento de Perfis**:
+    - **Obter e Atualizar Informações**: Endpoints para visualizar e editar dados do perfil do cliente.
+    - **Recuperação de Senha**: Implementada uma funcionalidade de redefinição de senha segura para casos de esquecimento.
+    - **Validação de Registro**: Agora, o sistema impede a criação de duplicatas, verificando se já existe um usuário registrado com o mesmo e-mail.
+
+
+### 🛠️ **Melhorias**
+
+- **Correções Críticas**: Resolvidos problemas severos que tornavam a API inutilizável em muitos casos.
+    - **#5**: Endereços registrados corretamente, mas não associados ao cliente.
+    - **#6**: Carrinho não era limpo após a conclusão do checkout e pagamento.
+    - **#7**: O total do pedido exibia "0" após o checkout bem-sucedido.
+    - **#9**: `NullReferenceException` ao recuperar pedidos atuais.
+    - **#10**: Detalhes inconsistentes de pedidos retornados em `/api/profile/orders/{orderId}`.
+    - **#11**: Dados inconsistentes no histórico de pedidos, com total exibindo "0".
+    - **#12**: Sistema de recomendações de pedidos afirmava incorretamente que nenhum pedido havia sido feito.
+    - **#13**: Vulnerabilidades em endpoints de incremento e decremento de itens no carrinho.
+    - **#14**: Testes instáveis com comportamento não determinístico corrigidos.
+
+- **IDs no Carrinho**: Os IDs agora refletem corretamente os itens do carrinho, eliminando confusões com IDs de produtos.
+
+- **Cobertura de Testes**: A base de código agora conta com 242 testes no total, abrangendo testes unitários, de integração e end-to-end, garantindo estabilidade, confiabilidade e prevenindo regressões futuras.
 
 ## Funcionalidades
 
@@ -38,8 +72,11 @@ Comanda é uma Web API desenvolvida para facilitar a gestão de pedidos online e
 ### 6. **Gerenciamento de Ingredientes**
 - **Informações Básicas:** Endpoints para gerenciar os ingredientes dos produtos, permitindo a associação de ingredientes a produtos específicos, sem gerenciar o estoque.
 
-### 7. **Configurações da API/Sistema**
-- **Configurações Personalizadas:** Endpoints para definir configurações como aceitação automática de pedidos, limite máximo de pedidos que podem ser aceitos automaticamente, taxa de entrega e estimativa do tempo de entrega.
+### **7. Configurações Personalizáveis**
+- **Administração Dinâmica**:
+    - Aceitação automática de pedidos.
+    - Limites para aceitação automática.
+    - Taxas de entrega e estimativas de tempo configuráveis.
 
 ### 8. **Pagamento e Checkout Online**
 - **Pagamentos:** Atualmente, a API suporta pagamentos com cartão de crédito através do Stripe, com planos para implementar pagamentos via PIX no futuro.
@@ -51,6 +88,9 @@ Comanda é uma Web API desenvolvida para facilitar a gestão de pedidos online e
 
 - **Autorização:** Endpoints protegidos que exigem autenticação para garantir que apenas usuários autorizados possam acessar certas funcionalidades, como gerenciar pedidos ou acessar informações de perfil.
 
+### **10 . Recomendações Personalizadas**
+- **Sistema Inteligente**: Sugestões de produtos baseadas em inteligência artificial, considerando o histórico de pedidos do cliente.
+
 
 ## Tecnologias Utilizadas
 
@@ -58,3 +98,11 @@ Comanda é uma Web API desenvolvida para facilitar a gestão de pedidos online e
 - **Framework:** ASP.NET Core
 - **Banco de Dados:** SQL Server (usando Entity Framework Core)
 - **Integrações de Pagamento:** Stripe
+
+
+## 🐞 **Feedback e Relatório de Bugs**
+
+Encontrou um problema? Nos ajude a melhorar!
+
+- Abra uma issue no repositório do GitHub.
+- Descreva o problema e os passos para reproduzi-lo.
