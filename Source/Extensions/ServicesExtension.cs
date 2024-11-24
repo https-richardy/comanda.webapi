@@ -14,7 +14,7 @@ public static class ServicesExtension
                 options.PayloadSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
             });
 
-        services.ConfigureCORS();
+        services.ConfigureCORS(configuration);
 
         services.AddControllers()
             .AddJsonOptions(options =>
