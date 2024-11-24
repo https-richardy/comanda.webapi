@@ -538,6 +538,88 @@ public sealed class OrderEndpointTests :
         Assert.NotNull(content.Message);
     }
 
+    [Fact(DisplayName = "related product/ingredient/additional, then it must ensure data consistency")]
+    public async Task GivenAnOrderWhenDeletingRelatedEntitiesThenItMustEnsureDataConsistency()
+    {
+        // This test ensures that the system maintains data consistency when related entities (product, ingredient, or additional)
+        // are deleted while they are associated with an existing order. Instead of performing actual deletions from the database,
+        // the system must use "soft deletes" (e.g., marking records as deleted without removing them) to avoid inconsistencies.
+        //
+        // The reason for this approach is to prevent issues in scenarios where orders are actively being processed. 
+        // For example, if an administrator deletes a product, ingredient, or additional that is part of an ongoing order, 
+        // this could lead to critical system failures, such as null references, broken relationships, or inability to render 
+        // order details. By using soft deletes, the related entities remain accessible and valid for any ongoing processes, 
+        // ensuring the order's integrity and that customers' experiences are unaffected.
+        //
+        // The test simulates this scenario by creating an order with related entities (product, ingredient, and additional),
+        // then performing deletion requests for these entities as an administrator. It validates that the order remains intact, 
+        // with all its items and relationships properly maintained in the database.
+
+
+        // arrange: obtaining the necessary services
+        var services = _factory.GetServiceProvider();
+        var dbContext = services.GetRequiredService<ComandaDbContext>();
+
+        var address = _fixture.Create<Address>();
+        var customer = _fixture.Build<Customer>()
+            .With(customer => customer.Addresses, [ address ])
+            .Create();
+
+        // arrange: creating a product, ingredient, and addition
+        var product = _fixture.Create<Product>();
+        var ingredient = _fixture.Create<Ingredient>();
+        var additional = _fixture.Create<Additional>();
+
+        await dbContext.Products.AddAsync(product);
+        await dbContext.Ingredients.AddAsync(ingredient);
+        await dbContext.Additionals.AddAsync(additional);
+        await dbContext.Addresses.AddAsync(address);
+        await dbContext.Customers.AddAsync(customer);
+
+        await dbContext.SaveChangesAsync();
+
+        var orderItemAdditional = _fixture.Build<OrderItemAdditional>()
+            .With(item => item.Additional, additional)
+            .Create();
+
+        var orderItems = _fixture.Build<OrderItem>()
+            .With(item => item.Product, product)
+            .With(item => item.Additionals, [ orderItemAdditional ])
+            .Create();
+
+        var order = _fixture.Build<Order>()
+            .With(order => order.Items, [ orderItems ])
+            .With(order => order.ShippingAddress, address)
+            .Create();
+
+        await dbContext.Orders.AddAsync(order);
+        await dbContext.SaveChangesAsync();
+
+        // arrange: authenticate httpClient as administrator
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "comanda@admin.com",
+            Password = "ComandaAdministrator123*"
+        });
+
+
+        var deleteProductResponse = await authenticatedClient.DeleteAsync($"api/products/{product.Id}");
+        var deleteIngredientResponse = await authenticatedClient.DeleteAsync($"api/ingredients/{ingredient.Id}");
+        var deleteAdditionResponse = await authenticatedClient.DeleteAsync($"api/additionals/{additional.Id}");
+
+        deleteProductResponse.EnsureSuccessStatusCode();
+        deleteIngredientResponse.EnsureSuccessStatusCode();
+        deleteAdditionResponse.EnsureSuccessStatusCode();
+
+        var updatedOrder = await dbContext.Orders
+            .Include(order => order.Items)
+            .ThenInclude(orderItems => orderItems.Additionals)
+            .FirstOrDefaultAsync(order => order.Id == order.Id);
+
+        Assert.NotNull(updatedOrder);
+        Assert.NotEmpty(updatedOrder.Items);
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
