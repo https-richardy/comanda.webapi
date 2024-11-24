@@ -31,7 +31,8 @@ public sealed class CategoryRepositoryTests : SqliteDatabaseFixture<ComandaDbCon
 
         var deletedCategory = await DbContext.Categories.FindAsync(category.Id);
 
-        Assert.Null(deletedCategory);
+        Assert.NotNull(deletedCategory);
+        Assert.True(deletedCategory.IsDeleted);
     }
 
     [Fact(DisplayName = "Given an updated category, should update it successfully")]

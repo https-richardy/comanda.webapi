@@ -230,9 +230,11 @@ public sealed class ProductEndpointTests :
         var deleteResponse = await authenticatedClient.DeleteAsync($"api/products/{createdProductId}");
         deleteResponse.EnsureSuccessStatusCode();
 
-        // assert: verify the product is deleted from the database
+        // assert: verify the product is deleted from the database (soft delete)
         var deletedProduct = await dbContext.Products.FindAsync(createdProductId);
-        Assert.Null(deletedProduct); // product should be null after deletion
+
+        Assert.NotNull(deletedProduct);
+        Assert.True(deletedProduct.IsDeleted);
 
         // assert: verify fetching the product returns 404
         var getProductResponse = await authenticatedClient.GetAsync($"api/products/{createdProductId}");

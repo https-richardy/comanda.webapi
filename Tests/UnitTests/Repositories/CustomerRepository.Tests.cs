@@ -52,7 +52,8 @@ public sealed class CustomerRepositoryTests : SqliteDatabaseFixture<ComandaDbCon
         await _repository.DeleteAsync(customer);
         var deletedCustomer = await DbContext.Customers.FindAsync(customer.Id);
 
-        Assert.Null(deletedCustomer);
+        Assert.NotNull(deletedCustomer);
+        Assert.True(deletedCustomer.IsDeleted);
     }
 
     [Fact(DisplayName = "Given a valid predicate, should find all matching customers")]

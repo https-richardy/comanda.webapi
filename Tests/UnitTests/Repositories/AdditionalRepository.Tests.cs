@@ -55,7 +55,8 @@ public sealed class AdditionalRepositoryTests : SqliteDatabaseFixture<ComandaDbC
         await _repository.DeleteAsync(additional);
         var deletedAdditional = await DbContext.Additionals.FindAsync(additional.Id);
 
-        Assert.Null(deletedAdditional);
+        Assert.NotNull(deletedAdditional);
+        Assert.True(deletedAdditional.IsDeleted);
     }
 
     [Fact(DisplayName = "Should fetch all additionals")]

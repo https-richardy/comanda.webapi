@@ -51,18 +51,22 @@ public abstract class MinimalRepository<TEntity, TDbContext> : IMinimalRepositor
 
     public virtual async Task DeleteAsync(TEntity entity)
     {
-        _dbContext.Set<TEntity>().Remove(entity);
-        await _dbContext.SaveChangesAsync();
+        entity.MarkAsDeleted();
+        await UpdateAsync(entity);
     }
 
     public virtual async Task<IEnumerable<TEntity>> RetrieveAllAsync()
     {
-        return await _dbContext.Set<TEntity>().ToListAsync();
+        return await _dbContext.Set<TEntity>()
+            .Where(entity => entity.IsDeleted == false)
+            .ToListAsync();
     }
 
     # pragma warning disable CS8603
     public virtual async Task<TEntity> RetrieveByIdAsync(int id)
     {
-        return await _dbContext.Set<TEntity>().FindAsync(id);
+        return await _dbContext.Set<TEntity>()
+            .Where(entity => entity.IsDeleted == false)
+            .FirstOrDefaultAsync(entity => entity.Id == id);
     }
 }

@@ -174,6 +174,7 @@ public sealed class CouponServiceIntegrationTest : IntegrationFixture<ComandaDbC
 
         var deletedCoupon = await DbContext.Coupons.FirstOrDefaultAsync(coupon => coupon.Id == coupon.Id);
 
-        Assert.Null(deletedCoupon);
+        Assert.NotNull(deletedCoupon);
+        Assert.True(deletedCoupon.IsDeleted);
     }
 }

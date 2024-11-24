@@ -8,6 +8,7 @@ public sealed class AdditionalRepository(ComandaDbContext dbContext) :
     {
         return await _dbContext.Additionals
             .AsNoTracking()
+            .Where(additional => additional.IsDeleted == false)
             .Include(additional => additional.Category)
             .ToListAsync();
     }

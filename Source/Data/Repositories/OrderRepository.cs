@@ -49,6 +49,7 @@ public sealed class OrderRepository(ComandaDbContext dbContext) :
             .Include(order => order.Items)
             .ThenInclude(item => item.Additionals)
             .ThenInclude(additional => additional.Additional)
+            .Where(order => order.IsDeleted == false)
             .Where(predicate)
             .Skip((pageNumber - pageIndexAdjustment) * pageSize)
             .Take(pageSize)
@@ -70,6 +71,6 @@ public sealed class OrderRepository(ComandaDbContext dbContext) :
             .Include(order => order.Items)
             .ThenInclude(item => item.Additionals)
             .ThenInclude(additional => additional.Additional)
-            .FirstOrDefaultAsync(order => order.Id == id);
+            .FirstOrDefaultAsync(order => order.Id == id && order.IsDeleted == false);
     }
 }

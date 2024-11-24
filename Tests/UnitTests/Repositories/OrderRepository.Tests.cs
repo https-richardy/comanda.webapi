@@ -114,7 +114,8 @@ public sealed class OrderRepositoryTests : SqliteDatabaseFixture<ComandaDbContex
         await _repository.DeleteAsync(order);
         var deletedOrder = await DbContext.Orders.FindAsync(order.Id);
 
-        Assert.Null(deletedOrder);
+        Assert.NotNull(deletedOrder);
+        Assert.True(deletedOrder.IsDeleted);
     }
 
     [Fact(DisplayName = "Should retrieve paged collection of orders")]

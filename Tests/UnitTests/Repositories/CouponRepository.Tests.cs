@@ -58,7 +58,8 @@ public sealed class CouponRepositoryTests : SqliteDatabaseFixture<ComandaDbConte
 
         var deletedCoupon = await DbContext.Coupons.FindAsync(coupon.Id);
 
-        Assert.Null(deletedCoupon);
+        Assert.NotNull(deletedCoupon);
+        Assert.True(deletedCoupon.IsDeleted);
     }
 
     [Fact(DisplayName = "Should retrieve a coupon by ID successfully")]

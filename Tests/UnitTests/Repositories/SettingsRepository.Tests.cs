@@ -72,7 +72,8 @@ public sealed class SettingsRepositoryTests : SqliteDatabaseFixture<ComandaDbCon
         await _repository.DeleteAsync(settings);
         var deletedSettings = await DbContext.Settings.FindAsync(settings.Id);
 
-        Assert.Null(deletedSettings);
+        Assert.NotNull(deletedSettings);
+        Assert.True(deletedSettings.IsDeleted);
     }
 
     [Fact(DisplayName = "Should retrieve all settings")]

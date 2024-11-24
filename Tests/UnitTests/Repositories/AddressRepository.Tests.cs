@@ -53,7 +53,8 @@ public sealed class AddressRepositoryTests : SqliteDatabaseFixture<ComandaDbCont
         await _repository.DeleteAsync(address);
         var deletedAddress = await DbContext.Addresses.FindAsync(address.Id);
 
-        Assert.Null(deletedAddress);
+        Assert.NotNull(deletedAddress);
+        Assert.True(deletedAddress.IsDeleted);
     }
 
     [Fact(DisplayName = "Given a valid predicate, should find all matching addresses")]

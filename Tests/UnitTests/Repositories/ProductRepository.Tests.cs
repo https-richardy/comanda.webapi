@@ -66,7 +66,8 @@ public sealed class ProductRepositoryTests : SqliteDatabaseFixture<ComandaDbCont
         await _repository.DeleteAsync(product);
         var deletedProduct = await DbContext.Products.FindAsync(product.Id);
 
-        Assert.Null(deletedProduct);
+        Assert.NotNull(deletedProduct);
+        Assert.True(deletedProduct.IsDeleted);
     }
 
     [Fact(DisplayName = "Given a valid predicate, should find all matching products")]

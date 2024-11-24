@@ -48,7 +48,8 @@ public sealed class PaymentRepositoryTests : SqliteDatabaseFixture<ComandaDbCont
 
         var deletedPayment = await DbContext.Payments.FindAsync(payment.Id);
 
-        Assert.Null(deletedPayment);
+        Assert.NotNull(deletedPayment);
+        Assert.True(deletedPayment.IsDeleted);
     }
 
     [Fact(DisplayName = "Given an updated payment, should update it successfully")]

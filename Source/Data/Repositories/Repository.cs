@@ -71,6 +71,7 @@ public abstract class Repository<TEntity, TDbContext> : MinimalRepository<TEntit
         return await _dbContext.Set<TEntity>()
             .AsNoTracking()
             .Where(predicate)
+            .Where(entity => entity.IsDeleted == false)
             .ToListAsync();
     }
 
@@ -99,6 +100,7 @@ public abstract class Repository<TEntity, TDbContext> : MinimalRepository<TEntit
 
         return await _dbContext.Set<TEntity>()
             .Skip((pageNumber - pageIndexAdjustment) * pageSize)
+            .Where(entity => entity.IsDeleted == false)
             .Take(pageSize)
             .ToListAsync();
     }
@@ -116,6 +118,7 @@ public abstract class Repository<TEntity, TDbContext> : MinimalRepository<TEntit
         const int pageIndexAdjustment = 1;
 
         return await _dbContext.Set<TEntity>()
+            .Where(entity => entity.IsDeleted == false)
             .Where(predicate)
             .Skip((pageNumber - pageIndexAdjustment) * pageSize)
             .Take(pageSize)

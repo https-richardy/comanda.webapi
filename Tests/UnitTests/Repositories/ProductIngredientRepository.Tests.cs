@@ -76,7 +76,8 @@ public sealed class ProductIngredientRepositoryTests : SqliteDatabaseFixture<Com
         await _repository.DeleteAsync(productIngredient);
         var deletedProductIngredient = await DbContext.ProductIngredients.FindAsync(productIngredient.Id);
 
-        Assert.Null(deletedProductIngredient);
+        Assert.NotNull(deletedProductIngredient);
+        Assert.True(deletedProductIngredient.IsDeleted);
     }
 
     [Fact(DisplayName = "Should retrieve all product ingredients")]

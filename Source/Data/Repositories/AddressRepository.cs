@@ -9,7 +9,7 @@ public sealed class AddressRepository(ComandaDbContext dbContext) :
         return await _dbContext.Customers
             .AsNoTracking()
             .Where(customer => customer.Id == customerId)
-            .SelectMany(customer => customer.Addresses)
+            .SelectMany(customer => customer.Addresses.Where(address => address.IsDeleted == false))
             .ToListAsync();
     }
 }
