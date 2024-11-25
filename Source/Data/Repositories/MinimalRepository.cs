@@ -19,6 +19,12 @@ public abstract class MinimalRepository<TEntity, TDbContext> : IMinimalRepositor
     /// The Entity Framework DbContext for database interactions.
     /// </summary>
     protected readonly TDbContext _dbContext;
+    public IQueryable<TEntity> Entities
+    {
+        get => _dbContext.Set<TEntity>()
+            .Where(entity => entity.IsDeleted == false)
+            .AsQueryable();
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MinimalRepository{TEntity, TDbContext}"/> class.

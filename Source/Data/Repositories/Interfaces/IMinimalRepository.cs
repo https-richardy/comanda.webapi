@@ -6,6 +6,8 @@ namespace Comanda.WebApi.Data.Repositories;
 /// <typeparam name="TEntity">The type of entity managed by the repository.</typeparam>
 public interface IMinimalRepository<TEntity>
 {
+    IQueryable<TEntity> Entities { get; }
+
     Task SaveAsync(TEntity entity);
     Task DeleteAsync(TEntity entity);
     Task UpdateAsync(TEntity entity);
