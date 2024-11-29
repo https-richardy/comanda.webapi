@@ -1,7 +1,7 @@
 namespace Comanda.WebApi.Payloads;
 
 public sealed record AdditionalsListingRequest :
-    IRequest<Response<IEnumerable<Additional>>>
+    IRequest<Response<IEnumerable<FormattedAdditional>>>
 {
 
 }
