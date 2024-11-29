@@ -73,6 +73,16 @@ internal static class MappingExtension
             config.Bind(source: source => source.Price, target: target => target.Price);
         });
 
+        TinyMapper.Bind<Additional, FormattedAdditional>(config =>
+        {
+            config.Bind(source: source => source.Id, target: target => target.Id);
+            config.Bind(source: source => source.Name, target: target => target.Name);
+
+            /* nested type mapping */
+            config.Bind(source: source => source.Category.Id, target: target => target.Category.Id);
+            config.Bind(source: source => source.Category.Name, target: target => target.Category.Name);
+        });
+
         #endregion
 
         #region mapping for order
