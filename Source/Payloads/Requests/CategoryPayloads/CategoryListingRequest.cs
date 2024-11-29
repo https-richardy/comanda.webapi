@@ -1,7 +1,7 @@
 namespace Comanda.WebApi.Payloads;
 
 public sealed record CategoryListingRequest :
-    IRequest<Response<IEnumerable<Category>>>
+    IRequest<Response<IEnumerable<FormattedCategory>>>
 {
 
 }

@@ -46,6 +46,16 @@ internal static class MappingExtension
 
         #endregion
 
+        #region category mapping profiles
+
+        TinyMapper.Bind<Category, FormattedCategory>(config =>
+        {
+            config.Bind(source: source => source.Id, target: target => target.Id);
+            config.Bind(source: source => source.Name, target: target => target.Name);
+        });
+
+        #endregion
+
 
         #region mappings for additional requests
 
