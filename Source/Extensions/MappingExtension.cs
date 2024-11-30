@@ -14,7 +14,7 @@ internal static class MappingExtension
 
         #endregion
 
-        #region mappings for address requests
+        #region address mapping profiles
 
         TinyMapper.Bind<ViaCepResponse, Address>(config =>
         {
@@ -23,6 +23,19 @@ internal static class MappingExtension
             config.Bind(source: source => source.Localidade, target: target => target.City);
             config.Bind(source: source => source.UF, target: target => target.State);
             config.Bind(source: source => source.Cep, target: target => target.PostalCode);
+        });
+
+        TinyMapper.Bind<Address, FormattedAddress>(config =>
+        {
+            config.Bind(source: source => source.Id, target: target => target.Id);
+            config.Bind(source: source => source.Street, target: target => target.Street);
+            config.Bind(source: source => source.Number, target: target => target.Number);
+            config.Bind(source: source => source.City, target: target => target.City);
+            config.Bind(source: source => source.State, target: target => target.State);
+            config.Bind(source: source => source.Neighborhood, target: target => target.Neighborhood);
+            config.Bind(source: source => source.PostalCode, target: target => target.PostalCode);
+            config.Bind(source: source => source.Complement, target: target => target.Complement);
+            config.Bind(source: source => source.Reference, target: target => target.Reference);
         });
 
         #endregion
