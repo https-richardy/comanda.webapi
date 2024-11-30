@@ -98,6 +98,16 @@ internal static class MappingExtension
 
         #endregion
 
+        #region ingredient mapping profiles
+
+        TinyMapper.Bind<Ingredient, BasicIngredientDetail>(config =>
+        {
+            config.Bind(source: source => source.Id, target: target => target.Id);
+            config.Bind(source: source => source.Name, target: target => target.Name);
+        });
+
+        #endregion
+
         #region mapping for order
 
         TinyMapper.Bind<CartItemAdditional, OrderItemAdditional>(config =>
