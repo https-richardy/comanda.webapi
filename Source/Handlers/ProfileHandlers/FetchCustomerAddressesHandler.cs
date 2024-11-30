@@ -4,9 +4,9 @@ public sealed class FetchCustomerAddressesHandler(
     IAddressRepository addressRepository,
     ICustomerRepository customerRepository,
     IUserContextService userContextService
-) : IRequestHandler<FetchCustomerAddressesRequest, Response<IEnumerable<Address>>>
+) : IRequestHandler<FetchCustomerAddressesRequest, Response<IEnumerable<FormattedAddress>>>
 {
-    public async Task<Response<IEnumerable<Address>>> Handle(
+    public async Task<Response<IEnumerable<FormattedAddress>>> Handle(
         FetchCustomerAddressesRequest request,
         CancellationToken cancellationToken
     )
@@ -21,8 +21,12 @@ public sealed class FetchCustomerAddressesHandler(
         var customer = await customerRepository.FindCustomerByUserIdAsync(userIdentifier);
 
         var addresses = await addressRepository.GetAddressesByCustomerIdAsync(customer.Id);
-        return new Response<IEnumerable<Address>>(
-            data: addresses,
+        var payload = addresses
+            .Select(address => TinyMapper.Map<FormattedAddress>(address))
+            .ToList();
+
+        return new Response<IEnumerable<FormattedAddress>>(
+            data: payload,
             statusCode: StatusCodes.Status200OK,
             message: "addresses retrieved successfully."
         );
