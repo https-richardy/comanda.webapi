@@ -14,5 +14,8 @@ public sealed class AdditionalEntityConfiguration : IEntityTypeConfiguration<Add
         builder.Property(additional => additional.Price)
             .IsRequired()
             .HasPrecision(9, 2);
+
+        builder.Navigation(additional => additional.Category)
+            .AutoInclude(true);
     }
 }
