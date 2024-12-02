@@ -143,7 +143,7 @@ public sealed class ProfileEndpointTests :
         var customerResponse = await scopedClient.GetAsync("api/profile/addresses");
 
         customerResponse.EnsureSuccessStatusCode();
-        var customerAddresses = await customerResponse.Content.ReadFromJsonAsync<Response<IEnumerable<Address>>>();
+        var customerAddresses = await customerResponse.Content.ReadFromJsonAsync<Response<IEnumerable<FormattedAddress>>>();
 
         Assert.NotNull(customerAddresses);
         Assert.NotNull(customerAddresses.Data);
@@ -232,7 +232,7 @@ public sealed class ProfileEndpointTests :
         var customerAddressesResponse = await scopedClient.GetAsync("api/profile/addresses");
 
         customerAddressesResponse.EnsureSuccessStatusCode();
-        var customerAddresses = await customerAddressesResponse.Content.ReadFromJsonAsync<Response<IEnumerable<Address>>>();
+        var customerAddresses = await customerAddressesResponse.Content.ReadFromJsonAsync<Response<IEnumerable<FormattedAddress>>>();
 
         Assert.NotNull(customerAddresses);
         Assert.NotNull(customerAddresses.Data);
@@ -353,7 +353,7 @@ public sealed class ProfileEndpointTests :
         customerResponse.EnsureSuccessStatusCode();
 
         // assert: check that the address list no longer contains the deleted address
-        var customerAddresses = await customerResponse.Content.ReadFromJsonAsync<Response<IEnumerable<Address>>>();
+        var customerAddresses = await customerResponse.Content.ReadFromJsonAsync<Response<IEnumerable<FormattedAddress>>>();
 
         Assert.NotNull(customerAddresses);
         Assert.NotNull(customerAddresses.Data);

@@ -55,7 +55,7 @@ public sealed class CategoryEndpointTests :
 
         // act: request the categories
         var response = await _httpClient.GetAsync("api/categories");
-        var responseContent = await response.Content.ReadFromJsonAsync<Response<IEnumerable<Category>>>();
+        var responseContent = await response.Content.ReadFromJsonAsync<Response<IEnumerable<FormattedCategory>>>();
 
         response.EnsureSuccessStatusCode();
 
@@ -97,7 +97,7 @@ public sealed class CategoryEndpointTests :
 
         // assert: verify that the category was updated
         var httpResponse = await authenticatedClient.GetAsync($"api/categories/{category.Id}");
-        var content = await httpResponse.Content.ReadFromJsonAsync<Response<Category>>();
+        var content = await httpResponse.Content.ReadFromJsonAsync<Response<FormattedCategory>>();
 
         Assert.NotNull(content);
         Assert.NotNull(content.Data);
@@ -151,7 +151,7 @@ public sealed class CategoryEndpointTests :
 
         // assert: verify that the category is deleted
         response = await authenticatedClient.GetAsync($"api/categories/{category.Id}");
-        var deletedCategory = await response.Content.ReadFromJsonAsync<Response<Category>>();
+        var deletedCategory = await response.Content.ReadFromJsonAsync<Response<FormattedCategory>>();
 
         Assert.NotNull(deletedCategory);
         Assert.Null(deletedCategory.Data);

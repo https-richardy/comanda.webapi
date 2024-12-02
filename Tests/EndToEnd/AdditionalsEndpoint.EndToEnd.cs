@@ -50,7 +50,7 @@ public sealed class AdditionalsEndpointEndToEndTestSuite :
 
         // act: fetch additionals
         var response = await authenticatedClient.GetAsync("api/additionals");
-        var content = await response.Content.ReadFromJsonAsync<Response<IEnumerable<Additional>>>();
+        var content = await response.Content.ReadFromJsonAsync<Response<IEnumerable<FormattedAdditional>>>();
 
         response.EnsureSuccessStatusCode();
 
@@ -120,7 +120,7 @@ public sealed class AdditionalsEndpointEndToEndTestSuite :
         var urlEncodedContent = new FormUrlEncodedContent(queryParams);
         var queryString = await urlEncodedContent.ReadAsStringAsync();
 
-        var response = await authenticatedClient.GetFromJsonAsync<Response<IEnumerable<Additional>>>($"api/additionals/search?{queryString}");
+        var response = await authenticatedClient.GetFromJsonAsync<Response<IEnumerable<FormattedAdditional>>>($"api/additionals/search?{queryString}");
 
         // assert: verifying the response and data
         Assert.NotNull(response);
@@ -281,7 +281,7 @@ public sealed class AdditionalsEndpointEndToEndTestSuite :
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var httpResponse = await authenticatedClient.GetAsync("api/additionals");
-        var responseContent = await httpResponse.Content.ReadFromJsonAsync<Response<IEnumerable<Additional>>>();
+        var responseContent = await httpResponse.Content.ReadFromJsonAsync<Response<IEnumerable<FormattedAdditional>>>();
 
         Assert.NotNull(responseContent);
         Assert.NotNull(responseContent.Data);
