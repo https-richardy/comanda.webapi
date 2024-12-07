@@ -6,12 +6,13 @@ public sealed class MenuFormatterService : IMenuFormatter
     {
         var stringBuilder = new StringBuilder();
         stringBuilder.AppendLine("Menu:");
+
         foreach (var product in products)
         {
             stringBuilder.AppendLine($"- {product.Title}: {product.Price:C}");
             stringBuilder.AppendLine($"  Description: {product.Description}");
 
-            if (product.Ingredients.Any())
+            if (product.Ingredients.Count != 0)
             {
                 stringBuilder.AppendLine("  Ingredients:");
                 foreach (var ingredient in product.Ingredients)
