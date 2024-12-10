@@ -76,4 +76,17 @@ public sealed class CategoryManagerTests
         Assert.NotNull(result);
         Assert.Equal(categories.Count, result.Count());
     }
+
+    [Fact(DisplayName = "CreateAsync should save new category")]
+    public async Task CreateAsyncShouldSaveNewCategory()
+    {
+        /* arrange: set up a new category */
+        var category = _fixture.Create<Category>();
+
+        /* act: call the create method with the new category */
+        await _categoryManager.CreateAsync(category);
+
+        /* assert: verify that the repository was called once with the new category */
+        _categoryRepository.Verify(repository => repository.SaveAsync(category), Times.Once);
+    }
 }
