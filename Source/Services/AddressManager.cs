@@ -1,13 +1,13 @@
 namespace Comanda.WebApi.Services;
 
-public sealed class AddressService : IAddressManager
+public sealed class AddressManager : IAddressManager
 {
     public IQueryable<Address> Addresses => _repository.Entities;
 
     private readonly IAddressRepository _repository;
     private readonly HttpClient _httpClient;
 
-    public AddressService(IAddressRepository repository, HttpClient httpClient)
+    public AddressManager(IAddressRepository repository, HttpClient httpClient)
     {
         _repository = repository;
         _httpClient = httpClient;
