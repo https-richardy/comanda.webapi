@@ -211,4 +211,28 @@ public sealed class CategoryRepositoryTests : SqliteDatabaseFixture<ComandaDbCon
         var count = await _repository.CountAsync(predicate);
         Assert.Equal(3, count);
     }
+
+    [Fact(DisplayName = "Should apply dynamic filters on IQueryable")]
+    public async Task ShouldApplyDynamicFiltersOnIQueryable()
+    {
+        var categories = new List<Category>
+        {
+            new Category { Name = "Category A" },
+            new Category { Name = "Category B" },
+            new Category { Name = "Category C" }
+        };
+
+        await DbContext.Categories.AddRangeAsync(categories);
+        await DbContext.SaveChangesAsync();
+
+        var query = _repository.Entities;
+
+        query = query.Where(category => category.Name.Contains("Category"));
+
+        var filteredCategories = await query.ToListAsync();
+
+        Assert.Equal(categories.Count, filteredCategories.Count);
+        Assert.Contains(filteredCategories, category => category.Name == "Category A");
+        Assert.Contains(filteredCategories, category => category.Name == "Category B");
+    }
 }
