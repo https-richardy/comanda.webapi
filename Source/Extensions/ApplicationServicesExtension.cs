@@ -15,6 +15,7 @@ internal static class ApplicationServicesExtension
 
         services.AddFileUploadService();
 
+        services.AddScoped<ICategoryManager, CategoryManager>();
         services.AddScoped<IHostInformationProvider, HostInformationProvider>();
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IUserContextService, UserContextService>();
