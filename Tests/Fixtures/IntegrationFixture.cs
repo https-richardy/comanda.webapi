@@ -49,7 +49,8 @@ public abstract class IntegrationFixture<TDbContext> : IAsyncLifetime
             { "SmtpSettings:UserName", "mocked.smtp.user" },
             { "SmtpSettings:Password", "mocked.smtp.password" },
             { "SmtpSettings:Port", "587" },
-            { "SmtpSettings:UseSsl", "true" }
+            { "SmtpSettings:UseSsl", "true" },
+            { "ExternalApis:ViaCep", "https://mocked.viacep.api.com/ws" }
         };
 
         var configuration = new ConfigurationBuilder()
