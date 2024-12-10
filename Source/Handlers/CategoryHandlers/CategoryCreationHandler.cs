@@ -1,26 +1,34 @@
 namespace Comanda.WebApi.Handlers;
 
-public sealed class CategoryCreationHandler(
-    ICategoryRepository categoryRepository,
-    IValidator<CategoryCreationRequest> validator,
-    ILogger<CategoryCreationHandler> logger
-) : IRequestHandler<CategoryCreationRequest, Response>
+public sealed class CategoryCreationHandler :
+    IRequestHandler<CategoryCreationRequest, Response>
 {
-    private readonly ICategoryRepository _repository = categoryRepository;
-    private readonly IValidator<CategoryCreationRequest> _validator = validator;
-    private readonly ILogger _logger = logger;
+    private readonly ICategoryManager _categoryManager;
+    private readonly IValidator<CategoryCreationRequest> _validator;
+    private readonly ILogger _logger;
+
+    public CategoryCreationHandler(
+        ICategoryManager categoryManager,
+        IValidator<CategoryCreationRequest> validator,
+        ILogger<CategoryCreationHandler> logger
+    )
+    {
+        _categoryManager = categoryManager;
+        _validator = validator;
+        _logger = logger;
+    }
 
     public async Task<Response> Handle(
         CategoryCreationRequest request,
         CancellationToken cancellationToken
     )
     {
-        var validationResult = await _validator.ValidateAsync(request);
+        var validationResult = await _validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
             return new ValidationFailureResponse(errors: validationResult.Errors);
 
         var category = new Category { Name = request.Title };
-        await _repository.SaveAsync(category);
+        await _categoryManager.CreateAsync(category);
 
         _logger.LogInformation("Category '{Title}' created successfully.", request.Title);
 
