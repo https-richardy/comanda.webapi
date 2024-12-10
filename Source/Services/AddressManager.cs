@@ -43,6 +43,11 @@ public sealed class AddressManager : IAddressManager
         await _repository.DeleteAsync(address);
     }
 
+    public async Task<bool> VerifyAddressExistsAsync(string zipCode)
+    {
+        return await Addresses.AnyAsync(address => address.PostalCode == zipCode);
+    }
+
     private string RemoveNonDigits(string zipCode)
     {
        return zipCode.Replace("-", "").Trim();

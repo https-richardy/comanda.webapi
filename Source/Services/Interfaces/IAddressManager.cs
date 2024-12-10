@@ -10,4 +10,6 @@ public interface IAddressManager
     public Task CreateAddressAsync(Address address);
     public Task UpdateAddressAsync(Address address);
     public Task DeleteAddressAsync(Address address);
+
+    public Task<bool> VerifyAddressExistsAsync(string zipCode);
 }
