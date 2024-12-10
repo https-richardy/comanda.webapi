@@ -1,19 +1,26 @@
 namespace Comanda.WebApi.Handlers;
 
-public sealed class CategoryDetailHandler(
-    ICategoryRepository categoryRepository,
-    ILogger<CategoryDetailHandler> logger
-) : IRequestHandler<CategoryDetailRequest, Response<Category>>
+public sealed class CategoryDetailHandler :
+    IRequestHandler<CategoryDetailRequest, Response<Category>>
 {
-    private readonly ICategoryRepository _repository = categoryRepository;
-    private readonly ILogger _logger = logger;
+    private readonly ICategoryManager _categoryManager;
+    private readonly ILogger _logger;
+
+    public CategoryDetailHandler(
+        ICategoryManager categoryManager,
+        ILogger<CategoryDetailHandler> logger
+    )
+    {
+        _categoryManager = categoryManager;
+        _logger = logger;
+    }
 
     public async Task<Response<Category>> Handle(
         CategoryDetailRequest request,
         CancellationToken cancellationToken
     )
     {
-        var category = await _repository.RetrieveByIdAsync(request.CategoryId);
+        var category = await _categoryManager.GetAsync(request.CategoryId);
         if (category is null)
             return new Response<Category>(
                 data: null,
