@@ -21,6 +21,20 @@ public abstract class MinimalRepository<TEntity, TDbContext> : IMinimalRepositor
     protected readonly TDbContext _dbContext;
 
     /// <summary>
+    /// Gets the queryable set of non-deleted entities.
+    /// </summary>
+    /// <remarks>
+    /// This property returns a queryable set of entities which are not marked as deleted.
+    /// The <see cref="IQueryable{TEntity}"/> interface is used to support LINQ queries.
+    /// </remarks>
+    public IQueryable<TEntity> Entities
+    {
+        get => _dbContext.Set<TEntity>()
+            .Where(entity => entity.IsDeleted == false)
+            .AsQueryable();
+    }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="MinimalRepository{TEntity, TDbContext}"/> class.
     /// </summary>
     /// <param name="dbContext">The Entity Framework DbContext instance.</param>
