@@ -7,8 +7,8 @@ internal static class ApplicationServicesExtension
     {
         var smtpSettings = configuration.GetSection(nameof(SmtpSettings)).Get<SmtpSettings>();
 
-        services.AddScoped<IAddressService, AddressService>();
-        services.AddHttpClient<IAddressService, AddressService>(client =>
+        services.AddScoped<IAddressManager, AddressManager>();
+        services.AddHttpClient<IAddressManager, AddressManager>(client =>
         {
             client.BaseAddress = new Uri(configuration["ExternalApis:ViaCep"]!);
         });
