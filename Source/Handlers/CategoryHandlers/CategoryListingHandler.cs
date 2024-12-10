@@ -1,19 +1,21 @@
 namespace Comanda.WebApi.Handlers;
 
-public sealed class CategoryListingHandler(
-    ICategoryRepository categoryRepository,
-    ILogger<CategoryListingHandler> logger
-) : IRequestHandler<CategoryListingRequest, Response<IEnumerable<FormattedCategory>>>
+public sealed class CategoryListingHandler :
+    IRequestHandler<CategoryListingRequest, Response<IEnumerable<FormattedCategory>>>
 {
-    private readonly ICategoryRepository _repository = categoryRepository;
-    private readonly ILogger _logger = logger;
+    private readonly ICategoryManager _categoryManager;
+
+    public CategoryListingHandler(ICategoryManager categoryManager)
+    {
+        _categoryManager = categoryManager;
+    }
 
     public async Task<Response<IEnumerable<FormattedCategory>>> Handle(
         CategoryListingRequest request,
         CancellationToken cancellationToken
     )
     {
-        var categories = await _repository.RetrieveAllAsync();
+        var categories = await _categoryManager.GetAllAsync();
         var payload = categories.Select(category => TinyMapper.Map<FormattedCategory>(category));
 
         return new Response<IEnumerable<FormattedCategory>>(
