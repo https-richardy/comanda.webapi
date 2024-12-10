@@ -43,8 +43,9 @@ internal static class ValidationExtension
 
         #endregion
 
-        #region validators for category requests
+        #region category-related validators
 
+        services.AddTransient<IValidator<Category>, CategoryValidator>();
         services.AddTransient<IValidator<CategoryCreationRequest>, CategoryCreationValidator>();
         services.AddTransient<IValidator<CategoryEditingRequest>, CategoryEditingValidator>();
 
