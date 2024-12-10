@@ -89,4 +89,53 @@ public sealed class CategoryManagerTests
         /* assert: verify that the repository was called once with the new category */
         _categoryRepository.Verify(repository => repository.SaveAsync(category), Times.Once);
     }
+
+    [Fact(DisplayName = "UpdateAsync should update existing category")]
+    public async Task UpdateAsyncShouldUpdateExistingCategory()
+    {
+        /* arrange: create a category that will be updated */
+        var category = _fixture.Create<Category>();
+
+        /* act: call the update method with the category */
+        await _categoryManager.UpdateAsync(category);
+
+        /* assert: verify that the repository was called once with the updated category */
+        _categoryRepository.Verify(repository => repository.UpdateAsync(category), Times.Once);
+    }
+
+    [Fact(DisplayName = "DeleteAsync should delete category")]
+    public async Task DeleteAsyncShouldDeleteCategory()
+    {
+        /* Arrange: setup a category that will be deleted */
+        var category = _fixture.Create<Category>();
+
+        /* Act: call the delete method with the category */
+        await _categoryManager.DeleteAsync(category);
+
+        /* Assert: verify that the repository was called once with the deleted category */
+        _categoryRepository.Verify(repository => repository.DeleteAsync(category), Times.Once);
+    }
+
+    [Fact(DisplayName = "Categories property should return IQueryable")]
+    public void CategoriesShouldReturnIQueryable()
+    {
+        /* arrange: set up a list of categories */
+        var categories = _fixture
+            .CreateMany<Category>()
+            .AsQueryable();
+
+        /* arrange: configure the repository.Entities to return the list of categories (as queryable) */
+        _categoryRepository
+            .Setup(repository => repository.Entities)
+            .Returns(categories);
+
+        /* act: call the Categories property */
+        var result = _categoryManager.Categories;
+
+        /* assert: verify that the result is not null */
+        Assert.NotNull(result);
+
+        /* assert: verify that the result is equal to the list of categories */
+        Assert.Equal(categories, result);
+    }
 }
