@@ -1,32 +1,40 @@
 namespace Comanda.WebApi.Handlers;
 
-public sealed class AddressEditingHandler(
-    IUserContextService userContextService,
-    IAddressRepository addressRepository,
-    IAddressService addressService,
-    ICustomerRepository customerRepository,
-    IValidator<AddressEditingRequest> validator
-) : IRequestHandler<AddressEditingRequest, Response>
+public sealed class AddressEditingHandler :
+    IRequestHandler<AddressEditingRequest, Response>
 {
+    private readonly IAddressManager _addressManager;
+    private readonly IUserContextService _userContextService;
+    private readonly ICustomerRepository _customerRepository;
+    private readonly IValidator<AddressEditingRequest> _validator;
+
+    public AddressEditingHandler(
+        IAddressManager addressManager,
+        IUserContextService userContextService,
+        ICustomerRepository customerRepository,
+        IValidator<AddressEditingRequest> validator
+    )
+    {
+        _addressManager = addressManager;
+        _userContextService = userContextService;
+        _customerRepository = customerRepository;
+        _validator = validator;
+    }
+
     public async Task<Response> Handle(
         AddressEditingRequest request,
         CancellationToken cancellationToken
     )
     {
-        var userIdentifier = userContextService.GetCurrentUserIdentifier();
+        var userIdentifier = _userContextService.GetCurrentUserIdentifier();
 
-        var validationResult = await validator.ValidateAsync(request);
+        var validationResult = await _validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
             return new ValidationFailureResponse(errors: validationResult.Errors);
 
-        /*
-            It is impossible for the 'userIdentifier' to be null at this point
-            since the 'ProfileController' restricts access only to authenticated customers.
-        */
-        #pragma warning disable CS8604, CS8602
 
-        var customer = await customerRepository.FindCustomerByUserIdAsync(userIdentifier);
-        var address = customer.Addresses.FirstOrDefault(address => address.Id == request.AddressId);
+        var customer = await _customerRepository.FindCustomerByUserIdAsync(userIdentifier!);
+        var address = customer!.Addresses.FirstOrDefault(address => address.Id == request.AddressId);
 
         if (address is null)
             return new Response(
@@ -36,7 +44,7 @@ public sealed class AddressEditingHandler(
 
         if (!string.IsNullOrEmpty(request.PostalCode))
         {
-            var updatedAddress = await addressService.GetByZipCodeAsync(request.PostalCode);
+            var updatedAddress = await _addressManager.FetchAddressByZipCodeAsync(request.PostalCode);
             if (updatedAddress is not null)
             {
                 address.Street = updatedAddress.Street;
@@ -46,11 +54,26 @@ public sealed class AddressEditingHandler(
             }
         }
 
-        address.Number = !string.IsNullOrEmpty(request.Number) ? request.Number : address.Number;
-        address.Complement = !string.IsNullOrEmpty(request.Complement) ? request.Complement : address.Complement;
-        address.Reference = !string.IsNullOrEmpty(request.Reference) ? request.Reference : address.Reference;
+        /*
+            the following fields are optional.
+            if they are defined in the request, we will update the corresponding values in the 'address' object.
+            otherwise, the existing values will be retained.
+        */
 
-        await addressRepository.UpdateAsync(address);
+
+        address.Number = !string.IsNullOrEmpty(request.Number) ?
+            request.Number :
+            address.Number;
+
+        address.Complement = !string.IsNullOrEmpty(request.Complement) ?
+            request.Complement :
+            address.Complement;
+
+        address.Reference = !string.IsNullOrEmpty(request.Reference) ?
+            request.Reference :
+            address.Reference;
+
+        await _addressManager.UpdateAddressAsync(address);
 
         return new Response(
             statusCode: StatusCodes.Status200OK,

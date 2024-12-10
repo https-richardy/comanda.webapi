@@ -1,27 +1,45 @@
 namespace Comanda.WebApi.Handlers;
 
-public sealed class NewAddressRegistrationHandler(
-    IUserContextService userContextService,
-    IAddressRepository addressRepository,
-    IAddressService addressService,
-    ICustomerRepository customerRepository,
-    IValidator<NewAddressRegistrationRequest> validator
-) : IRequestHandler<NewAddressRegistrationRequest, Response>
+public sealed class NewAddressRegistrationHandler :
+    IRequestHandler<NewAddressRegistrationRequest, Response>
 {
+    private readonly IUserContextService _userContextService;
+    private readonly IValidator<NewAddressRegistrationRequest> _validator;
+    private readonly IAddressManager _addressManager;
+    private readonly ICustomerRepository _customerRepository;
+
+    public NewAddressRegistrationHandler(
+        IUserContextService userContextService,
+        IValidator<NewAddressRegistrationRequest> validator,
+        IAddressManager addressManager,
+        ICustomerRepository customerRepository
+    )
+    {
+        _userContextService = userContextService;
+        _validator = validator;
+        _addressManager = addressManager;
+        _customerRepository = customerRepository;
+    }
+
     public async Task<Response> Handle(
         NewAddressRegistrationRequest request,
         CancellationToken cancellationToken
     )
     {
-        var userIdentifier = userContextService.GetCurrentUserIdentifier();
+        var userIdentifier = _userContextService.GetCurrentUserIdentifier();
 
-        var validationResult = await validator.ValidateAsync(request);
+        var validationResult = await _validator.ValidateAsync(request);
         if (!validationResult.IsValid)
             return new ValidationFailureResponse(errors: validationResult.Errors);
 
-        #pragma warning disable CS8604
-        var address = await addressService.GetByZipCodeAsync(request.PostalCode);
-        var customer = await customerRepository.FindCustomerByUserIdAsync(userIdentifier);
+        var address = await _addressManager.FetchAddressByZipCodeAsync(request.PostalCode);
+        var customer = await _customerRepository.FindCustomerByUserIdAsync(userIdentifier!);
+
+        if (address is null)
+            return new Response(
+                statusCode: StatusCodes.Status404NotFound,
+                message: "The zip code / postal code was not found."
+            );
 
         address.Number = !string.IsNullOrEmpty(request.Number) ?
             request.Number :
@@ -35,13 +53,12 @@ public sealed class NewAddressRegistrationHandler(
             request.Reference :
             address.Reference;
 
-
         if (customer is not null)
         {
             customer.Addresses.Add(address);
 
-            await addressRepository.SaveAsync(address);
-            await customerRepository.UpdateAsync(customer);
+            await _addressManager.CreateAddressAsync(address);
+            await _customerRepository.UpdateAsync(customer);
         }
 
         return new Response(
