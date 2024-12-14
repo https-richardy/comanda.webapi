@@ -196,16 +196,46 @@ public sealed class ProfileEndpointTests :
     {
         // arrange: obtaining the necessary services and mocking the address service
         var addressServiceMock = new Mock<IAddressManager>();
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+
         var address = _fixture.Build<Address>()
             .Without(address => address.Reference)
             .Without(address => address.Complement)
+            .Create();
+
+        var customer = _fixture.Build<Customer>()
+            .With(customer => customer.Addresses, new List<Address> { address })
             .Create();
 
         addressServiceMock
             .Setup(service => service.FetchAddressByZipCodeAsync(It.IsAny<string>()))
             .ReturnsAsync(address);
 
-        // arrange: obtaining the necessary services
+        addressServiceMock
+            .Setup(service => service.UpdateAddressAsync(It.IsAny<Address>()))
+            .Callback<Address>(address =>
+            {
+                var dbContext = _factory.GetDbContext();
+
+                dbContext.Addresses.Update(address);
+                dbContext.SaveChanges();
+            })
+            .Returns(Task.CompletedTask);
+
+        customerRepositoryMock
+            .Setup(repository => repository.FindCustomerByUserIdAsync(It.IsAny<string>()))
+            .ReturnsAsync(customer);
+
+        customerRepositoryMock
+            .Setup(repository => repository.UpdateAsync(It.IsAny<Customer>()))
+            .Callback<Customer>(updatedCustomer =>
+            {
+                var dbContext = _factory.GetDbContext();
+                dbContext.Customers.Add(updatedCustomer);
+                dbContext.SaveChanges();
+            })
+            .Returns(Task.CompletedTask);
+
         var services = _factory.GetServiceProvider();
         var dbContext = services.GetRequiredService<ComandaDbContext>();
 
@@ -221,13 +251,17 @@ public sealed class ProfileEndpointTests :
         {
             builder.ConfigureServices(services =>
             {
-                var descriptor = services.FirstOrDefault(descriptor => descriptor.ServiceType == typeof(IAddressManager));
-                if (descriptor is not null)
-                {
+                var addressManagerDescriptor = services.FirstOrDefault(descriptor => descriptor.ServiceType == typeof(IAddressManager));
+                var customerRepositoryDescriptor = services.FirstOrDefault(descriptor => descriptor.ServiceType == typeof(ICustomerRepository));
+
+                if (addressManagerDescriptor is not null)
                     services.RemoveAll<IAddressManager>();
-                }
+
+                if (customerRepositoryDescriptor is not null)
+                    services.Remove(customerRepositoryDescriptor);
 
                 services.AddScoped(provider => addressServiceMock.Object);
+                services.AddScoped(provider => customerRepositoryMock.Object);
             });
         })
         .CreateClient();
