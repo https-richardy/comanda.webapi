@@ -78,27 +78,60 @@ public sealed class ProfileEndpointTests :
     [Fact(DisplayName = "[RF030] - Should register a new address and associate it with the customer")]
     public async Task ShouldRegisterNewAddressAndAssociateWithCustomer()
     {
-        var addressServiceMock = new Mock<IAddressService>();
+        var addressServiceMock = new Mock<IAddressManager>();
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+
         var address = _fixture.Build<Address>()
             .Without(address => address.Reference)
             .Without(address => address.Complement)
             .Create();
 
         addressServiceMock
-            .Setup(service => service.GetByZipCodeAsync(It.IsAny<string>()))
+            .Setup(service => service.FetchAddressByZipCodeAsync(It.IsAny<string>()))
             .ReturnsAsync(address);
+
+        addressServiceMock
+            .Setup(service => service.CreateAddressAsync(It.IsAny<Address>()))
+            .Returns(Task.CompletedTask);
+
+        customerRepositoryMock
+            .Setup(repository => repository.FindCustomerByUserIdAsync(It.IsAny<string>()))
+            .ReturnsAsync(new Customer
+            {
+                Id = _fixture.Create<int>(),
+                Addresses = new List<Address>()
+            });
+
+        customerRepositoryMock
+            .Setup(repository => repository.UpdateAsync(It.IsAny<Customer>()))
+            .Callback<Customer>(customer =>
+            {
+                var dbContext = _factory.GetDbContext();
+
+                dbContext.Customers.Add(customer);
+                dbContext.SaveChanges();
+
+                customer.Addresses.Add(address);
+                dbContext.Customers.Update(customer);
+                dbContext.SaveChanges();
+            })
+            .Returns(Task.CompletedTask);
 
         var scopedClient = _factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
             {
-                var descriptor = services.FirstOrDefault(descriptor => descriptor.ServiceType == typeof(IAddressService));
-                if (descriptor is not null)
-                {
-                    services.RemoveAll<IAddressService>();
-                }
+                var addressManagerDescriptor = services.FirstOrDefault(descriptor => descriptor.ServiceType == typeof(IAddressManager));
+                var customerRepositoryDescriptor = services.FirstOrDefault(descriptor => descriptor.ServiceType == typeof(ICustomerRepository));
+
+                if (addressManagerDescriptor is not null)
+                    services.RemoveAll<IAddressManager>();
+
+                if (customerRepositoryDescriptor is not null)
+                    services.Remove(customerRepositoryDescriptor);
 
                 services.AddScoped(provider => addressServiceMock.Object);
+                services.AddScoped(provider => customerRepositoryMock.Object);
             });
         })
         .CreateClient();
@@ -162,14 +195,14 @@ public sealed class ProfileEndpointTests :
     public async Task ShouldUpdateExistingAddressAndReturnUpdatedInfo()
     {
         // arrange: obtaining the necessary services and mocking the address service
-        var addressServiceMock = new Mock<IAddressService>();
+        var addressServiceMock = new Mock<IAddressManager>();
         var address = _fixture.Build<Address>()
             .Without(address => address.Reference)
             .Without(address => address.Complement)
             .Create();
 
         addressServiceMock
-            .Setup(service => service.GetByZipCodeAsync(It.IsAny<string>()))
+            .Setup(service => service.FetchAddressByZipCodeAsync(It.IsAny<string>()))
             .ReturnsAsync(address);
 
         // arrange: obtaining the necessary services
@@ -188,10 +221,10 @@ public sealed class ProfileEndpointTests :
         {
             builder.ConfigureServices(services =>
             {
-                var descriptor = services.FirstOrDefault(descriptor => descriptor.ServiceType == typeof(IAddressService));
+                var descriptor = services.FirstOrDefault(descriptor => descriptor.ServiceType == typeof(IAddressManager));
                 if (descriptor is not null)
                 {
-                    services.RemoveAll<IAddressService>();
+                    services.RemoveAll<IAddressManager>();
                 }
 
                 services.AddScoped(provider => addressServiceMock.Object);
