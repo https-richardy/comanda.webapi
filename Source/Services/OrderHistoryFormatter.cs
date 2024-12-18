@@ -1,6 +1,6 @@
 namespace Comanda.WebApi.Services;
 
-public sealed class OrderHistoryFormatter() : IOrderHistoryFormatter
+public sealed class OrderHistoryFormatter : IOrderHistoryFormatter
 {
     public string Format(IEnumerable<Order> orderHistory)
     {
