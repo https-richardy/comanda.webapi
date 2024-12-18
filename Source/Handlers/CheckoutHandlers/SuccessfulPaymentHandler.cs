@@ -1,9 +1,9 @@
 namespace Comanda.WebApi.Handlers;
 
-public sealed class SuccessfulPaymentHandler(IMediator mediator) : 
-    IRequestHandler<SuccessfulPaymentRequest, Response>
+public sealed class SuccessfulPaymentHandler(IMediator mediator, ISettingsRepository settingsRepository) :
+    IRequestHandler<SuccessfulPaymentRequest, Response<OrderConfirmation>>
 {
-    public async Task<Response> Handle(
+    public async Task<Response<OrderConfirmation>> Handle(
         SuccessfulPaymentRequest request,
         CancellationToken cancellationToken
     )
@@ -23,7 +23,16 @@ public sealed class SuccessfulPaymentHandler(IMediator mediator) :
         var paymentProcessingRequest = new PaymentProcessingRequest { Order = order, Session = session };
         await mediator.Send(paymentProcessingRequest);
 
-        return new Response(
+        var settings = await settingsRepository.GetSettingsAsync();
+        var payload = new OrderConfirmation
+        {
+            OrderId = order.Id,
+            TotalPaid = (long)session.AmountTotal! / 100m,
+            EstimatedDeliveryTimeInMinutes = settings.EstimatedDeliveryTimeInMinutes
+        };
+
+        return new Response<OrderConfirmation>(
+            data: payload,
             statusCode: StatusCodes.Status200OK,
             message: "payment processed and order successfully created."
         );
