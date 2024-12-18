@@ -21,7 +21,10 @@ public sealed class ProductListingHandler(
                 .Normalize(NormalizationForm.FormD)
                 .ToLowerInvariant();
 
-            predicate = predicate ??= product => product.Title.Contains(title);
+            predicate = predicate ??= product => EF.Functions.Like(
+                product.Title.Trim().ToLower(),
+                $"%{title}%"
+            );
         }
 
         if (request.MinPrice.HasValue)
