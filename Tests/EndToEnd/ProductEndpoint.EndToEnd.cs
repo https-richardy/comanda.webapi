@@ -238,7 +238,14 @@ public sealed class ProductEndpointTests :
 
         // assert: verify fetching the product returns 404
         var getProductResponse = await authenticatedClient.GetAsync($"api/products/{createdProductId}");
+        var getAllProductsResponse = await authenticatedClient.GetFromJsonAsync<Response<PaginationHelper<FormattedProduct>>>("api/products");
+
         Assert.Equal(HttpStatusCode.NotFound, getProductResponse.StatusCode);
+
+        Assert.NotNull(getAllProductsResponse);
+        Assert.NotNull(getAllProductsResponse.Data);
+
+        Assert.Empty(getAllProductsResponse.Data.Results);
     }
 
     [Fact(DisplayName = "Given a valid product ID, it must return the product details")]
