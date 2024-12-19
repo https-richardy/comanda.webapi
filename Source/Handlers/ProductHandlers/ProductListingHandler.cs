@@ -14,6 +14,8 @@ public sealed class ProductListingHandler(
         IEnumerable<Product> products;
         Expression<Func<Product, bool>> predicate = null;
 
+        predicate = predicate ??= product => product.IsDeleted == false;
+
         if (!string.IsNullOrEmpty(request.Title))
         {
             var title = request.Title
