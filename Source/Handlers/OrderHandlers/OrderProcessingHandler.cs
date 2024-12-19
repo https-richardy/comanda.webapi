@@ -53,8 +53,8 @@ public sealed class OrderProcessingHandler(
     {
         var notification = new Notification
         {
-            Title = "New Order!",
-            Message = $"A new order has been created with ID: {order.Id}",
+            Title = "Novo pedido!",
+            Message = $"Um novo pedido foi criado com ID: #{order.Id} às {order.Date.ToShortTimeString()}",
             Timestamp = DateTime.Now
         };
 
