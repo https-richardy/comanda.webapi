@@ -12,44 +12,35 @@ public sealed class ProductListingHandler(
     )
     {
         IEnumerable<Product> products;
-        Expression<Func<Product, bool>> predicate = null;
-
-        predicate = predicate ??= product => product.IsDeleted == false;
+        Expression<Func<Product, bool>> predicate = product => product.IsDeleted == false;
 
         if (!string.IsNullOrEmpty(request.Title))
         {
             var title = request.Title
                 .Trim()
-                .Normalize(NormalizationForm.FormD)
                 .ToLowerInvariant();
 
-            predicate = predicate ??= product => EF.Functions.Like(
-                product.Title.Trim().ToLower(),
+            predicate = predicate.AndAlso(product => EF.Functions.Like(
+                product.Title.ToLower(),
                 $"%{title}%"
-            );
+            ));
         }
 
         if (request.MinPrice.HasValue)
-            predicate = predicate ??= product => product.Price >= request.MinPrice.Value;
+        {
+            predicate = predicate.AndAlso(product => product.Price >= request.MinPrice.Value);
+        }
 
         if (request.MaxPrice.HasValue)
-            predicate = predicate ??= product => product.Price <= request.MaxPrice.Value;
+        {
+            predicate = predicate.AndAlso(product => product.Price <= request.MaxPrice.Value);
+        }
 
-        if (predicate is not null)
-        {
-            products = await productRepository.PagedAsync(
-                predicate: predicate,
-                pageNumber: request.Page,
-                pageSize: request.PageSize
-            );
-        }
-        else
-        {
-            products = await productRepository.PagedAsync(
-                pageNumber: request.Page,
-                pageSize: request.PageSize
-            );
-        }
+        products = await productRepository.PagedAsync(
+            predicate: predicate,
+            pageNumber: request.Page,
+            pageSize: request.PageSize
+        );
 
         var formattedProducts = products
             .Select(product => (FormattedProduct) product)
