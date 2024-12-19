@@ -489,5 +489,7 @@ $RECYCLE.BIN/
 **/appsettings.Development.json
 
 **/*.sqlite
+**/*.sqlite-shm
+**/*.sqlite-wal
 
 **/wwwroot
