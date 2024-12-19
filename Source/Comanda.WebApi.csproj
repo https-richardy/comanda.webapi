@@ -29,4 +29,9 @@
     <PackageReference Include="TinyMapper" Version="3.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Data/comanda.database.sqlite">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
