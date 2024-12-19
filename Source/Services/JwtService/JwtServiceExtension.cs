@@ -17,7 +17,7 @@ public static class JwtServiceEoptionstensions
     /// <param name="services">The service collection to add the JWT service to.</param>
     /// <param name="configuration">The configuration providing access to application settings.</param>
 
-    #pragma warning disable CS8604
+#pragma warning disable CS8604
     public static void AddJwtBearer(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<IJwtService, JwtService>();
@@ -36,6 +36,22 @@ public static class JwtServiceEoptionstensions
                 ValidateIssuer = false,
                 ValidateAudience = false,
                 ClockSkew = TimeSpan.FromMinutes(5)
+            };
+
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    var accessToken = context.Request.Query["access_token"];
+                    var path = context.HttpContext.Request.Path;
+
+                    if (!string.IsNullOrEmpty(accessToken))
+                    {
+                        context.Token = accessToken;
+                    }
+
+                    return Task.CompletedTask;
+                }
             };
         });
         services.AddAuthorization();
