@@ -11,9 +11,9 @@ internal static class HttpPipelineBuilderExtension
         {
             app.UseSwagger();
             app.UseSwaggerUI();
-
-            await app.Bootstrap();
         }
+
+        await app.Bootstrap();
 
         app.UseRouting();
         app.UseCors();
