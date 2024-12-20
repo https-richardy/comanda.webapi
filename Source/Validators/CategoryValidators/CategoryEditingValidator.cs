@@ -6,10 +6,9 @@ public sealed class CategoryEditingValidator :
     public CategoryEditingValidator()
     {
         RuleFor(category => category.Title)
-            .NotEmpty().WithMessage("Title is required.");
-
-        RuleFor(category => category.Title)
-            .MinimumLength(3).WithMessage("Title must be at least 3 characters.");
+            .NotEmpty().WithMessage("Title is required.")
+            .MinimumLength(3).WithMessage("Title must be at least 3 characters.")
+            .MaximumLength(50).WithMessage("Title must be at most 50 characters.");
 
         RuleFor(category => category.CategoryId)
             .GreaterThan(0).WithMessage("Category ID must be greater than 0.");
