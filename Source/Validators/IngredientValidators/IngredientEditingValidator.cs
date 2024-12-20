@@ -14,6 +14,10 @@ public sealed class IngredientEditingValidator :
 
         RuleFor(request => request.Name)
             .NotEmpty()
-            .WithMessage("Name is required.");
+            .WithMessage("Name is required.")
+            .MinimumLength(3)
+            .WithMessage("Name must be at least 3 characters.")
+            .MaximumLength(50)
+            .WithMessage("Name must be at most 50 characters.");
     }
 }

@@ -7,6 +7,8 @@ public sealed class IngredientCreationValidator :
     public IngredientCreationValidator()
     {
         RuleFor(ingredient => ingredient.Name)
-            .NotEmpty().WithMessage("Name is required.");
+            .NotEmpty().WithMessage("Name is required.")
+            .MinimumLength(3).WithMessage("Name must be at least 3 characters.")
+            .MaximumLength(50).WithMessage("Name must be at most 50 characters.");
     }
 }
