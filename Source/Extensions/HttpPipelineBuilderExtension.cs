@@ -24,10 +24,11 @@ internal static class HttpPipelineBuilderExtension
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
+            endpoints.MapFallbackToFile("app/index.html");
+
             endpoints.MapHub<NotificationHub>("/notification")
                      .RequireCors("RestrictedHubPolicy");
         });
-
 
         app.UseStaticFiles();
     }
