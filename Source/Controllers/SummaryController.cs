@@ -5,6 +5,7 @@ namespace Comanda.WebApi.Controllers;
 public sealed class SummaryController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
+    [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> GetDailySummaryAsync()
     {
         var response = await mediator.Send((DailySummaryRequest) new());
