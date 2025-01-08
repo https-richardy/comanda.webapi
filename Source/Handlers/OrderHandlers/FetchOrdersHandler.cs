@@ -12,7 +12,11 @@ public sealed class FetchOrdersHandler(
         CancellationToken cancellationToken
     )
     {
-        Expression<Func<Order, bool>> predicate = order => order.Status == request.Status;
+        Expression<Func<Order, bool>> predicate = order =>
+            (request.Status == null || order.Status == request.Status) &&
+            order.Status != EOrderStatus.Delivered &&
+            order.Status != EOrderStatus.CancelledByCustomer &&
+            order.Status != EOrderStatus.CancelledBySystem;
 
         var orders = await orderRepository.PagedAsync(
             pageNumber: request.PageNumber,

@@ -5,5 +5,5 @@ public sealed record FetchOrdersRequest :
 {
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = 10;
-    public EOrderStatus Status { get; init; }
+    public EOrderStatus? Status { get; init; }
 }
