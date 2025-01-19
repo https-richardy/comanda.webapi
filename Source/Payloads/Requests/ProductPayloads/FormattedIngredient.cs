@@ -20,7 +20,7 @@ public record class FormattedIngredient
         var ingredient = productIngredient.Ingredient;
 
         return new FormattedIngredient(
-            id: ingredient.Id,
+            id: productIngredient.Id,
             name: ingredient.Name,
             standardQuantity: productIngredient.StandardQuantity,
             isMandatory: productIngredient.IsMandatory
