@@ -221,6 +221,86 @@ public sealed class CartEndpointTests :
         Assert.Equal(1, responseCart.Data.Items.First().Quantity);
     }
 
+    [Fact(DisplayName = "Given a product with optional ingredients, when removing some optional ingredients, then they must be removed from the cart item")]
+    public async Task GivenProductWithOptionalIngredients_WhenRemovingIngredients_ThenTheyMustBeRemovedFromTheCartItem()
+    {
+        // arrange: obtaining the necessary services for the scenario.
+        var services = _factory.GetServiceProvider();
+        var dbContext = _factory.GetDbContext();
+
+        var ingredient1 = _fixture.Create<Ingredient>();
+        var ingredient2 = _fixture.Create<Ingredient>();
+
+        // create product and ingredients
+        var product = _fixture.Build<Product>()
+            .Without(product => product.Ingredients)
+            .Create();
+
+        await dbContext.Products.AddAsync(product);
+        await dbContext.Ingredients.AddRangeAsync(ingredient1, ingredient2);
+        await dbContext.SaveChangesAsync();
+
+        var productIngredient1 = new ProductIngredient(product, ingredient1, standardQuantity: 1, isMandatory: false);
+        var productIngredient2 = new ProductIngredient(product, ingredient2, standardQuantity: 1, isMandatory: false);
+
+        await dbContext.ProductIngredients.AddRangeAsync(productIngredient1, productIngredient2);
+        await dbContext.SaveChangesAsync();
+
+        // assert: that the product and ingredients are saved correctly
+        var savedProduct = await dbContext.Products
+            .FirstOrDefaultAsync(product => product.Id == product.Id);
+
+        Assert.NotNull(savedProduct);
+
+        var savedIngredients = await dbContext.Ingredients
+            .Where(ingredient => ingredient.Id == ingredient1.Id || ingredient.Id == ingredient2.Id)
+            .ToListAsync();
+
+        Assert.Equal(2, savedIngredients.Count);
+
+        var savedProductIngredients = await dbContext.ProductIngredients
+            .Where(productIngredient => productIngredient.Product.Id == product.Id)
+            .ToListAsync();
+
+        Assert.Equal(2, savedProductIngredients.Count);
+
+        var cartItem = _fixture.Build<CartItem>()
+            .With(item => item.Product, product)
+            .Create();
+
+        await dbContext.CartItems.AddAsync(cartItem);
+        await dbContext.SaveChangesAsync();
+
+        // act: authenticate the client and add the product to the cart
+        var authenticatedClient = await _factory.AuthenticateClientAsync(new AuthenticationCredentials
+        {
+            Email = "john.doe@email.com",
+            Password = "JohnDoe1234*"
+        });
+
+        var request = new InsertProductIntoCartRequest
+        {
+            ProductId = product.Id,
+            Quantity = 1,
+            IngredientsIdsToRemove = new List<int> { productIngredient1.Id }
+        };
+
+        var response = await authenticatedClient.PostAsJsonAsync("api/cart/items", request);
+        response.EnsureSuccessStatusCode();
+
+        // act: get the cart and check that only the ingredient to be removed is no longer there
+        var responseCart = await authenticatedClient.GetFromJsonAsync<Response<CartResponse>>("api/cart");
+
+        Assert.NotNull(responseCart);
+        Assert.NotNull(responseCart.Data);
+        Assert.Single(responseCart.Data.Items);
+
+        var unselectedIngredient = await dbContext.UnselectedIngredients
+            .FirstOrDefaultAsync(unselectedIngredient => unselectedIngredient.Ingredient.Id == ingredient1.Id);
+
+        Assert.NotNull(unselectedIngredient);
+    }
+
     public async Task DisposeAsync() => await Task.CompletedTask;
     public async Task InitializeAsync()
     {
