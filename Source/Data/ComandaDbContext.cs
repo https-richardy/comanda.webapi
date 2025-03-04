@@ -7,7 +7,6 @@ public sealed class ComandaDbContext(DbContextOptions options) : IdentityDbConte
     public DbSet<Product> Products { get; set; }
     public DbSet<Ingredient> Ingredients { get; set; }
     public DbSet<UnselectedIngredient> UnselectedIngredients { get; set; }
-    public DbSet<OrderUnselectedIngredient> OrderUnselectedIngredients { get; set; }
     public DbSet<ProductIngredient> ProductIngredients { get; set; }
     public DbSet<Additional> Additionals { get; set; }
     public DbSet<Order> Orders { get; set; }
