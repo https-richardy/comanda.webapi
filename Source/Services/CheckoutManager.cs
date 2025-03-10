@@ -57,7 +57,7 @@ public sealed class CheckoutManager(
         };
 
         var session = await client.CreateAsync(request);
-        var response = new  CheckoutResponse
+        var response = new CheckoutResponse
         {
             SessionId = session.Id,
             Url = session.InitPoint
