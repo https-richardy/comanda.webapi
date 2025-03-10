@@ -32,11 +32,10 @@ public sealed class CheckoutHandler(
                 message: "address with the specified id was not found."
             );
 
-        var session = await checkoutManager.CreateCheckoutSessionAsync(cart, shippingAddress);
-        var response = new CheckoutResponse { SessionId = session.Id, Url = session.Url };
+        var session = await checkoutManager.CreateCheckoutSessionAsync(cart, customer, shippingAddress);
 
         return new Response<CheckoutResponse>(
-            data: response,
+            data: session,
             statusCode: StatusCodes.Status200OK,
             message: "checkout section created successfully."
         );
