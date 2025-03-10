@@ -1,11 +1,11 @@
 namespace Comanda.WebApi.Payloads;
 
-public sealed record FetchPaymentSessionRequest: IRequest<Session>
+public sealed record FetchPreferenceRequest: IRequest<Preference>
 {
-    public string SessionId { get; init; }
+    public string PreferenceId { get; init; }
 
-    public FetchPaymentSessionRequest(string sessionId)
+    public FetchPreferenceRequest(string preferenceId)
     {
-        SessionId = sessionId;
+        PreferenceId = preferenceId;
     }
 }
