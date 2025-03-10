@@ -5,7 +5,7 @@ public static class ServicesExtension
 {
     public static void ConfigureServices(this IServiceCollection services, IConfiguration configuration)
     {
-        Stripe.StripeConfiguration.ApiKey = configuration["Stripe:SecretKey"];
+        MercadoPagoConfig.AccessToken = configuration["MercadoPago:AccessToken"];
 
         services.AddSignalR()
             .AddJsonProtocol(options =>
