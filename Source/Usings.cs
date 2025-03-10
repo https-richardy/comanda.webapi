@@ -42,11 +42,9 @@ global using Comanda.WebApi.Extensions;
 
 global using Nelibur.ObjectMapper;
 global using MediatR;
-global using MercadoPago;
 global using MercadoPago.Config;
 global using MercadoPago.Client.Preference;
 global using MercadoPago.Resource.Preference;
-global using Stripe.Checkout;
 global using FluentValidation;
 global using FluentValidation.Results;
 global using DotnetGeminiSDK;
