@@ -5,48 +5,65 @@ public sealed class CheckoutManager(
     IConfiguration configuration
 ) : ICheckoutManager
 {
-    public async Task<Session> CreateCheckoutSessionAsync(Cart cart, Address address)
+    public async Task<CheckoutResponse> CreateCheckoutSessionAsync(Cart cart, Address address)
     {
+        var client = new PreferenceClient();
         var clientAddress = configuration.GetValue<string>("ClientSettings:Address");
         var settings = await settingsRepository.GetSettingsAsync();
 
-        var options = new SessionCreateOptions
+        var items = cart.Items.Select(item => new PreferenceItemRequest
         {
-            PaymentMethodTypes = new List<string> { "card" },
-            LineItems = cart.Items.Select(ToSessionLineItem).ToList(),
-            Metadata = new Dictionary<string, string>
-            {
-                { "cartId", cart.Id.ToString() },
-                { "shippingAddressId", address.Id.ToString() }
-            },
-            Mode = "payment",
-            SuccessUrl = $"{clientAddress}/checkout/success?sessionId={{CHECKOUT_SESSION_ID}}",
-            CancelUrl = $"{clientAddress}/checkout/cancel?sessionId={{CHECKOUT_SESSION_ID}}",
-        };
+            Id = item.Id.ToString(),
+            Title = item.Product.Title,
+            Quantity = item.Quantity,
+            CurrencyId = "BRL",
+            UnitPrice = item.Product.Price
+        }).ToList();
 
-        options.LineItems.Add(new SessionLineItemOptions
+        items.Add(new PreferenceItemRequest
         {
-            PriceData = new SessionLineItemPriceDataOptions
-            {
-                Currency = "BRL",
-                ProductData = new SessionLineItemPriceDataProductDataOptions
-                {
-                    Name = "Delivery Fee"
-                },
-                UnitAmount = (long)(settings.DeliveryFee * 100),
-            },
-            Quantity = 1
+            Title = "Taxa de Entrega",
+            Quantity = 1,
+            CurrencyId = "BRL",
+            UnitPrice = settings.DeliveryFee
         });
 
-        /*
-            I even tried to DI the SessionService, but it seems that StripeClient decided to
-            to take an unexpected vacation, deconfiguring everything. So here we are, back to basics
-            back to basics and instantiating manually.
-        */
-        var sessionService = new SessionService();
-        var session = await sessionService.CreateAsync(options);
+        var request = new PreferenceRequest
+        {
+            Items = items,
+            BackUrls = new PreferenceBackUrlsRequest
+            {
+                Success = $"",
+                Failure = $"",
+                Pending = $""
+            },
+            AutoReturn = "approved",
+            ExternalReference = cart.Id.ToString(),
+            NotificationUrl = configuration["MercadoPago:NotificationUrl"],
+            Payer = new PreferencePayerRequest
+            {
+                Name = cart.Customer.FullName,
+                Email = cart.Customer.Account.Email
+            },
+            PaymentMethods = new PreferencePaymentMethodsRequest
+            {
+                Installments = 1,
+                ExcludedPaymentMethods = new List<PreferencePaymentMethodRequest>
+                {
+                    new PreferencePaymentMethodRequest { Id = "bolbradesco" },
+                    new PreferencePaymentMethodRequest { Id = "pec" }
+                }
+            }
+        };
 
-        return session;
+        var session = await client.CreateAsync(request);
+        var response = new  CheckoutResponse
+        {
+            SessionId = session.Id,
+            Url = session.InitPoint
+        };
+
+        return response;
     }
 
     public async Task<Session> GetSessionAsync(string sessionId)
