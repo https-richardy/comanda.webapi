@@ -5,10 +5,9 @@ public sealed class CheckoutManager(
     IConfiguration configuration
 ) : ICheckoutManager
 {
-    public async Task<CheckoutResponse> CreateCheckoutSessionAsync(Cart cart, Address address)
+    public async Task<CheckoutResponse> CreateCheckoutSessionAsync(Cart cart, Customer customer, Address address)
     {
         var client = new PreferenceClient();
-        var clientAddress = configuration.GetValue<string>("ClientSettings:Address");
         var settings = await settingsRepository.GetSettingsAsync();
 
         var items = cart.Items.Select(item => new PreferenceItemRequest
@@ -28,22 +27,31 @@ public sealed class CheckoutManager(
             UnitPrice = settings.DeliveryFee
         });
 
+        var successUrl = configuration["MercadoPago:BackUrls:Success"];
+        var failureUrl = configuration["MercadoPago:BackUrls:Failure"];
+        var pendingUrl = configuration["MercadoPago:BackUrls:Pending"];
+
         var request = new PreferenceRequest
         {
             Items = items,
             BackUrls = new PreferenceBackUrlsRequest
             {
-                Success = $"",
-                Failure = $"",
-                Pending = $""
+                Success = successUrl,
+                Failure = failureUrl,
+                Pending = pendingUrl
             },
             AutoReturn = "approved",
             ExternalReference = cart.Id.ToString(),
             NotificationUrl = configuration["MercadoPago:NotificationUrl"],
             Payer = new PreferencePayerRequest
             {
-                Name = cart.Customer.FullName,
-                Email = cart.Customer.Account.Email
+                Name = customer.FullName,
+                Email = customer.Account.Email
+            },
+            Metadata = new Dictionary<string, object>
+            {
+                { "CustomerEmail", customer.Account.Email! },
+                { "ShippingAddressId", address.Id.ToString() }
             },
             PaymentMethods = new PreferencePaymentMethodsRequest
             {
@@ -64,30 +72,5 @@ public sealed class CheckoutManager(
         };
 
         return response;
-    }
-
-    public async Task<Session> GetSessionAsync(string sessionId)
-    {
-        var sessionService = new SessionService();
-        var retrievedSession = await sessionService.GetAsync(sessionId);
-
-        return retrievedSession;
-    }
-
-    private SessionLineItemOptions ToSessionLineItem(CartItem item)
-    {
-        return new SessionLineItemOptions
-        {
-            PriceData = new SessionLineItemPriceDataOptions
-            {
-                Currency = "BRL",
-                ProductData = new SessionLineItemPriceDataProductDataOptions
-                {
-                    Name = item.Product.Title
-                },
-                UnitAmount = (long)(item.Total * 100),
-            },
-            Quantity = item.Quantity
-        };
     }
 }
