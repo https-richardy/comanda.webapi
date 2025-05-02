@@ -1,3 +1,4 @@
+using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 
 namespace Comanda.TestingSuite.Fixtures;
@@ -18,6 +19,8 @@ namespace Comanda.TestingSuite.Fixtures;
 public abstract class IntegrationFixture<TDbContext> : IAsyncLifetime
     where TDbContext : DbContext
 {
+    private SqliteConnection _connection = default!;
+
     protected IFixture Fixture { get; private set; }
     protected IServiceCollection Services { get; private set; }
     protected IServiceProvider ServiceProvider { get; private set; } = default!;
@@ -36,9 +39,12 @@ public abstract class IntegrationFixture<TDbContext> : IAsyncLifetime
 
         Services.AddDbContext<TDbContext>(options =>
         {
-            var connectionString = $"Data Source={Path.GetTempFileName()};";
-            options.UseSqlite(connectionString);
+            _connection = new SqliteConnection("DataSource=:memory:");
+            _connection.Open();
+
+            options.UseSqlite(_connection);
         });
+
 
         var inMemorySettings = new Dictionary<string, string>
         {
@@ -67,6 +73,8 @@ public abstract class IntegrationFixture<TDbContext> : IAsyncLifetime
     {
         await DbContext.Database.EnsureDeletedAsync();
         await DbContext.DisposeAsync();
+
+        await _connection.DisposeAsync();
     }
 
     public async Task InitializeAsync()
