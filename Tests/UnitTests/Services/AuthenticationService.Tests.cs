@@ -44,7 +44,7 @@ public sealed class AuthenticationServiceTests
 
         await Task.WhenAll(task1, task2);
 
-        Assert.Equal(task1.Result, task2.Result);
+        Assert.Equal(await task1, await task2);
     }
 
     [Fact(DisplayName = "Should return true when valid credentials are provided")]
