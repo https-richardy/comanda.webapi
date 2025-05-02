@@ -492,4 +492,12 @@ $RECYCLE.BIN/
 **/*.sqlite-shm
 **/*.sqlite-wal
 
-**/wwwroot
+# Ignora tudo dentro de qualquer pasta wwwroot
+**/wwwroot/**
+
+# Permite apenas o arquivo password-reset.html dentro da wwwroot
+!**/wwwroot/password-reset.html
+
+# Permite a pasta app e tudo dentro dela
+!**/wwwroot/app/
+!**/wwwroot/app/**
