@@ -13,12 +13,16 @@ public sealed class ProductCreationHandler(
         CancellationToken cancellationToken
     )
     {
-        var validationResult = await validator.ValidateAsync(request);
+        var validationResult = await validator.ValidateAsync(
+            instance: request,
+            cancellation: CancellationToken.None
+        );
+
         if (!validationResult.IsValid)
             return new ValidationFailureResponse<ProductCreationResponse>(errors: validationResult.Errors);
 
         var category = await categoryRepository.RetrieveByIdAsync(request.CategoryId);
-        if (category is null)
+        if (category == null)
             return new Response<ProductCreationResponse>(
                 data: null,
                 statusCode: StatusCodes.Status404NotFound,
